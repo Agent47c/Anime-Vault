@@ -154,7 +154,7 @@ class DuplicatePage(QDialog):
             return
         response = QMessageBox.question(
             self, "Delete duplicate copies",
-            f"Permanently delete {len(selected)} selected duplicate files? The retained copy in each group will remain. Both hashes will be checked again.",
+            f"Move {len(selected)} selected duplicate files to the Recycle Bin? The retained copy in each group will remain. Both hashes will be checked again. If recycling fails, the file is kept.",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
         )
         if response == QMessageBox.Yes:
@@ -162,7 +162,7 @@ class DuplicatePage(QDialog):
 
     def _deleted(self, count):
         self.tree.clear()
-        self.status.setText(f"Deleted {count} verified duplicate copies. Scan again to refresh the results.")
+        self.status.setText(f"Moved {count} verified duplicate copies to the Recycle Bin. Scan again to refresh the results.")
         self.data_changed.emit()
 
     def _stop(self):

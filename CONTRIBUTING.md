@@ -10,6 +10,15 @@
 6. Push the branch and open a pull request. Review the diff and the Windows CI result.
 7. Merge only after checks pass, then update version/changelog when preparing a release.
 
+## Change records required for every improvement
+
+Include a changelog entry and a reviewable implementation record for each phase.
+Document the problem and resulting behavior, every changed file's responsibility,
+database migrations/backups, visible UI changes, preserved features, test commands
+and actual results, and remaining limits/manual checks. Keep the pull request title
+and description aligned with the final code, including the final test count.
+Do not present proposed or untested behavior as completed implementation.
+
 ## Required repository configuration
 
 In GitHub Settings, protect `main` with a branch rule/ruleset requiring pull requests

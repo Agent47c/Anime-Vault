@@ -18,7 +18,7 @@ class PermissionTests(unittest.TestCase):
         source = root / 'episode.mkv'
         source.write_bytes(b'video')
         target = root / 'Season 1' / source.name
-        with patch('app.core.organizer.shutil.move', side_effect=PermissionError('Access denied')):
+        with patch('app.core.file_operations._rename_noreplace', side_effect=PermissionError('Access denied')):
             result = execute_organize_anime({'folder_path': str(root), 'moves': [{'source': str(source), 'target': str(target)}]})
         self.assertEqual(result['errors'][0]['kind'], 'permission')
         self.assertIn('No files were moved', organization_summary(result))

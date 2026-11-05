@@ -241,6 +241,7 @@ class MainWindow(QMainWindow):
         self._scan_schedule_timer = QTimer(self)
         self._scan_schedule_timer.timeout.connect(self._check_new_anime)
         self._apply_settings_preferences()
+        QTimer.singleShot(0, self._recover_file_operations)
         if db.get_state("scan_schedule", "startup") != "manual":
             QTimer.singleShot(0, self._check_new_anime)
 
@@ -392,10 +393,12 @@ class MainWindow(QMainWindow):
         right_actions.setSpacing(10)
 
         refresh_btn = QPushButton("Refresh")
+        refresh_btn.setObjectName('toolbar_refresh')
         self.refresh_button = refresh_btn
         refresh_btn.setCursor(Qt.PointingHandCursor)
         refresh_btn.setFixedHeight(44)
-        refresh_btn.setFixedWidth(108)
+        refresh_btn.setMinimumWidth(148)
+        refresh_btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         refresh_menu = QMenu(refresh_btn)
         local = refresh_menu.addAction("Refresh and sync local files")
         local.setToolTip("Scan your library folders without contacting metadata APIs")
@@ -769,6 +772,13 @@ class MainWindow(QMainWindow):
     def _check_new_anime(self):
         self._start_refresh(scan_library=True, new_only=True)
 
+    def _recover_file_operations(self):
+        from contextlib import closing
+        with closing(db.get_connection()) as conn:
+            pending = conn.execute("SELECT 1 FROM file_operations WHERE status<>'COMPLETED' LIMIT 1").fetchone()
+        if pending:
+            self._start_refresh(allow_network=False)
+
     def _request_refresh(self, internet=False):
         if not getattr(self, "_refresh_busy", False):
             self._start_refresh(scan_library=True, allow_network=internet, sync_internet=internet)
@@ -793,7 +803,7 @@ class MainWindow(QMainWindow):
         self._refresh_invalidates_others = bool(scan_library or sync_internet)
         self._refresh_pending = False
         self.refresh_button.setEnabled(False)
-        self.refresh_button.setText("Checking for new anime..." if new_only else "Refreshing...")
+        self.refresh_button.setText("Checking…" if new_only else "Refreshing…")
         self._refresh_worker = RefreshWorker(self, scan_library=scan_library, new_only=new_only, allow_network=allow_network, sync_internet=sync_internet)
         self._refresh_worker.progress.connect(self._show_scan_progress)
         self._refresh_worker.ready.connect(self._apply_refresh_snapshot)
@@ -812,6 +822,7 @@ class MainWindow(QMainWindow):
         self._refresh_snapshot = snapshot
         if snapshot.get("scan_errors"):
             self.refresh_button.setToolTip("\n".join(snapshot["scan_errors"][:10]))
+            self.scan_stats_label.setText(f"Review needed: {len(snapshot['scan_errors'])} scan/file-operation issues — open Organizer")
         else:
             self.refresh_button.setToolTip("")
         pages = [self.library_page, self.storage_page, self.updates_page]

@@ -110,11 +110,13 @@ def set_last_franchise_id(fid: int):
 
 
 def get_last_episode_path() -> Optional[str]:
-    return db.get_state("last_episode_path")
+    from app.core.identity import last_path
+    return last_path()
 
 
 def set_last_episode_path(path: str):
-    db.set_state("last_episode_path", path)
+    from app.core.identity import track_play
+    track_play(path)
 
 
 def get_window_geometry() -> Optional[str]:
@@ -207,7 +209,8 @@ def launch_video_file(video_path: str) -> bool:
     - Sets last opened episode in persistent state
     """
     import subprocess
-    path = Path(video_path).resolve()
+    from app.core.identity import resolve_path
+    path = Path(resolve_path(video_path)).resolve()
 
     if not path.is_file():
         raise FileNotFoundError(f"Video file does not exist: {video_path}")

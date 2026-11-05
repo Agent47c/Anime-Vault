@@ -108,6 +108,9 @@ def execute(plan, journal_path):
         targets.add(key)
         sources.add(str(source))
     moved = []
+    from app.core.identity import sync_inventory
+    from app.core.file_operations import move_file
+    sync_inventory()
     with Path(journal_path).open('x', encoding='utf-8', buffering=1) as journal:
         for entry in plan['moves']:
             source, target = Path(entry['source']), Path(entry['target'])
@@ -119,9 +122,11 @@ def execute(plan, journal_path):
             journal.write(json.dumps({'event': 'planned', **entry}) + '\n')
             journal.flush()
             os.fsync(journal.fileno())
-            rename_preserving_readonly(source, target)
+            move_file(source, target, (entry['bytes'], entry['mtime_ns']), rename=rename_preserving_readonly)
             moved.append(entry)
             journal.write(json.dumps({'event': 'renamed', **entry}) + '\n')
+            journal.flush()
+            os.fsync(journal.fileno())
     return moved
 
 
@@ -143,6 +148,7 @@ def main():
         return
     plan = json.loads(args.apply.read_text(encoding='utf-8'))
     from app import db
+    db.init_db()
     source = db.get_connection()
     backup = sqlite3.connect(str(output / 'before-renames.db'))
     try:

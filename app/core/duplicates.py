@@ -10,6 +10,7 @@ from app import db
 from app.config import VIDEO_EXTENSIONS
 from app.core.consolidation import explicit_season
 from app.core.parser import extract_episode_numbers
+from app.core.recycle_bin import send2trash
 
 
 def signature(path):
@@ -34,6 +35,8 @@ def digest(path, cancelled):
 
 
 def find_duplicates(cancelled=lambda: False, progress=lambda text: None):
+    from app.core.identity import sync_inventory
+    sync_inventory()
     buckets = defaultdict(list)
     seen = set()
     errors = []
@@ -112,10 +115,19 @@ def delete_duplicate(group, candidate, cancelled=lambda: False):
         stream.write(json.dumps({"event": "planned", "path": str(path), "kept": keeper["path"], "sha256": group["hash"]}) + "\n")
         stream.flush()
         os.fsync(stream.fileno())
-        path.unlink()
-        stream.write(json.dumps({"event": "deleted", "path": str(path), "kept": keeper["path"], "sha256": group["hash"]}) + "\n")
+        from app.core.file_operations import recycle_file
+        current = path.stat()
+        expected = (candidate['signature'][0], candidate['signature'][1], str(current.st_dev), str(candidate['signature'][2]))
+        recycle_file(path, expected, recycle=send2trash)
+        if path.exists():
+            raise OSError('Recycle Bin operation did not remove the selected copy')
+        stream.write(json.dumps({"event": "recycled", "path": str(path), "kept": keeper["path"], "sha256": group["hash"]}) + "\n")
+        stream.flush()
+        os.fsync(stream.fileno())
     touched = set()
     with closing(db.get_connection()) as connection, connection:
+        from app.core.identity import path_key
+        connection.execute("UPDATE physical_files SET availability='RECYCLED' WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)", (path_key(path),))
         for season in connection.execute("SELECT * FROM seasons WHERE season_folder_path IS NOT NULL").fetchall():
             root = Path(season["season_folder_path"])
             names = json.loads(season["video_files_json"] or "[]")

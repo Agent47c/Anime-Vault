@@ -89,6 +89,10 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
                 )
     db.recalculate_franchise_size(destination)
     db.recalculate_franchise_storage_state(destination)
+    from app.core.identity import bind_release
+    for release, sid in assignments:
+        if sid is not None:
+            bind_release(sid, release)
     return destination
 
 

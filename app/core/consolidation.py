@@ -224,6 +224,9 @@ def apply_plan(plan, journal_path, progress=None, should_stop=None):
         targets.add(os.path.normcase(str(target)))
         sources.add(str(resolved))
     moved, errors, cancelled = [], [], False
+    from app.core.identity import sync_inventory
+    from app.core.file_operations import move_file
+    sync_inventory()
     with Path(journal_path).open('x', encoding='utf-8', buffering=1) as journal:
         for entry in selected:
             if should_stop and should_stop():
@@ -241,16 +244,13 @@ def apply_plan(plan, journal_path, progress=None, should_stop=None):
                 journal.write(json.dumps({'event': 'planned', **entry}) + '\n')
                 journal.flush()
                 os.fsync(journal.fileno())
-                if os.name == 'nt':
-                    os.rename(source, target)  # Windows rename fails if destination exists.
-                else:
-                    os.link(source, target)  # Atomic no-overwrite creation on the same volume.
-                    source.unlink()
+                move_file(source, target, (entry['bytes'], entry['mtime_ns']))
                 moved.append(entry)
                 if progress:
                     progress(len(moved), len(selected), entry['series'])
                 journal.write(json.dumps({'event': 'moved', **entry}) + '\n')
                 journal.flush()
+                os.fsync(journal.fileno())
             except (OSError, ValueError) as error:
                 errors.append({'source': str(source), 'error': str(error)})
                 journal.write(json.dumps({'event': 'error', 'source': str(source), 'error': str(error)}) + '\n')
@@ -297,7 +297,8 @@ def repair_moved_paths(entries):
         return 0, 0
 
     def key(path):
-        return os.path.normcase(os.path.normpath(path))
+        from app.core.identity import path_key
+        return path_key(path)
 
     moves = {key(entry['source']): Path(entry['target']) for entry in entries}
 
@@ -371,6 +372,10 @@ def repair_moved_paths(entries):
                 if key(target) != key(old_root):
                     conn.execute("UPDATE franchises SET root_folder_path=? WHERE id=?", (str(target), record['id']))
                     changed_roots += 1
+        from app.core.identity import relocate
+        for entry in entries:
+            if not Path(entry['source']).exists() and Path(entry['target']).is_file():
+                relocate(conn, entry['source'], entry['target'])
     for owner, original in aliases:
         source, target = db.get_series(owner), db.get_series(original)
         if source["id"] == owner and source["series_member_ids"] == [owner] and target["id"] != owner:

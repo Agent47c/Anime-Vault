@@ -61,6 +61,9 @@ class RefreshWorker(QThread):
         memory.row_factory = sqlite3.Row
         try:
             errors = []
+            from app.core.file_operations import recover_operations
+            recovery = recover_operations()
+            errors.extend(recovery['errors'])
             if self.scan_library:
                 from app.core.scanner import scan_watched_directories
 
@@ -70,7 +73,7 @@ class RefreshWorker(QThread):
                     self.progress.emit(message, current, total)
 
                 result = scan_watched_directories(progress_callback=report, new_only=self.new_only, allow_network=self.allow_network)
-                errors = result["errors"]
+                errors.extend(result["errors"])
                 if self.new_only and not (result["new"] or result["updated"] or errors):
                     memory.close()
                     self.unchanged.emit()
