@@ -284,7 +284,12 @@ def record_play(conn, path, event='PLAYED'):
 
 def last_path():
     with closing(db.get_connection()) as conn:
-        row = conn.execute("SELECT l.path FROM file_locations l JOIN app_state a ON a.key='last_file_id' AND l.file_id=CAST(a.value AS INTEGER)").fetchone()
+        row = conn.execute("SELECT l.path,f.availability FROM file_locations l JOIN physical_files f ON f.id=l.file_id JOIN app_state a ON a.key='last_file_id' AND l.file_id=CAST(a.value AS INTEGER)").fetchone()
+        if row and row['availability'] not in ('RECYCLED','REPLACED'):
+            return row[0]
+        alternative = conn.execute("SELECT l.path FROM app_state a JOIN file_episodes fe ON fe.episode_id=CAST(a.value AS INTEGER) JOIN physical_files f ON f.id=fe.file_id JOIN file_locations l ON l.file_id=f.id WHERE a.key='last_episode_id' AND f.availability='AVAILABLE' ORDER BY f.id LIMIT 1").fetchone()
+        if alternative:
+            return alternative[0]
         if row:
             return row[0]
         row = conn.execute("SELECT value FROM app_state WHERE key='last_episode_path'").fetchone()

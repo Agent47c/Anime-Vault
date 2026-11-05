@@ -360,3 +360,12 @@ class DataSafetyTests(unittest.TestCase):
         identity.track_play(str(new_file))
         histories = self.rows('SELECT h.episode_id,e.original_number FROM episode_history h JOIN episodes e ON e.id=h.episode_id')
         self.assertEqual([row['original_number'] for row in histories], [11])
+
+    def test_recycling_last_played_duplicate_resumes_retained_episode_copy(self):
+        _, keeper = self.indexed(names=('Show S01E10.mkv', 'Show - 10 copy.mkv'))
+        copy = keeper.parent / 'Show - 10 copy.mkv'
+        identity.track_play(str(copy))
+        before = self.rows('SELECT episode_id FROM episode_history')[0]['episode_id']
+        operations.recycle_file(copy, recycle=lambda path: os.rename(path, path + '.recycled-fixture'))
+        self.assertEqual(Path(identity.last_path()).resolve(), keeper.resolve())
+        self.assertEqual(self.rows('SELECT episode_id FROM episode_history')[0]['episode_id'], before)
