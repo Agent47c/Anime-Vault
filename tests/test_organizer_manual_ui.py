@@ -114,10 +114,13 @@ class OrganizerManualUiTests(unittest.TestCase):
     def test_review_close_control_uses_vector_cross_not_a_font_glyph(self):
         from app.ui.components.close_button import CloseButton
         dialog=OrganizerReviewDialog(self.results()['all'][0],{})
+        dialog.show()
+        self.app.processEvents()
         close=dialog.findChild(CloseButton)
         self.assertIsNotNone(close)
         self.assertEqual(close.text(),'')
         self.assertEqual(close.accessibleName(),'Close organization review')
+        self.assertEqual((close.width(),close.height()),(44,44))
         close.click()
         self.assertEqual(dialog.result(),dialog.Rejected)
         dialog.deleteLater()

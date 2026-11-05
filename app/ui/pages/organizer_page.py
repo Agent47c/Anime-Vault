@@ -175,6 +175,7 @@ class OrganizerReviewDialog(QDialog):
         from app.ui.components.close_button import CloseButton
         close_btn = CloseButton(self)
         close_btn.setFixedSize(44, 44)
+        close_btn.setStyleSheet('QPushButton#close_icon_button { min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px; padding: 0; border: none; }')
         close_btn.setAccessibleName('Close organization review')
         close_btn.setToolTip('Close review')
         close_btn.clicked.connect(self.reject)
