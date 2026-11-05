@@ -270,6 +270,12 @@ class SettingsPage(QWidget):
         box.addWidget(self.backup_status)
         right.addWidget(panel)
 
+        panel, box = self._panel("Downloads")
+        self._row(box, "qBittorrent and search source", "Configure the local client, search URL and completed-download indexing.")
+        from app.ui.downloads import open_downloads
+        box.addWidget(self._button("Configure downloads",lambda:open_downloads(self)))
+        right.addWidget(panel)
+
         panel, box = self._panel("Library roots and scanning")
         detail = QLabel("Folders used to discover and index your anime.")
         detail.setObjectName("settings_hint")

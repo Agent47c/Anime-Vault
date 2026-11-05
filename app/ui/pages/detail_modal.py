@@ -317,8 +317,13 @@ class DetailModal(QDialog):
         actions.addWidget(folder_btn)
         actions.addWidget(edit_btn)
         actions.addWidget(rematch_btn)
+        from app.ui.downloads import open_downloads
+        download_btn = QPushButton('Find / download…')
+        download_btn.setCursor(Qt.PointingHandCursor)
+        download_btn.clicked.connect(lambda:open_downloads(self,self.franchise_id))
         actions.addStretch()
         right_layout.addLayout(actions)
+        right_layout.addWidget(download_btn,0,Qt.AlignLeft)
         release_notice = QFrame()
         release_notice.setObjectName("final_panel")
         notice_layout = QHBoxLayout(release_notice)

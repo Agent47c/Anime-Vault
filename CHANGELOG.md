@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — qBittorrent download integration
+
+- Add a configurable website search template and editable title, group, episode
+  and quality query, with the supplied Nyaa search URL as the default.
+- Add authenticated loopback-only qBittorrent magnet/`.torrent` handoff, encrypted
+  Windows password storage, isolated destinations and persistent tracking.
+- Monitor explicitly submitted downloads in workers; verify completed selected
+  video files and index them without moving, renaming or deleting seeding files.
+- Add themed entry points in Settings, anime Details and the episode browser;
+  preserve existing library paths, history, features and API routes.
+- Document setup, native-browser handoff limits, safety and validation in
+  `DOWNLOAD_INTEGRATION.md`.
+
 ## Unreleased — Phase 2: Trustworthy Scanning
 
 - Persist scan inventories and match decisions; index changed scopes only and
