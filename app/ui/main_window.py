@@ -393,10 +393,12 @@ class MainWindow(QMainWindow):
         right_actions.setSpacing(10)
 
         refresh_btn = QPushButton("Refresh")
+        refresh_btn.setObjectName('toolbar_refresh')
         self.refresh_button = refresh_btn
         refresh_btn.setCursor(Qt.PointingHandCursor)
         refresh_btn.setFixedHeight(44)
-        refresh_btn.setFixedWidth(108)
+        refresh_btn.setMinimumWidth(148)
+        refresh_btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         refresh_menu = QMenu(refresh_btn)
         local = refresh_menu.addAction("Refresh and sync local files")
         local.setToolTip("Scan your library folders without contacting metadata APIs")
@@ -801,7 +803,7 @@ class MainWindow(QMainWindow):
         self._refresh_invalidates_others = bool(scan_library or sync_internet)
         self._refresh_pending = False
         self.refresh_button.setEnabled(False)
-        self.refresh_button.setText("Checking for new anime..." if new_only else "Refreshing...")
+        self.refresh_button.setText("Checking…" if new_only else "Refreshing…")
         self._refresh_worker = RefreshWorker(self, scan_library=scan_library, new_only=new_only, allow_network=allow_network, sync_internet=sync_internet)
         self._refresh_worker.progress.connect(self._show_scan_progress)
         self._refresh_worker.ready.connect(self._apply_refresh_snapshot)

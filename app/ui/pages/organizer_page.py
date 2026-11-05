@@ -123,11 +123,16 @@ class ScannerWorker(QThread):
             if self.find_missing:
                 self.finished.emit({"recovery": find_missing_library_files(self.isInterruptionRequested)})
                 return
+            from app.ui.organizer_cache import configuration, save_preview
+            config = configuration(self.rules)
             res = inspect_all_library(
                 rules=self.rules,
                 progress_callback=self._scan_progress,
             )
-            self.finished.emit(res)
+            if not self.isInterruptionRequested():
+                res['_configuration'] = config
+                save_preview(res, config)
+                self.finished.emit(res)
         except InterruptedError:
             self.stopped.emit()
         except Exception as e:
@@ -167,21 +172,11 @@ class OrganizerReviewDialog(QDialog):
 
         top_row.addStretch()
 
-        close_btn = QPushButton("✕")
-        close_btn.setFixedSize(32, 32)
-        close_btn.setStyleSheet("""
-            QPushButton {
-                background: #1d1f29;
-                color: #b0b3c2;
-                border: 1px solid #383a44;
-                border-radius: 6px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background: #222638;
-                color: #ffffff;
-            }
-        """)
+        from app.ui.components.close_button import CloseButton
+        close_btn = CloseButton(self)
+        close_btn.setFixedSize(44, 44)
+        close_btn.setAccessibleName('Close organization review')
+        close_btn.setToolTip('Close review')
         close_btn.clicked.connect(self.reject)
         top_row.addWidget(close_btn)
         layout.addLayout(top_row)
@@ -350,16 +345,30 @@ class OrganizerPage(QWidget):
         self._current_tab = "unorganized"
         self._worker = None
         self._selected_items = set()
+        self._preview_stale = False
 
         self._setup_ui()
         self._load_library_roots()
-        self._initial_scan_started = False
+        from app.ui.organizer_cache import load_preview
+        cached = load_preview(self._rules)
+        if cached:
+            self._on_scan_finished(cached[0], cached=True)
+            if not cached[1]:
+                self._mark_preview_stale('Saved preview needs updating — click Scan now')
+        else:
+            self.top_status_badge.setText('Ready — click Scan now')
+        from app.ui.organizer_cache import configuration
+        self._shown_config = configuration(self._rules)
 
     def showEvent(self, event):
         super().showEvent(event)
-        if not self._initial_scan_started:
-            self._initial_scan_started = True
-            self._start_scan()
+        # Reading configuration is cheap; entering this page never walks media.
+        from app.ui.organizer_cache import configuration
+        current = configuration(self._rules)
+        if current != self._shown_config:
+            self._load_library_roots()
+            self._mark_preview_stale('Library configuration changed — click Scan now')
+            self._shown_config = current
 
     def _setup_ui(self):
         from app.ui.pages.merge_page import MergePage
@@ -784,7 +793,7 @@ class OrganizerPage(QWidget):
         self.table.verticalHeader().setDefaultSectionSize(64)
         self.table.setHorizontalHeaderLabels(["Folder / Anime", "Files", "Proposed", "Action"])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for column, width in ((1, 76), (2, 126), (3, 96)):
+        for column, width in ((1, 76), (2, 126), (3, 116)):
             self.table.horizontalHeader().setSectionResizeMode(column, QHeaderView.Fixed)
             self.table.setColumnWidth(column, width)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -797,14 +806,14 @@ class OrganizerPage(QWidget):
                 gridline-color: transparent;
             }
             QTableWidget::item {
-                padding: 10px 12px;
+                padding: 0;
                 border-bottom: 1px solid #1d1f29;
                 color: #f3f4f6;
             }
             QTableWidget::item:hover {
                 background-color: #1d1f29;
             }
-            QTableWidget#organizer_preview_table QWidget {
+            QTableWidget#organizer_preview_table QWidget#organizer_cell {
                 background: transparent;
             }
         """)
@@ -930,7 +939,7 @@ class OrganizerPage(QWidget):
         if folder:
             db.add_watched_directory(folder)
             self._load_library_roots()
-            self._start_scan()
+            self._mark_preview_stale('Library roots changed — click Scan now')
 
     def _remove_library_root(self, dir_id: int):
         reply = QMessageBox.question(
@@ -942,7 +951,7 @@ class OrganizerPage(QWidget):
         if reply == QMessageBox.Yes:
             db.remove_watched_directory(dir_id)
             self._load_library_roots()
-            self._start_scan()
+            self._mark_preview_stale('Library roots changed — click Scan now')
 
     # -----------------------------------------------------------------------
     # Scanning & Tabs
@@ -991,7 +1000,7 @@ class OrganizerPage(QWidget):
         self.find_missing_btn.setEnabled(True)
         self.top_status_badge.setText("Scan stopped")
 
-    def _on_scan_finished(self, results: dict):
+    def _on_scan_finished(self, results: dict, cached=False):
         self.find_missing_btn.setEnabled(True)
         if "recovery" in results:
             result = results["recovery"]
@@ -1002,6 +1011,8 @@ class OrganizerPage(QWidget):
                 self.top_status_badge.setText(self.top_status_badge.text() + f" ? {result['unavailable']} locations unavailable")
             if result["paths_repaired"]:
                 self.top_status_badge.setText(self.top_status_badge.text() + f" ? {result['paths_repaired']} paths repaired")
+            if result['recovered'] or result['paths_repaired']:
+                self._mark_preview_stale('Paths repaired — click Scan now to update the preview')
             self.top_status_badge.setToolTip('\n'.join(result.get('operation_errors', [])))
             if result.get('operation_errors'):
                 self.top_status_badge.setText(self.top_status_badge.text() + f" · {len(result['operation_errors'])} operations need review")
@@ -1025,6 +1036,7 @@ class OrganizerPage(QWidget):
                     QTimer.singleShot(0, lambda ids=[c['id'] for c in verified]: self._start_scan(repair_ids=ids))
             self.data_changed.emit()
             return
+        self._preview_stale = False
         self._data = results
         self.progress_bar.setVisible(False)
         self.scan_btn.setEnabled(True)
@@ -1054,7 +1066,22 @@ class OrganizerPage(QWidget):
         unknown = len(results.get("unclassified_loose", []))
         if unknown:
             self.top_status_badge.setText(self.top_status_badge.text() + f" · {unknown} loose videos need manual review")
-        self.data_changed.emit()
+        if cached:
+            self.top_status_badge.setText('Saved preview · ' + self.top_status_badge.text())
+            self.top_status_badge.setToolTip('Cached results are shown without scanning. Click Scan now after changing files outside the app.')
+        else:
+            from app.ui.organizer_cache import configuration
+            self._shown_config = configuration(self._rules)
+            if results.get('_configuration', self._shown_config) != self._shown_config:
+                self._mark_preview_stale('Configuration changed during the scan — click Scan now')
+            self.data_changed.emit()
+
+    def _mark_preview_stale(self, message):
+        from app.ui.organizer_cache import invalidate_preview
+        invalidate_preview()
+        self._preview_stale = True
+        self.top_status_badge.setText(message)
+        self._render_table()
 
     def _on_scan_error(self, err: str):
         self.progress_bar.setVisible(False)
@@ -1079,7 +1106,7 @@ class OrganizerPage(QWidget):
             prefs.save("flat_detection", self._rules[key])
         elif key == "organize_without_confirmation":
             prefs.save("preview_moves", not self._rules[key])
-        self._start_scan()
+        self._mark_preview_stale('Detection rules changed — click Scan now')
 
     def _switch_tab(self, tab_id: str):
         self._current_tab = tab_id
@@ -1147,6 +1174,7 @@ class OrganizerPage(QWidget):
             self.table.setRowHeight(row_idx, 64)
             # Column 0: Checkbox + Anime Name + Subtitle Path & Reason
             cell_widget = QWidget()
+            cell_widget.setObjectName('organizer_cell')
             c_layout = QHBoxLayout(cell_widget)
             c_layout.setContentsMargins(8, 6, 8, 6)
             c_layout.setSpacing(12)
@@ -1224,6 +1252,7 @@ class OrganizerPage(QWidget):
                     font-weight: 600;
                 """)
             badge_cell = QWidget()
+            badge_cell.setObjectName('organizer_cell')
             badge_layout = QHBoxLayout(badge_cell)
             badge_layout.setContentsMargins(4, 0, 4, 0)
             b_lbl.setFixedHeight(24)
@@ -1232,25 +1261,17 @@ class OrganizerPage(QWidget):
 
             # Column 3: Review Button
             rev_btn = QPushButton("Review")
+            rev_btn.setObjectName('organizer_review')
+            rev_btn.setAccessibleName('Review organization for ' + item.get('anime_name', 'anime'))
             rev_btn.setCursor(Qt.PointingHandCursor)
-            rev_btn.setFixedHeight(36)
-            rev_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #1d1f29;
-                    color: #f3f4f6;
-                    border: 1px solid #383a44;
-                    border-radius: 6px;
-                    padding: 0 14px;
-                    font-size: 11px;
-                    font-weight: 600;
-                }
-                QPushButton:hover {
-                    background-color: #222638;
-                    border-color: #a78bfa;
-                }
-            """)
+            rev_btn.setFixedHeight(44)
+            rev_btn.setMinimumWidth(88)
+            rev_btn.setEnabled(not self._preview_stale)
+            if self._preview_stale:
+                rev_btn.setToolTip('Click Scan now to update this preview before reviewing file moves.')
             rev_btn.clicked.connect(lambda checked, it=item: self._open_review_dialog(it))
             action_cell = QWidget()
+            action_cell.setObjectName('organizer_cell')
             action_layout = QHBoxLayout(action_cell)
             action_layout.setContentsMargins(6, 0, 6, 0)
             action_layout.addWidget(rev_btn, 0, Qt.AlignVCenter)
@@ -1264,7 +1285,7 @@ class OrganizerPage(QWidget):
         self.summary_label.setText(
             f"{total_selected_files} files · {total_selected_folders} folders selected"
         )
-        self.organize_btn.setEnabled(total_selected_folders > 0 and self._current_tab != "organized")
+        self.organize_btn.setEnabled(total_selected_folders > 0 and self._current_tab != "organized" and not self._preview_stale)
         if self._current_tab == "organized":
             self.organize_btn.setText("Files already organized")
         else:
@@ -1301,6 +1322,8 @@ class OrganizerPage(QWidget):
             self._open_review_dialog(filtered[row])
 
     def _open_review_dialog(self, item: Dict[str, Any]):
+        if self._preview_stale:
+            return
         if self._worker and self._worker.isRunning():
             return
         if self.merge_page.busy():
@@ -1309,7 +1332,7 @@ class OrganizerPage(QWidget):
         def completed(result):
             if result == QDialog.Accepted:
                 self.data_changed.emit()
-                self._start_scan()
+                self._mark_preview_stale('Files changed — click Scan now to update the preview')
         navigate(dlg, completed)
 
     # -----------------------------------------------------------------------
@@ -1365,9 +1388,8 @@ class OrganizerPage(QWidget):
         else:
             QMessageBox.information(self, "Organization result", message)
 
-        # Re-scan library to immediately reflect updated organized state
         self.data_changed.emit()
-        self._start_scan()
+        self._mark_preview_stale('Files processed — click Scan now to update the preview')
 
     def _on_batch_error(self, err: str):
         self.progress_bar.setVisible(False)

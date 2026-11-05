@@ -2,6 +2,11 @@
 
 ## Unreleased — Phase 1: Data Safety and Core Identity
 
+- Follow-up: fixed Organizer Review button sizing/focus, replaced the review close
+  glyph with a vector cross, and widened the refresh menu button for busy labels.
+- Follow-up: Organizer scanning is manual; persist previews between launches and
+  invalidate them when roots, rules or completed file operations change.
+
 - Added separately persisted series, release, episode and physical-file identities,
   episode-linked history/notes, verified number mappings and current file locations.
 - Back up existing databases before identity migration; retain legacy season fields

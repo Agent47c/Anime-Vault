@@ -93,6 +93,13 @@ _SHELL_QSS = Template("""
 QFrame#sidebar { background: $glass; border-right: 1px solid $border; }
 QFrame#top_bar, QFrame#status_bar { background: $bg_primary; }
 QFrame#top_bar { border: none; }
+QPushButton#toolbar_refresh { padding: 0 30px 0 14px; }
+QPushButton#organizer_review { min-width: 68px; min-height: 40px; padding: 0 16px;
+    background: $bg_card_alt; color: $text_primary; border: 2px solid $border;
+    border-radius: 10px; font-size: 14px; font-weight: 600; }
+QPushButton#organizer_review:hover { background: $bg_hover; border-color: $accent_secondary; }
+QPushButton#organizer_review:pressed { background: $bg_hover; border-color: $accent_secondary; }
+QPushButton#organizer_review:focus { border: 2px solid $border_focus; }
 QFrame#status_bar { border-top: 1px solid $border; }
 QFrame#shell_nav, QFrame#collection_row { background: transparent; border-radius: 10px; }
 QFrame#shell_nav:hover, QFrame#shell_nav[active="true"], QFrame#collection_row:hover { background: $bg_card_alt; }
