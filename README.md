@@ -42,7 +42,8 @@ python scripts/check.py
 ```
 
 This compiles the Python source and runs the full unittest suite with Qt's
-offscreen platform. It does not replace manual Windows visual testing.
+offscreen platform and a fresh temporary database, independent of your library.
+It does not replace manual Windows visual testing.
 
 Enable the included local push guard once per clone:
 

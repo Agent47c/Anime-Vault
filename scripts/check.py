@@ -16,7 +16,7 @@ def main():
     commands = [
         [sys.executable, "-m", "compileall", "-q", "app", "scripts",
          *[p.name for p in ROOT.glob("*.py")]],
-        [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
+        [sys.executable, "scripts/run_tests.py"],
     ]
     for command in commands:
         print("Running:", " ".join(command), flush=True)
