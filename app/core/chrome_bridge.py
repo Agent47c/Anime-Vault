@@ -17,7 +17,7 @@ ROOT=Path(__file__).resolve().parents[2]
 def origin(url):
     from urllib.parse import urlsplit
     value=urlsplit(url)
-    if value.scheme not in ('http','https') or not value.hostname or value.username or value.password:
+    if value.scheme not in ('http','https') or not value.hostname or '*' in value.hostname or value.username or value.password:
         raise ValueError('Choose an http/https search website without URL credentials.')
     port=value.port
     host=value.hostname.lower()

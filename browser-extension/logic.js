@@ -1,7 +1,7 @@
 /* Pure checks shared by the Chrome extension and the no-network tests. */
 function sourceOrigin(value) {
   const url = new URL(value);
-  if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) {
+  if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.hostname.includes('*')) {
     throw new Error('Enter an http/https website without credentials.');
   }
   return url.origin;

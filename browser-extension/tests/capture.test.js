@@ -18,6 +18,8 @@ test('website normalization and magnet validation reject unsafe data', () => {
   assert.equal(sourceOrigin('https://nyaa.si/?q=anything'), 'https://nyaa.si');
   assert.throws(() => sourceOrigin('javascript:alert(1)'));
   assert.throws(() => sourceOrigin('https://user:password@example.org'));
+  assert.throws(() => sourceOrigin('https://*'));
+  assert.throws(() => sourceOrigin('https://*.example.org'));
   assert.equal(validMagnet(magnet), true);
   assert.equal(validMagnet('magnet:?xt=urn:btmh:1220' + 'a'.repeat(64)), true);
   assert.equal(validMagnet('https://example.org'), false);

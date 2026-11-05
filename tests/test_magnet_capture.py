@@ -52,6 +52,7 @@ class MagnetCaptureTests(unittest.TestCase):
 
     def test_only_connected_extension_and_selected_site_can_enqueue(self):
         self.connect()
+        with self.assertRaises(ValueError): bridge.origin('https://*')
         good={'action':'capture','site':'https://nyaa.si','magnet':MAGNET}
         caller='chrome-extension://'+EXTENSION+'/'
         for message,origin in [(good,'chrome-extension://'+'b'*32+'/'),
