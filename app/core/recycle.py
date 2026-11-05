@@ -1,7 +1,7 @@
 """Recycle only the selected indexed video files, preserving library records."""
 import json
 from pathlib import Path
-from send2trash import send2trash
+from app.core.recycle_bin import send2trash
 from app import db
 from app.config import VIDEO_EXTENSIONS
 
@@ -35,7 +35,8 @@ def recycle_selected(franchise_id, seasons, mark_watched=True, signatures=None):
                         stat = path.stat()
                         if signatures.get(str(path)) != (stat.st_size, stat.st_mtime_ns):
                             raise ValueError("File changed since preview")
-                    send2trash(str(path))
+                    from app.core.file_operations import recycle_file
+                    recycle_file(path, signatures.get(str(path)) if signatures is not None else None, recycle=send2trash)
                     if path.exists():
                         raise OSError("File was not moved")
                     recycled.append(str(path))

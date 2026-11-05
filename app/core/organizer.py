@@ -7,7 +7,6 @@ generates safe file movement previews, and organizes files into clean Season X/ 
 import os
 import re
 import json
-import shutil
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple, Callable
 from collections import defaultdict
@@ -250,6 +249,10 @@ def inspect_anime_folder(
         status_badge = "Organized"
         status_reason = "Structured"
 
+    for move in moves:
+        stat = Path(move["source"]).stat()
+        move["source_signature"] = (stat.st_size, stat.st_mtime_ns)
+
     return {
         "folder_path": str(root),
         "anime_name": display_name,
@@ -359,123 +362,14 @@ def inspect_all_library(
 
 
 def find_missing_library_files(should_stop=lambda: False):
-    """Search watched roots once and relink unambiguous, exact filename matches."""
-    import json
-    from collections import defaultdict
-    from contextlib import closing
-    from app.core.parser import normalize_for_matching
-
-    def path_key(path):
-        return os.path.normcase(os.path.normpath(path))
-
-    from app.core.consolidation import repair_from_move_journals
-
-    repaired_roots, repaired_seasons = repair_from_move_journals()
-    records = db.get_all_franchises()
-    missing = defaultdict(list)
-    claimed = defaultdict(set)
-    for record in records:
-        for season in db.get_seasons_for_franchise(record["id"]):
-            folder = season.get("season_folder_path")
-            if not folder or season["storage_state"] == "REMOVED":
-                continue
-            files = [Path(folder) / name for name in json.loads(season["video_files_json"] or "[]")]
-            for file in files:
-                if should_stop():
-                    raise InterruptedError
-                if file.is_file():
-                    claimed[path_key(file)].add(record["id"])
-                else:
-                    missing[file.name.casefold()].append((record, season, file))
-
-    candidates = defaultdict(dict)
-    roots = {Path(row["folder_path"]).resolve() for row in db.get_watched_directories()}
-    unavailable = set()
-    for root in roots if missing else ():
-        if not root.is_dir():
-            unavailable.add(str(root))
-            continue
-        for directory, _, filenames in os.walk(root, onerror=lambda error: unavailable.add(str(error.filename))):
-            if should_stop():
-                raise InterruptedError
-            for name in filenames:
-                if name.casefold() not in missing:
-                    continue
-                target = Path(directory) / name
-                folders = [
-                    parent for parent in target.parents
-                    if parent == root or root in parent.parents
-                ]
-                candidates[name.casefold()][path_key(target)] = (target, folders)
-
-    updates = defaultdict(dict)
-    proposed_targets = defaultdict(set)
-    for name, references in missing.items():
-        for record, season, old in references:
-            old_root = record.get("root_folder_path")
-            titles = {normalize_for_matching(record.get(field) or "") for field in
-                      ("display_title", "title_en", "title_romaji")}
-            if old_root:
-                titles.add(normalize_for_matching(clean_title(Path(old_root).name)))
-            titles.discard("")
-            matches = []
-            for key, (target, folders) in candidates[name].items():
-                if claimed[key] - {record["id"]}:
-                    continue
-                series_folder = next(
-                    (folder for folder in folders if normalize_for_matching(clean_title(folder.name)) in titles),
-                    None,
-                )
-                if series_folder or normalize_for_matching(clean_title(target.stem)) in titles:
-                    matches.append((target, series_folder))
-            if len(matches) == 1:
-                updates[season["id"]][old] = matches[0]
-                proposed_targets[path_key(matches[0][0])].add((season["id"], old))
-
-    if should_stop():
-        raise InterruptedError
-    recovered = 0
-    affected = set()
-    with closing(db.get_connection()) as conn, conn:
-        for sid, replacements in updates.items():
-            season = conn.execute("SELECT * FROM seasons WHERE id=?", (sid,)).fetchone()
-            if not season or not season["season_folder_path"]:
-                continue
-            originals = [Path(season["season_folder_path"]) / name for name in json.loads(season["video_files_json"])]
-            updated = [
-                replacements[file][0] if file in replacements
-                and len(proposed_targets[path_key(replacements[file][0])]) == 1 else file
-                for file in originals
-            ]
-            if updated == originals or not all(file.is_file() for file in updated):
-                continue
-            try:
-                common = Path(os.path.commonpath([str(file.parent) for file in updated]))
-            except ValueError:
-                continue
-            roots_found = {root for _, root in replacements.values() if root and all(root in file.parents for file in updated)}
-            new_root = next(iter(roots_found)) if len(roots_found) == 1 else None
-            conn.execute(
-                "UPDATE seasons SET season_folder_path=?, video_files_json=?, size_bytes=?, storage_state='ON_DISK', scan_root=? WHERE id=?",
-                (str(common), json.dumps([file.relative_to(common).as_posix() for file in updated]),
-                 sum(file.stat().st_size for file in updated), str(new_root) if new_root else season["scan_root"], sid),
-            )
-            if new_root:
-                fid = season["franchise_id"]
-                current = conn.execute("SELECT root_folder_path FROM franchises WHERE id=?", (fid,)).fetchone()[0]
-                other = conn.execute("SELECT scan_root, season_folder_path FROM seasons WHERE franchise_id=? AND storage_state='ON_DISK' AND id<>?", (fid, sid))
-                if not current or not any(
-                    row["season_folder_path"] and Path(current) in [Path(row["season_folder_path"]), *Path(row["season_folder_path"]).parents]
-                    for row in other
-                ):
-                    conn.execute("UPDATE franchises SET root_folder_path=? WHERE id=?", (str(new_root), fid))
-            recovered += sum(a != b for a, b in zip(originals, updated))
-            affected.add(season["franchise_id"])
-    for fid in affected:
-        db.recalculate_franchise_size(fid)
-        db.recalculate_franchise_storage_state(fid)
-    return {"recovered": recovered, "unresolved": sum(map(len, missing.values())) - recovered,
-            "unavailable": len(unavailable), "paths_repaired": repaired_roots + repaired_seasons}
+    """Return review candidates; filenames alone never authorize a relink."""
+    from app.core.identity import find_repair_candidates
+    from app.core.file_operations import recover_operations
+    recovery = recover_operations()
+    result = find_repair_candidates(should_stop)
+    result['paths_repaired'] = recovery['recovered']
+    result['operation_errors'] = recovery['errors']
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -503,6 +397,27 @@ def execute_organize_anime(
 
     created_dirs = set()
     skipped_details = []
+
+    from app.core.identity import sync_inventory
+    from app.core.file_operations import move_file
+    sync_inventory()
+    # Revalidate the entire preview before the first filesystem mutation.
+    try:
+        for entry in moves:
+            if entry.get('already_in_place'):
+                continue
+            source, target = Path(entry['source']), Path(entry['target'])
+            source.resolve().relative_to(root_path.resolve())
+            target.resolve().relative_to(root_path.resolve())
+            if source.is_symlink():
+                raise ValueError('Symbolic links require manual review')
+            stat = source.stat()
+            expected = entry.get('source_signature')
+            if expected and tuple(expected) != (stat.st_size, stat.st_mtime_ns):
+                raise ValueError('Source changed since preview')
+    except (OSError, ValueError) as error:
+        return {'folder_path': str(root_path), 'moved': 0, 'skipped': 0,
+                'errors': [{'file': str(source), 'kind': 'preflight', 'error': str(error)}], 'skipped_details': []}
 
     for m in moves:
         if m.get("already_in_place"):
@@ -534,11 +449,12 @@ def execute_organize_anime(
                     final_target = target.parent / f"{target.stem}_{counter}{target.suffix}"
                     counter += 1
 
-            shutil.move(str(source), str(final_target))
+            move_file(source, final_target, m.get('source_signature'))
             moved += 1
         except Exception as e:
             kind = "permission" if isinstance(e, PermissionError) or getattr(e, "winerror", None) == 5 else "missing" if isinstance(e, FileNotFoundError) else "error"
             errors.append({"file": str(source), "target": str(target), "kind": kind, "error": str(e)})
+            break  # Leave the unprocessed originals in place for a fresh preview.
 
     # Clean up empty subdirectories left behind
     # Preserve directories as well as files; organization is move-only.

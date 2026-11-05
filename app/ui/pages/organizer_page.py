@@ -12,6 +12,7 @@ Organizer Page — Replicating the redesigned AnimeVault Organizer UI:
 """
 
 import os
+from PyQt5.QtCore import QTimer
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -92,10 +93,11 @@ class ScannerWorker(QThread):
     error = pyqtSignal(str)
     stopped = pyqtSignal()
 
-    def __init__(self, rules, find_missing=False):
+    def __init__(self, rules, find_missing=False, repair_ids=None):
         super().__init__()
         self.rules = rules
         self.find_missing = find_missing
+        self.repair_ids = repair_ids
 
     def _scan_progress(self, name, current, total):
         if self.isInterruptionRequested():
@@ -104,6 +106,20 @@ class ScannerWorker(QThread):
 
     def run(self):
         try:
+            if self.repair_ids is not None:
+                from app.core.identity import approve_repair
+                failures, repaired = [], 0
+                for candidate_id in self.repair_ids:
+                    if self.isInterruptionRequested():
+                        break
+                    try:
+                        approve_repair(candidate_id)
+                        repaired += 1
+                    except (OSError, ValueError) as error:
+                        failures.append(str(error))
+                self.finished.emit({'recovery': {'recovered': repaired, 'unresolved': len(self.repair_ids) - repaired,
+                                                'unavailable': 0, 'paths_repaired': 0, 'operation_errors': failures}})
+                return
             if self.find_missing:
                 self.finished.emit({"recovery": find_missing_library_files(self.isInterruptionRequested)})
                 return
@@ -602,7 +618,7 @@ class OrganizerPage(QWidget):
         layout.addLayout(btn_row)
         self.find_missing_btn = QPushButton("Find missing files")
         self.find_missing_btn.setMinimumHeight(36)
-        self.find_missing_btn.setToolTip("Search all configured library roots and relink verified filenames.")
+        self.find_missing_btn.setToolTip("Search configured roots and review verified repair candidates. Filenames alone never relink history.")
         self.find_missing_btn.clicked.connect(lambda: self._start_scan(find_missing=True))
         extra_actions = QVBoxLayout()
         extra_actions.addWidget(self.find_missing_btn, 0, Qt.AlignLeft)
@@ -931,7 +947,7 @@ class OrganizerPage(QWidget):
     # -----------------------------------------------------------------------
     # Scanning & Tabs
     # -----------------------------------------------------------------------
-    def _start_scan(self, find_missing=False):
+    def _start_scan(self, find_missing=False, repair_ids=None):
         if self.merge_page.busy():
             return
         if self._worker and self._worker.isRunning():
@@ -958,7 +974,7 @@ class OrganizerPage(QWidget):
         for k, sw in self.rule_switches.items():
             self._rules[k] = sw.isChecked()
 
-        self._worker = ScannerWorker(dict(self._rules), find_missing)
+        self._worker = ScannerWorker(dict(self._rules), find_missing, repair_ids)
         self._worker.finished.connect(self._on_scan_finished)
         self._worker.error.connect(self._on_scan_error)
         self._worker.stopped.connect(self._on_scan_stopped)
@@ -986,6 +1002,27 @@ class OrganizerPage(QWidget):
                 self.top_status_badge.setText(self.top_status_badge.text() + f" ? {result['unavailable']} locations unavailable")
             if result["paths_repaired"]:
                 self.top_status_badge.setText(self.top_status_badge.text() + f" ? {result['paths_repaired']} paths repaired")
+            self.top_status_badge.setToolTip('\n'.join(result.get('operation_errors', [])))
+            if result.get('operation_errors'):
+                self.top_status_badge.setText(self.top_status_badge.text() + f" · {len(result['operation_errors'])} operations need review")
+            verified = [candidate for candidate in result.get('candidates', []) if candidate['evidence'] == 'SAME_FILE_SIGNATURE']
+            # One target/file pairing must be unique across the entire review.
+            from collections import Counter
+            files = Counter(candidate['file_id'] for candidate in verified)
+            targets = Counter(candidate['target'] for candidate in verified)
+            verified = [candidate for candidate in verified if files[candidate['file_id']] == 1 and targets[candidate['target']] == 1]
+            if result.get('candidates'):
+                self.top_status_badge.setText(self.top_status_badge.text() + f" · {len(result['candidates'])} repair candidates")
+            if verified:
+                dialog = QMessageBox(self)
+                dialog.setWindowTitle('Review path repairs')
+                dialog.setText(f"{len(verified)} files have matching physical-file signatures. Apply these path repairs? Episode history and release links will be preserved.")
+                dialog.setInformativeText('Review the paths under Show Details before approving. Filename-only matches remain unlinked.')
+                dialog.setDetailedText('\n\n'.join(f"{c['source']}\n→ {c['target']}" for c in verified))
+                dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                dialog.setDefaultButton(QMessageBox.No)
+                if dialog.exec_() == QMessageBox.Yes:
+                    QTimer.singleShot(0, lambda ids=[c['id'] for c in verified]: self._start_scan(repair_ids=ids))
             self.data_changed.emit()
             return
         self._data = results

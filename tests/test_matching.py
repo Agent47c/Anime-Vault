@@ -91,7 +91,7 @@ class MatchingTests(unittest.TestCase):
         self.assertEqual(season["season_folder_path"], str(target.parent))
         self.assertEqual(season["title_display"], "Matched release")
 
-    def test_find_missing_files_searches_all_roots_and_relinks(self):
+    def test_find_missing_files_searches_all_roots_but_names_alone_require_review(self):
         from pathlib import Path
         from app.core.organizer import find_missing_library_files
         base = Path(self.temp.name)
@@ -113,9 +113,11 @@ class MatchingTests(unittest.TestCase):
         duplicate.write_bytes(b"duplicate")
         self.assertEqual(find_missing_library_files()["unresolved"], 1)
         duplicate.unlink()
-        self.assertEqual(find_missing_library_files()["recovered"], 1)
-        self.assertEqual(db.get_season(sid)["season_folder_path"], str(target.parent.resolve()))
-        self.assertEqual(db.get_franchise(self.fid)["root_folder_path"], str((new_root / "Series").resolve()))
+        result = find_missing_library_files()
+        self.assertEqual(result["recovered"], 0)
+        self.assertEqual(len(result['candidates']), 1)
+        self.assertEqual(result['candidates'][0]['evidence'], 'NAME_ONLY_UNVERIFIED')
+        self.assertEqual(db.get_season(sid)["season_folder_path"], str(old_root / 'Series'))
 
     def test_locate_season_indexes_files_and_preserves_metadata(self):
         from pathlib import Path

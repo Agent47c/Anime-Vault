@@ -220,6 +220,10 @@ def collect_video_groups(folder_path: str):
                 add("movies", 0, "MOVIE", "Movies", file)
             elif media_folder:
                 add("specials", 0, "SPECIAL", "Specials & extras", file)
+            elif (extract_season_number(name, None) or 0) > 0:
+                sn = extract_season_number(name)
+                declared = extract_episode_range(season_folder.name) if season_folder and extract_season_number(season_folder.name) == sn else None
+                add(f"season:{sn}", sn, "SEASON", f"Season {sn}", file, declared)
             elif season_folder:
                 sn = extract_season_number(season_folder.name)
                 add(f"season:{sn}", sn, "SEASON", season_folder.name, file, extract_episode_range(season_folder.name))
@@ -353,6 +357,9 @@ def _update_on_disk_info(fid: int, folder_path: str, groups=None):
         conn.execute("UPDATE franchises SET root_folder_path=COALESCE(root_folder_path, ?) WHERE id=?", (str(root), fid))
     db.recalculate_franchise_size(fid)
     db.recalculate_franchise_storage_state(fid)
+    from app.core.identity import sync_inventory
+    for sid in used_ids:
+        sync_inventory(sid)
 
 
 # ---------------------------------------------------------------------------

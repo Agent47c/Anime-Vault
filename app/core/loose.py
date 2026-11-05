@@ -43,6 +43,6 @@ def inspect_loose_episodes(root_path):
             'video_count': len(group['files']), 'total_size_bytes': sum(p.stat().st_size for p in group['files']),
             'is_organized': False, 'status_badge': f"Season {group['season_number']}",
             'status_reason': f"Loose episodes → {destination.relative_to(root)}",
-            'moves': [{'source': str(p), 'target': str(destination / p.name), 'size': p.stat().st_size, 'already_in_place': False} for p in sources],
+            'moves': [{'source': str(p), 'target': str(destination / p.name), 'size': p.stat().st_size, 'source_signature': (p.stat().st_size, p.stat().st_mtime_ns), 'already_in_place': False} for p in sources],
         })
     return items, unclassified

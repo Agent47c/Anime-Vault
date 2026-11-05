@@ -1129,6 +1129,7 @@ class DetailModal(QDialog):
 
     def _on_play_episode(self):
         """Play first available local video file across all on-disk seasons."""
+        self.seasons = db.get_series_seasons(self.franchise_id)
         sorted_seasons = sorted(self.seasons, key=lambda x: (x.get("season_number") or 99))
         if self.continuous_episodes:
             ranges = self.episode_coverage["folder_ranges"]
@@ -1157,6 +1158,8 @@ class DetailModal(QDialog):
             try:
                 for entry in sorted(Path(rf).iterdir(), key=lambda x: x.name.lower()):
                     if entry.is_file() and entry.suffix.lower() in VIDEO_EXTENSIONS:
+                        from app.core.scanner import index_local_folder
+                        index_local_folder(rf, self.franchise['display_title'])
                         launch_video_file(str(entry))
                         return
             except Exception:
@@ -1171,6 +1174,7 @@ class DetailModal(QDialog):
 
     def _on_play_season(self, season: dict):
         """Play first video file in this specific season."""
+        season = db.get_season(season['id']) or season
         folder = season.get("season_folder_path")
         if folder and Path(folder).is_dir():
             try:

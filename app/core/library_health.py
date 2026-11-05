@@ -7,14 +7,42 @@ from app.core.parser import analyze_season_health, extract_episode_numbers, extr
 
 
 def season_health(season):
-    files = json.loads(season.get("video_files_json") or "[]")
+    from app.core.identity import mapped_inventory_files
+    files = mapped_inventory_files(season)
     # Provider counts describe a matched release, not arbitrary local arc folders.
     expected = season.get("episodes_total") if not season.get("local_scan_key") or season.get("numbering_source") == "metadata" else None
-    return analyze_season_health(
+    boundary = aired_boundary(season)
+    # Total episodes on an airing release includes future installments.
+    if season.get('airing_status') not in ('FINISHED', None):
+        expected = None
+    result = analyze_season_health(
         files, expected, season.get("episode_start"), season.get("episode_end"),
         season.get("title_display") or Path(season.get("season_folder_path") or "").name,
         season.get("relation_type", "SEASON"), season.get("airing_status"),
     )
+    result['file_count'] = len(json.loads(season.get('video_files_json') or '[]'))
+    if boundary is not None:
+        result['missing_episodes'] = [ep for ep in result['missing_episodes'] if ep <= boundary]
+    if season.get('airing_status') == 'RELEASING' and boundary is None:
+        # Without a release timestamp use only observed internal gaps, not folder
+        # boundaries which may include announced episodes.
+        observed = sorted({n for name in files for n in extract_episode_numbers(name)})
+        result['missing_episodes'] = [ep for ep in result['missing_episodes'] if observed and min(observed) < ep < max(observed)]
+        result['range_note'] = 'Release boundary unverified; only internal gaps are checked'
+    if not result['missing_episodes'] and result['health_status'] == 'Missing Episodes':
+        result['health_status'] = 'Boundaries unverified' if boundary is None else 'Healthy'
+    return result
+
+
+def aired_boundary(season, now=None):
+    import time
+    now = time.time() if now is None else now
+    if season.get('airing_status') == 'NOT_YET_RELEASED':
+        return 0
+    episode, stamp = season.get('next_airing_ep'), season.get('next_airing_at')
+    if isinstance(episode, int) and episode > 0 and isinstance(stamp, (int, float)):
+        return episode - 1 if stamp > now else episode
+    return None
 
 
 def episode_inventory(seasons, continuous=False):
@@ -28,6 +56,8 @@ def episode_inventory(seasons, continuous=False):
         for s in main
     )
     unique_count = 0
+    relative_keys = set()
+    relative_seasons = set()
     folder_ranges = {}
     for season in main:
         local_episodes = set()
@@ -36,7 +66,13 @@ def episode_inventory(seasons, continuous=False):
             if path in paths:
                 continue
             paths.add(path)
-            local_episodes.update(extract_episode_numbers(filename))
+            numbers = extract_episode_numbers(filename)
+            token = re.search(r'\bS(\d{1,2})[ ._-]*E\d+', Path(filename).name, re.I)
+            if continuous and token:
+                relative_keys.update((int(token[1]), number) for number in numbers)
+                relative_seasons.add(season['id'])
+            else:
+                local_episodes.update(numbers)
         if local_episodes:
             folder_ranges[season["id"]] = (min(local_episodes), max(local_episodes))
         all_episodes.update(local_episodes)
@@ -44,11 +80,15 @@ def episode_inventory(seasons, continuous=False):
     health = {}
     for season in main:
         result = season_health(season)
-        if absolute:
+        if absolute and season['id'] not in relative_seasons:
             result["missing_episodes"] = [ep for ep in result["missing_episodes"] if ep not in all_episodes]
         health[season["id"]] = result
     missing = sorted(set(range(min(all_episodes), max(all_episodes) + 1)) - all_episodes) if continuous and all_episodes else []
-    return {"folder_ranges": folder_ranges, "missing_episodes": missing, "unique_episode_count": len(all_episodes) if absolute else unique_count, "numbering": "absolute" if absolute else "per-season or unverified", "episodes": sorted(all_episodes), "seasons": health}
+    bounds = [aired_boundary(season) for season in main]
+    known = [bound for bound in bounds if bound is not None]
+    if continuous and known:
+        missing = [ep for ep in missing if ep <= max(known)]
+    return {"folder_ranges": folder_ranges, "missing_episodes": missing, "unique_episode_count": len(all_episodes) + len(relative_keys) if absolute else unique_count, "numbering": "absolute with unverified season-relative files" if relative_keys else "absolute" if absolute else "per-season or unverified", "episodes": sorted(all_episodes), "seasons": health}
 
 
 def _movie_title(value):

@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QAbstractListModel, QModelIndex, QSize, QThread, py
 from PyQt5.QtGui import QColor, QPainter, QPen
 from PyQt5.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QLabel, QListView, QStyledItemDelegate,
-    QMessageBox, QShortcut, QAbstractItemView,
+    QMessageBox, QShortcut, QAbstractItemView, QComboBox,
 )
 
 from app import db
@@ -34,8 +34,15 @@ class EpisodeWorker(QThread):
             if not series:
                 raise ValueError("This anime is no longer in your library.")
             continuous = db.uses_continuous_episodes(series) or series.get("anilist_id") == 21
+            from app.core.identity import path_key
+            all_seasons = db.get_series_seasons(self.fid)
+            indexed_owners = {}
+            for owner in all_seasons:
+                if owner.get('season_folder_path'):
+                    for name in json.loads(owner.get('video_files_json') or '[]'):
+                        indexed_owners.setdefault(path_key(Path(owner['season_folder_path']) / name), set()).add(owner['id'])
             watched = {Path(row["folder_path"]).resolve() for row in db.get_watched_directories()}
-            for season in db.get_series_seasons(self.fid):
+            for season in all_seasons:
                 if self.season_ids is not None and season["id"] not in self.season_ids:
                     continue
                 if self.isInterruptionRequested():
@@ -68,7 +75,16 @@ class EpisodeWorker(QThread):
                         return
                     if path.suffix.lower() not in VIDEO_EXTENSIONS or path.is_symlink() or not path.is_file():
                         continue
-                    key = os.path.normcase(os.path.abspath(path))
+                    key = path_key(path)
+                    owners = indexed_owners.get(key)
+                    if owners and owner['id'] not in owners:
+                        continue
+                    if owners and len(owners) > 1:
+                        warnings.append(f'{path.name}: conflicting release assignments need review')
+                        continue
+                    named_season = explicit_season(path.stem)
+                    if not owners and not continuous and named_season is not None and named_season != owner.get('season_number'):
+                        continue
                     if key in seen:
                         continue
                     seen.add(key)
@@ -97,6 +113,19 @@ class EpisodeWorker(QThread):
                         "sort": (kind != "SEASON", 0 if continuous else owner.get("season_number") or 0, number, path.name.casefold()),
                     })
             rows.sort(key=lambda row: row["sort"])
+            from contextlib import closing
+            from app.core.identity import sync_season, episode_state, path_key
+            with closing(db.get_connection()) as conn, conn:
+                for owner in db.get_series_seasons(self.fid):
+                    selected = [row for row in rows if row['season_id'] == owner['id']]
+                    if selected and owner.get('season_folder_path'):
+                        snapshot = {**owner, 'video_files_json': json.dumps([os.path.relpath(row['path'], owner['season_folder_path']) for row in selected])}
+                        sync_season(conn, snapshot)
+                for row in rows:
+                    linked = [dict(e) for e in conn.execute('SELECT e.* FROM episodes e JOIN file_episodes fe ON fe.episode_id=e.id JOIN file_locations l ON l.file_id=fe.file_id WHERE l.path_key=?', (path_key(row['path']),))]
+                    states = [episode_state(e) for e in linked]
+                    row['verified_numbers'] = [e['release_number'] for e in linked] if linked and all(e['mapping_verified'] and e['release_number'] is not None for e in linked) else []
+                    row['release_state'] = 'UPCOMING' if 'UPCOMING' in states else 'AIRED' if states and all(s == 'AIRED' for s in states) else 'UNKNOWN'
             if not self.isInterruptionRequested():
                 self.ready.emit(rows, warnings)
         except Exception as error:
@@ -193,6 +222,12 @@ class EpisodePage(QDialog):
         heading = QLabel("Choose episode")
         heading.setObjectName("heading")
         layout.addWidget(heading)
+        self.release_filter = QComboBox()
+        self.release_filter.setAccessibleName('Episode release status')
+        for label, value in [('All release states', ''), ('Aired', 'AIRED'), ('Upcoming', 'UPCOMING'), ('Release unknown', 'UNKNOWN')]:
+            self.release_filter.addItem(label, value)
+        self.release_filter.currentIndexChanged.connect(self._filter_releases)
+        layout.addWidget(self.release_filter)
         self.status = QLabel("Finding video files?")
         self.status.setObjectName("subheading")
         self.status.setWordWrap(True)
@@ -233,13 +268,18 @@ class EpisodePage(QDialog):
         self._worker.start()
 
     def _loaded(self, rows, warnings):
-        self.model.replace(rows)
+        self._all_rows = rows
+        self._filter_releases()
         self._show_availability(rows, warnings)
         self.status.setText(f"{len(rows):,} video files across all local episode folders. Select a block to play."
                             + (f" {len(warnings)} folders could not be read." if warnings else "")
                             if rows else "No local video files found.")
         if rows:
             self.view.setCurrentIndex(self.model.index(0))
+
+    def _filter_releases(self):
+        state = self.release_filter.currentData()
+        self.model.replace([row for row in getattr(self, '_all_rows', []) if not state or row.get('release_state') == state])
 
     def _show_availability(self, rows, warnings):
         series = db.get_series(self.fid) or {}
@@ -275,7 +315,8 @@ class EpisodePage(QDialog):
                 if not ids:
                     messages.append(f"Episode {episode}: match its local season to verify availability.")
                     continue
-            filenames = [Path(row["path"]).name for row in scoped if row.get("kind") == "SEASON"]
+            filenames = [name for row in scoped if row.get('kind') == 'SEASON'
+                         for name in ([f"Episode {number}.mkv" for number in row.get('verified_numbers', [])] or [Path(row['path']).name])]
             messages.append(release_availability_notice(
                 filenames, episode, root, release.get("airing_at"), bool(warnings)
             ))

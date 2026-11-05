@@ -29,6 +29,7 @@ def main():
         print('Cancelled. No files moved.')
         return
     from app import db
+    db.init_db()
     output.mkdir(parents=True, exist_ok=False)
     source = db.get_connection()
     backup = sqlite3.connect(str(output / 'before-moves.db'))

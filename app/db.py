@@ -165,6 +165,8 @@ def init_db():
         if name not in season_columns:
             conn.execute(f"ALTER TABLE seasons ADD COLUMN {name} {kind}")
     conn.commit()
+    from app.core.identity import migrate
+    migrate(conn)
     conn.close()
 
 
@@ -439,16 +441,16 @@ def find_franchise_by_folder_path(folder_path: str) -> Optional[Dict[str, Any]]:
 def find_franchise_by_title(title: str) -> Optional[Dict[str, Any]]:
     """Case-insensitive search by display_title, title_en, or title_romaji."""
     conn = get_connection()
-    row = conn.execute(
+    rows = conn.execute(
         "SELECT * FROM franchises WHERE "
         "display_title = ? COLLATE NOCASE OR "
         "title_en = ? COLLATE NOCASE OR "
         "title_romaji = ? COLLATE NOCASE "
-        "LIMIT 1",
+        "LIMIT 2",
         (title, title, title),
-    ).fetchone()
+    ).fetchall()
     conn.close()
-    return dict(row) if row else None
+    return dict(rows[0]) if len(rows) == 1 else None
 
 
 
@@ -484,6 +486,8 @@ def upsert_season(data: Dict[str, Any]) -> int:
             conn.execute(
                 f"UPDATE seasons SET {', '.join(sets)} WHERE id = ?", vals
             )
+            from app.core.identity import sync_season
+            sync_season(conn, dict(conn.execute('SELECT * FROM seasons WHERE id=?', (sid,)).fetchone()))
             conn.commit()
         conn.close()
         return sid
@@ -506,6 +510,8 @@ def upsert_season(data: Dict[str, Any]) -> int:
             f"INSERT INTO seasons ({col_names}) VALUES ({placeholders})",
             list(present.values()),
         )
+        from app.core.identity import sync_season
+        sync_season(conn, dict(conn.execute('SELECT * FROM seasons WHERE id=?', (cur.lastrowid,)).fetchone()))
         conn.commit()
         sid = cur.lastrowid
         conn.close()

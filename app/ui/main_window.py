@@ -241,6 +241,7 @@ class MainWindow(QMainWindow):
         self._scan_schedule_timer = QTimer(self)
         self._scan_schedule_timer.timeout.connect(self._check_new_anime)
         self._apply_settings_preferences()
+        QTimer.singleShot(0, self._recover_file_operations)
         if db.get_state("scan_schedule", "startup") != "manual":
             QTimer.singleShot(0, self._check_new_anime)
 
@@ -769,6 +770,13 @@ class MainWindow(QMainWindow):
     def _check_new_anime(self):
         self._start_refresh(scan_library=True, new_only=True)
 
+    def _recover_file_operations(self):
+        from contextlib import closing
+        with closing(db.get_connection()) as conn:
+            pending = conn.execute("SELECT 1 FROM file_operations WHERE status<>'COMPLETED' LIMIT 1").fetchone()
+        if pending:
+            self._start_refresh(allow_network=False)
+
     def _request_refresh(self, internet=False):
         if not getattr(self, "_refresh_busy", False):
             self._start_refresh(scan_library=True, allow_network=internet, sync_internet=internet)
@@ -812,6 +820,7 @@ class MainWindow(QMainWindow):
         self._refresh_snapshot = snapshot
         if snapshot.get("scan_errors"):
             self.refresh_button.setToolTip("\n".join(snapshot["scan_errors"][:10]))
+            self.scan_stats_label.setText(f"Review needed: {len(snapshot['scan_errors'])} scan/file-operation issues — open Organizer")
         else:
             self.refresh_button.setToolTip("")
         pages = [self.library_page, self.storage_page, self.updates_page]
