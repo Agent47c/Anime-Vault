@@ -235,6 +235,10 @@ class MainWindow(QMainWindow):
         self._connect_signals()
         self._refresh_metrics()
         self._dirty_pages = set()
+        from app.ui.downloads import monitor
+        self._download_monitor = monitor()
+        self._download_monitor.changed.connect(self._on_data_updated)
+        QTimer.singleShot(0,self._download_monitor.check)
         self.stacked_widget.currentChanged.connect(self._refresh_dirty_page)
 
         # Check connectivity on startup
