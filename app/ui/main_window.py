@@ -239,6 +239,8 @@ class MainWindow(QMainWindow):
         self._download_monitor = monitor()
         self._download_monitor.changed.connect(self._on_data_updated)
         QTimer.singleShot(0,self._download_monitor.check)
+        from app.ui.magnet_capture import MagnetInboxPump
+        self._magnet_inbox = MagnetInboxPump(self)
         self.stacked_widget.currentChanged.connect(self._refresh_dirty_page)
 
         # Check connectivity on startup
