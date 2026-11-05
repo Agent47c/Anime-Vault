@@ -2,7 +2,8 @@
 
 Implemented 6 November 2026, on top of Phase 2. Existing library, matching,
 organizing, history, Recycle Bin and API features are retained. No streaming
-API, browser extension, torrent engine or website scraper is added.
+API, torrent engine or website scraper is added. The optional selected-site
+Chrome extension is documented in the browser-capture follow-up below.
 
 ## How it works
 
@@ -25,10 +26,15 @@ API, browser extension, torrent engine or website scraper is added.
    every 15 seconds while open. After completion and verification, it indexes
    the completed videos under that anime and refreshes the library.
 
-**Important workflow detail:** a website's native magnet button can open
+**Browser capture option:** the selected-site Google Chrome extension can now
+send a magnet click directly to Anime Vault without copying. See
+[browser capture setup](BROWSER_MAGNET_CAPTURE.md). It only catches the chosen
+website and leaves the global MAGNET handler unchanged.
+
+Without that extension, a website's native magnet button can open
 qBittorrent directly, but that bypasses Anime Vault's tracking handoff. This
-version does not intercept browser clicks or attach unrelated client jobs to
-an anime automatically. Use the magnet/file handoff above for automatic indexing.
+manual handoff does not attach unrelated client jobs to an anime automatically.
+Use the extension or magnet/file handoff above for automatic indexing.
 
 ## Your supplied search URL
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — Selected-site Chrome magnet capture
+
+- Add an opt-in Chrome extension that catches magnet clicks only on the selected
+  source website; retain the existing global MAGNET handler and other sites.
+- Add private Native Messaging registration restricted to the connected extension
+  ID, with independent caller/site validation and bounded framed messages.
+- Deliver links through a durable, deduplicated inbox to the existing app window;
+  launch the app when closed and preserve single-instance/elevation behavior.
+- Prefill a compact anime/season confirmation without automatic downloading;
+  protect browser submissions against uncertain/duplicate API retries.
+- Add browser/native-host/UI regressions and full setup/change documentation in
+  `BROWSER_MAGNET_CAPTURE.md` and `browser-extension/README.md`.
+
 ## Unreleased — qBittorrent download integration
 
 - Add a configurable website search template and editable title, group, episode

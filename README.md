@@ -75,5 +75,6 @@ other operating systems are not currently validated by CI.
 - [Phase 1 implementation and complete change record](PHASE_1_DATA_SAFETY.md)
 - [Phase 2 scanning, matching, artwork and complete change record](PHASE_2_TRUSTWORTHY_SCANNING.md)
 - [qBittorrent download integration and setup](DOWNLOAD_INTEGRATION.md)
+- [Selected-site Chrome magnet capture and setup](BROWSER_MAGNET_CAPTURE.md)
 - [Organizer button fixes, manual scans and preview caching](ORGANIZER_UI_AND_SCAN_CHANGES.md)
 - `anime-vault-ui/` contains design reference HTML, not the Python application's runtime.

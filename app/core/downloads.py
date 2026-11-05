@@ -115,12 +115,20 @@ def _save_jobs(items):
     db.set_state('downloads.jobs',json.dumps(items))
 
 
-def add_download(fid,source,season=0):
+def add_download(fid,source,season=0,origin=None):
     """Only explicitly submitted torrents are tracked; no unrelated client jobs."""
     with _lock:
         config=settings()
         if not config['enabled']:
             raise ValueError('Save and enable the qBittorrent connection first.')
+        if origin:
+            previous=next((job for job in jobs() if job.get('origin')==origin),None)
+            if previous:
+                if previous['fid']!=fid:
+                    raise ValueError('This browser link is already associated with another anime. Review its existing download first.')
+                if not previous.get('submission_confirmed',False):
+                    raise ValueError('This browser link already has an unconfirmed submission. Review it in qBittorrent before retrying.')
+                return previous['destination']
         series=db.get_franchise(fid)
         if not series:
             raise ValueError('Choose an anime from the library first.')
@@ -128,7 +136,8 @@ def add_download(fid,source,season=0):
         with closing(db.get_connection()) as conn,conn:
             conn.execute('INSERT OR IGNORE INTO library_series(franchise_id) VALUES (?)',(fid,))
             series_id=conn.execute('SELECT id FROM library_series WHERE franchise_id=?',(fid,)).fetchone()[0]
-        is_magnet=source.startswith('magnet:?')
+        is_magnet=source.lower().startswith('magnet:?')
+        if is_magnet: source='magnet:'+source.split(':',1)[1]
         torrent=Path(source) if not is_magnet else None
         if is_magnet:
             if not any(key=='xt' and value.startswith(('urn:btih:','urn:btmh:')) for key,value in parse_qsl(urlsplit(source).query)):
@@ -140,7 +149,7 @@ def add_download(fid,source,season=0):
         title=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',series['display_title']).strip(' .')[:100] or 'Anime'
         root=Path(config['destination']).resolve()/(title+'-'+identifier[:10])
         target=root/(f'Season {season:02}' if season else 'Episodes')
-        item={'id':identifier,'tag':'AnimeVault-'+identifier,'fid':fid,'series_id':series_id,'title':series['display_title'],
+        item={'id':identifier,'origin':origin,'submission_confirmed':False,'tag':'AnimeVault-'+identifier,'fid':fid,'series_id':series_id,'title':series['display_title'],
               'root':str(root),'destination':str(target),'status':'Submitting','progress':0,'created':time.time()}
         items=jobs();items.append(item);_save_jobs(items)
         client=None
@@ -156,6 +165,7 @@ def add_download(fid,source,season=0):
             if response.text.strip()!='Ok.':
                 raise ValueError('qBittorrent did not accept the torrent.')
             item['status']='Waiting for torrent metadata'
+            item['submission_confirmed']=True
         except Exception:
             item['status']='Submission unconfirmed — check qBittorrent; do not resubmit blindly'
             raise
@@ -208,6 +218,7 @@ def poll(cancelled=lambda:False):
                     item['status']='Waiting for torrent metadata' if time.time()-item['created']<600 else 'Review in qBittorrent: tracked torrent not found'
                     continue
                 info=matches[0]
+                item['submission_confirmed']=True
                 item['progress']=info.get('progress',0)
                 item['status']=info.get('state','Downloading')
                 if item['progress']<1 or info.get('state') in ('checkingUP','checkingDL','checkingResumeData','moving','error','missingFiles'):

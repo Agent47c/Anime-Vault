@@ -61,6 +61,15 @@ class DownloadsDrawer(DrawerDialog):
         body,self.save_button=chrome(self,'Downloads','Search your source, then send the selected torrent to qBittorrent.','取込','Save settings',self._save)
         self.notice=text('qBittorrent uses its Web UI username/password and a login session, not an Anime Vault API key. Enable Web UI in qBittorrent > Tools > Options > Web UI. Keep it bound to localhost.')
         body.addWidget(self.notice)
+        from app.ui.magnet_capture import enable_browser_capture
+        self.capture_status=text('Optional Chrome extension: save your source website below first, then connect the extension. It catches clicks only on that site; your normal magnet handler stays unchanged.')
+        body.addWidget(self.capture_status)
+        self.extension_id=QLineEdit(db.get_state('chrome.capture_extension',''))
+        self.extension_id.setPlaceholderText('Extension ID from chrome://extensions')
+        field(body,'Chrome extension ID',self.extension_id)
+        body.addWidget(button('Connect selected-site Chrome extension',lambda:enable_browser_capture(self,self.capture_status,self.extension_id.text().strip())))
+        from pathlib import Path
+        body.addWidget(button('Open Chrome extension folder',lambda:QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(__file__).resolve().parents[2]/'browser-extension')))))
         self.enabled=QCheckBox('Enable qBittorrent connection and completion monitoring')
         self.enabled.setChecked(config['enabled']);body.addWidget(self.enabled)
         self.paused=QCheckBox('Start paused so I can choose files in qBittorrent')
