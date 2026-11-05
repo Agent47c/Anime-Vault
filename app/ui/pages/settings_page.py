@@ -40,7 +40,8 @@ class ScanWorker(QThread):
         try:
             def on_progress(msg, current, total):
                 self.progress.emit(msg, current, total)
-            result = scan_watched_directories(progress_callback=on_progress)
+            from app.core.scanner import ScanProgress
+            result = scan_watched_directories(progress_callback=on_progress, scan_progress=ScanProgress(self.isInterruptionRequested))
             self.finished.emit(result)
         except Exception as e:
             self.error.emit(str(e))
@@ -312,7 +313,10 @@ class SettingsPage(QWidget):
         self.dirs_list.clear()
         dirs = db.get_watched_directories()
         for d in dirs:
-            item = QListWidgetItem(d["folder_path"])
+            state = d.get('availability','UNSCANNED')
+            suffix = ' · ' + state.title() if state in ('OFFLINE','INACCESSIBLE') else ''
+            item = QListWidgetItem(d["folder_path"] + suffix)
+            item.setToolTip(d.get('scan_error') or d['folder_path'])
             item.setData(Qt.UserRole, d["id"])
             self.dirs_list.addItem(item)
 

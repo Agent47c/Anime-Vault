@@ -65,14 +65,14 @@ class RefreshWorker(QThread):
             recovery = recover_operations()
             errors.extend(recovery['errors'])
             if self.scan_library:
-                from app.core.scanner import scan_watched_directories
+                from app.core.scanner import scan_watched_directories, ScanProgress
 
                 def report(message, current, total):
                     if self.isInterruptionRequested():
                         raise InterruptedError
                     self.progress.emit(message, current, total)
 
-                result = scan_watched_directories(progress_callback=report, new_only=self.new_only, allow_network=self.allow_network)
+                result = scan_watched_directories(progress_callback=report, scan_progress=ScanProgress(self.isInterruptionRequested), new_only=self.new_only, allow_network=self.allow_network)
                 errors.extend(result["errors"])
                 if self.new_only and not (result["new"] or result["updated"] or errors):
                     memory.close()

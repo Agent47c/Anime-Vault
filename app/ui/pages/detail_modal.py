@@ -1345,10 +1345,9 @@ class DetailModal(QDialog):
     def _locate_season(self, season_id: int):
         folder = QFileDialog.getExistingDirectory(self, "Select Season Folder")
         if folder:
-            try:
-                db.update_season_folder(season_id, folder)
-            except (OSError, ValueError) as error:
-                QMessageBox.warning(self, "Could not link season folder", str(error))
-                return
-            self._load_data()
-            self.data_changed.emit()
+            from app.ui.io_task import start
+            start(self,lambda: db.update_season_folder(season_id,folder),self._located_season)
+
+    def _located_season(self, _):
+        self._load_data()
+        self.data_changed.emit()

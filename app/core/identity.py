@@ -126,7 +126,7 @@ def _release(conn, season):
     return rid
 
 
-def sync_season(conn, season, stat_files=True):
+def sync_season(conn, season, stat_files=True, changed_paths=None):
     if not season.get('season_folder_path'):
         return
     rid = _release(conn, season)
@@ -134,6 +134,11 @@ def sync_season(conn, season, stat_files=True):
     for name in json.loads(season.get('video_files_json') or '[]'):
         path = Path(season['season_folder_path']) / name
         row = conn.execute('SELECT file_id FROM file_locations WHERE path_key=?', (path_key(path),)).fetchone()
+        if row and changed_paths is not None:
+            from app.core.scan_state import key
+            owner = conn.execute('SELECT season_id FROM physical_files WHERE id=?',(row[0],)).fetchone()
+            if key(path) not in changed_paths and owner and owner[0] == season['id']:
+                continue
         if row and stat_files and path.is_file():
             existing = conn.execute('SELECT * FROM physical_files WHERE id=?', (row[0],)).fetchone()
             stored = tuple(existing[k] for k in ('size_bytes','mtime_ns','device','inode'))
@@ -226,11 +231,11 @@ def save_episode_notes(episode_id, notes):
             raise ValueError('Episode no longer exists')
 
 
-def sync_inventory(sid=None):
+def sync_inventory(sid=None, changed_paths=None):
     with closing(db.get_connection()) as conn, conn:
         rows = conn.execute('SELECT * FROM seasons' + (' WHERE id=?' if sid else ''), (sid,) if sid else ()).fetchall()
         for row in rows:
-            sync_season(conn, dict(row))
+            sync_season(conn, dict(row), changed_paths=changed_paths)
 
 
 def track_play(path):

@@ -167,6 +167,8 @@ def init_db():
     conn.commit()
     from app.core.identity import migrate
     migrate(conn)
+    from app.core.scan_state import migrate as migrate_scanning
+    migrate_scanning(conn)
     conn.close()
 
 
@@ -208,7 +210,7 @@ def add_watched_directory(folder_path: str, auto_organize: bool = True) -> int:
 
 def get_watched_directories() -> List[Dict[str, Any]]:
     conn = get_connection()
-    rows = conn.execute("SELECT * FROM watched_directories ORDER BY folder_path").fetchall()
+    rows = conn.execute("SELECT w.*, COALESCE(s.state,'UNSCANNED') AS availability,s.error AS scan_error FROM watched_directories w LEFT JOIN scan_roots s ON s.root_id=w.id ORDER BY w.folder_path").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 

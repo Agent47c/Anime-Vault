@@ -10,7 +10,7 @@ def configuration(rules):
     roots = sorted(os.path.normcase(os.path.abspath(row['folder_path'])) for row in db.get_watched_directories())
     with closing(db.get_connection()) as conn:
         operations = conn.execute("SELECT COUNT(*),COALESCE(MAX(updated_at),0) FROM file_operations WHERE status='COMPLETED'").fetchone()
-    return {'roots': roots, 'rules': rules, 'operations': list(operations)}
+    return {'roots': roots, 'rules': rules, 'operations': list(operations), 'inventory_revision': db.get_state('inventory_revision','0')}
 
 
 def save_preview(results, config):

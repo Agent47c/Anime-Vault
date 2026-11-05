@@ -9,6 +9,7 @@ import json
 import time
 import html
 import threading
+from contextlib import contextmanager
 import requests
 from pathlib import Path
 from typing import Optional, Dict, Any, List
@@ -21,6 +22,30 @@ from app.config import ANILIST_GRAPHQL_URL, COVERS_DIR
 _request_lock = threading.Lock()
 _last_request_time = 0.0
 _MIN_INTERVAL = 0.7  # seconds between requests
+_cancellation = threading.local()
+
+
+def _check_cancelled():
+    if getattr(_cancellation, 'check', lambda: False)():
+        raise InterruptedError('Search cancelled')
+
+
+@contextmanager
+def cancellable(check):
+    previous = getattr(_cancellation, 'check', lambda: False)
+    _cancellation.check = check
+    try:
+        _check_cancelled()
+        yield
+    finally:
+        _cancellation.check = previous
+
+
+def _wait(seconds):
+    end = time.monotonic() + seconds
+    while time.monotonic() < end:
+        _check_cancelled()
+        time.sleep(max(0, min(0.05, end - time.monotonic())))
 
 
 def _rate_limit():
@@ -29,7 +54,8 @@ def _rate_limit():
         now = time.monotonic()
         delay = _MIN_INTERVAL - (now - _last_request_time)
         if delay > 0:
-            time.sleep(delay)
+            _wait(delay)
+        _check_cancelled()
         _last_request_time = time.monotonic()
 
 
@@ -164,10 +190,10 @@ def _graphql_request(query: str, variables: Dict) -> Optional[Dict]:
             json={"query": query, "variables": variables},
             timeout=10,
         )
+        _check_cancelled()
         if resp.status_code == 429:
-            retry_after = int(resp.headers.get("Retry-After", 60))
-            time.sleep(retry_after)
-            return _graphql_request(query, variables)
+            # A later explicit refresh may retry; never recurse indefinitely.
+            return None
         resp.raise_for_status()
         return resp.json().get("data")
     except requests.RequestException:
@@ -262,15 +288,53 @@ def extract_season_data(media: Dict, franchise_id: int,
 # Poster / Cover download
 # ---------------------------------------------------------------------------
 def download_cover(media: Dict, franchise_id: int) -> Optional[str]:
-    """Download the cover image and save to data/covers/{franchise_id}.jpg.
-    Returns the filename or None on failure."""
+    """Return a validated, provider/version-cached cover (legacy ID fallback)."""
     cover = media.get("coverImage") or {}
     url = cover.get("extraLarge") or cover.get("large") or cover.get("medium")
-    return _download_artwork(url, f"{franchise_id}.jpg")
+    return _cached_artwork(media, 'cover', url, f"{franchise_id}.jpg")
 
 
 def download_banner(media: Dict, franchise_id: int) -> Optional[str]:
-    return _download_artwork(media.get("bannerImage"), f"{franchise_id}-banner.jpg")
+    return _cached_artwork(media, 'banner', media.get("bannerImage"), f"{franchise_id}-banner.jpg")
+
+
+_artwork_locks_guard = threading.Lock()
+_artwork_locks = {}
+
+
+def _cached_artwork(media, kind, url, legacy_filename):
+    """Provider + URL version cache; missing artwork persists until URL changes."""
+    if not media.get('id'):
+        return _download_artwork(url, legacy_filename)
+    import hashlib
+    from contextlib import closing
+    from app import db
+    provider = 'anilist:' + str(media['id'])
+    version = hashlib.sha256((url or 'absent').encode()).hexdigest()[:24]
+    cache_key = (provider, kind, version)
+    with _artwork_locks_guard:
+        lock = _artwork_locks.setdefault(cache_key, threading.Lock())
+    while not lock.acquire(timeout=0.05):
+        _check_cancelled()
+    try:
+        _check_cancelled()
+        with closing(db.get_connection()) as conn:
+            row = conn.execute('SELECT * FROM artwork_assets WHERE provider_id=? AND kind=? AND version=?',cache_key).fetchone()
+        if row:
+            if row['state'] == 'ABSENT' or (row['state'] == 'FAILED' and row['retry_at'] > time.time()):
+                return None
+            if row['state'] == 'READY' and (COVERS_DIR / row['filename']).is_file():
+                from PyQt5.QtGui import QImage
+                if not QImage(str(COVERS_DIR / row['filename'])).isNull():
+                    return row['filename']
+        filename = f"anilist-{media['id']}-{kind}-{version}.jpg"
+        result = _download_artwork(url, filename) if url else None
+        with closing(db.get_connection()) as conn, conn:
+            conn.execute('INSERT OR REPLACE INTO artwork_assets VALUES (?,?,?,?,?,?)',
+                         (*cache_key,result,'READY' if result else ('FAILED' if url else 'ABSENT'),0 if result or not url else time.time()+3600))
+        return result
+    finally:
+        lock.release()
 
 
 def _download_artwork(url, filename):
@@ -278,18 +342,28 @@ def _download_artwork(url, filename):
         return None
     from PyQt5.QtGui import QImage
     COVERS_DIR.mkdir(parents=True, exist_ok=True)
+    temporary = None
     try:
+        _check_cancelled()
         resp = requests.get(url, timeout=15)
+        _check_cancelled()
         resp.raise_for_status()
         if QImage.fromData(resp.content).isNull():
             return None
         destination = COVERS_DIR / filename
-        temporary = destination.with_suffix(".download")
+        import uuid
+        temporary = destination.with_suffix('.' + uuid.uuid4().hex + '.download')
         temporary.write_bytes(resp.content)
         temporary.replace(destination)
         return filename
     except (requests.RequestException, OSError):
         return None
+    finally:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 # ---------------------------------------------------------------------------

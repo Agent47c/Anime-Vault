@@ -65,6 +65,7 @@ class PosterCard(QFrame):
 
         # 1. Poster Container (with embedded top badges)
         poster_slot = QWidget()
+        self.poster_slot = poster_slot
         poster_slot.setFixedSize(self.CARD_WIDTH, self.POSTER_HEIGHT + self.HOVER_LIFT)
         self.poster_label = QLabel(poster_slot)
         self.poster_label.move(0, self.HOVER_LIFT)
@@ -166,9 +167,25 @@ class PosterCard(QFrame):
         if event.type() == QEvent.FontChange and hasattr(self, "_raw_title"):
             self._update_title()
 
+    def set_card_width(self, width):
+        """Fill a grid column without decoding the same poster on each resize."""
+        width = max(1, int(width))
+        if width == self.CARD_WIDTH:
+            return
+        self.CARD_WIDTH = width
+        self.POSTER_HEIGHT = round(width * 1.5)
+        self.setFixedWidth(width)
+        self.poster_slot.setFixedSize(width, self.POSTER_HEIGHT + self.HOVER_LIFT)
+        self.poster_label.setFixedSize(width, self.POSTER_HEIGHT)
+        self.poster_label.setPixmap(self._create_poster_pixmap())
+        self._update_title()
+        self.updateGeometry()
+
     def _create_poster_pixmap(self) -> QPixmap:
         """Create a rounded poster pixmap with baked badges and watermark."""
-        target_pixmap = QPixmap(self.CARD_WIDTH, self.POSTER_HEIGHT)
+        ratio = self.devicePixelRatioF()
+        target_pixmap = QPixmap(round(self.CARD_WIDTH * ratio), round(self.POSTER_HEIGHT * ratio))
+        target_pixmap.setDevicePixelRatio(ratio)
         target_pixmap.fill(Qt.transparent)
 
         painter = QPainter(target_pixmap)
@@ -183,19 +200,22 @@ class PosterCard(QFrame):
         # Check if actual cover exists
         cover = self.franchise_data.get("cover_filename")
         cover_path = COVERS_DIR / cover if cover else None
-        has_image = cover_path and refresh_image_exists(cover_path)
+        if not hasattr(self, '_source_poster'):
+            self._source_poster = refresh_pixmap(cover_path) if cover_path and refresh_image_exists(cover_path) else QPixmap()
+        has_image = not self._source_poster.isNull()
 
         if has_image:
-            img = refresh_pixmap(cover_path)
+            img = self._source_poster
             if not img.isNull():
                 scaled = img.scaled(
-                    self.CARD_WIDTH, self.POSTER_HEIGHT,
+                    round(self.CARD_WIDTH * ratio), round(self.POSTER_HEIGHT * ratio),
                     Qt.KeepAspectRatioByExpanding,
                     Qt.SmoothTransformation,
                 )
-                x = max(0, (scaled.width() - self.CARD_WIDTH) // 2)
-                y = max(0, (scaled.height() - self.POSTER_HEIGHT) // 2)
-                painter.drawPixmap(0, 0, scaled, x, y, self.CARD_WIDTH, self.POSTER_HEIGHT)
+                x = max(0, (scaled.width() - self.CARD_WIDTH * ratio) / 2)
+                y = max(0, (scaled.height() - self.POSTER_HEIGHT * ratio) / 2)
+                painter.drawPixmap(QRectF(0,0,self.CARD_WIDTH,self.POSTER_HEIGHT), scaled,
+                                   QRectF(x,y,self.CARD_WIDTH * ratio,self.POSTER_HEIGHT * ratio))
             else:
                 has_image = False
 
