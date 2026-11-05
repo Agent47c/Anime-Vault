@@ -453,6 +453,7 @@ class LibraryPage(QWidget):
             
             
             ("Has new update", "UPDATE"),
+            ("Needs review", "REVIEW"),
         ]
 
         for label, val in filters:
@@ -715,6 +716,8 @@ class LibraryPage(QWidget):
 
         if self._current_filter == "UPDATE":
             franchises = [f for f in franchises if f.get("has_new_update")]
+        elif self._current_filter == 'REVIEW':
+            franchises = [f for f in franchises if any(self._library_index.by_id[mid].get('needs_review') for mid in f['series_member_ids'])]
 
         if self.view_mode == "grid":
             self._render_grid(franchises)
@@ -767,8 +770,13 @@ class LibraryPage(QWidget):
             if not self._cards:
                 self.views_stack.setMinimumHeight(100)
             return
-        available = self.page_scroll.viewport().width() - 80
-        cols = max(1, (available + 20) // (PosterCard.CARD_WIDTH + 20))
+        margins = self.page_scroll.widget().layout().contentsMargins()
+        available = max(1,self.page_scroll.viewport().width() - margins.left() - margins.right())
+        gap = self.grid_layout.horizontalSpacing()
+        cols = max(1, (available + gap) // (PosterCard.CARD_WIDTH + gap))
+        width, extra = divmod(max(1,available - gap * (cols - 1)),cols)
+        for idx,card in enumerate(self._cards):
+            card.set_card_width(width + (1 if idx % cols < extra else 0))
         if cols != self._grid_columns:
             self.grid_container.setUpdatesEnabled(False)
             while self.grid_layout.count():

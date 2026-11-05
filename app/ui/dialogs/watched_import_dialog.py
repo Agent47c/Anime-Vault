@@ -361,67 +361,24 @@ class WatchedImportDialog(DrawerDialog):
         QMessageBox.warning(self, "Import Error", f"Failed to read watched list:\n{err}")
 
     def reject(self):
+        if getattr(self, "_apply_worker", None) and self._apply_worker.isRunning():
+            return
         if self._worker and self._worker.isRunning():
             self._worker.requestInterruption()
         super().reject()
 
     def _apply_all_matches(self):
-        imported = 0
-        merged = 0
+        from app.core.entry_service import apply_import
+        from app.ui.io_task import start
+        import copy
+        items = copy.deepcopy(self.parsed_items)
+        status = self.import_status_combo.currentData()
+        start(self, lambda: apply_import(items, status), self._import_applied)
 
-        for item in self.parsed_items:
-            if not item.get("enabled", True):
-                continue
-
-            raw_title = item["raw_title"]
-            notes = item["notes"]
-            matched_title = item["matched_title"]
-            existing_id = item.get("existing_id")
-            anilist_media = item.get("anilist_media")
-
-            if existing_id:
-                # Merge into existing record
-                if notes:
-                    existing = db.get_franchise(existing_id)
-                    old_notes = existing.get("user_notes", "") or ""
-                    if notes not in old_notes:
-                        db.update_franchise_field(
-                            existing_id, "user_notes", f"{old_notes}\n{notes}".strip()
-                        )
-                db.update_franchise_field(existing_id, "watch_status", self.import_status_combo.currentData())
-                merged += 1
-            else:
-                # Create new entry
-                franchise_data = {
-                    "display_title": matched_title,
-                    "title_romaji": raw_title,
-                    "watch_status": self.import_status_combo.currentData(),
-                    "storage_state": "NOT_DOWNLOADED",
-                    "raw_import_name": item["raw_line"],
-                    "user_notes": notes,
-                }
-                if anilist_media:
-                    meta = anilist_client.extract_franchise_data(anilist_media)
-                    franchise_data.update(meta)
-
-                if item.get("anilist_media"):
-                    franchise_data["is_custom"] = 0
-                fid = db.upsert_franchise(franchise_data)
-
-                # Download poster
-                if anilist_media and not is_offline():
-                    cover = anilist_client.download_cover(anilist_media, fid)
-                    if cover:
-                        db.update_franchise_field(fid, "cover_filename", cover)
-
-                imported += 1
-
-        QMessageBox.information(
-            self,
-            "Import Complete",
-            f"Successfully processed watched list:\n\n"
-            f"• {imported} new titles added\n"
-            f"• {merged} existing titles updated with {self.import_status_combo.currentText()} status"
-        )
+    def _import_applied(self, result):
+        imported, merged = result
+        QMessageBox.information(self, "Import Complete",
+            f"Successfully processed watched list:\n\n{imported} new titles added\n"
+            f"{merged} existing titles updated with {self.import_status_combo.currentText()} status")
         self.import_completed.emit()
         self.accept()

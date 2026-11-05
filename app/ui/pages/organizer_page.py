@@ -907,8 +907,10 @@ class OrganizerPage(QWidget):
             r_layout.setContentsMargins(6, 4, 6, 4)
             r_layout.setSpacing(6)
 
-            p_lbl = ElidedLabel(d["folder_path"])
-            p_lbl.setToolTip(d["folder_path"])
+            state = d.get('availability','UNSCANNED')
+            suffix = ' · ' + state.title() if state in ('OFFLINE','INACCESSIBLE') else ''
+            p_lbl = ElidedLabel(d["folder_path"] + suffix)
+            p_lbl.setToolTip(d.get('scan_error') or d["folder_path"])
             p_lbl.setMinimumWidth(0)
             p_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
             p_lbl.setStyleSheet("color: #f3f4f6; font-size: 12px; background: transparent; border: none; padding: 0;")

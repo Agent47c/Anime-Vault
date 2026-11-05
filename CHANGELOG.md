@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased — Phase 2: Trustworthy Scanning
+
+- Persist scan inventories and match decisions; index changed scopes only and
+  retain offline/inaccessible roots, missing-file tombstones and watch history.
+- Rank filename/folder/season/part/year/format evidence conservatively, expose
+  unresolved entries for review and protect manual/legacy matches.
+- Cancel obsolete rematch searches, reject stale results, bound rate-limit
+  handling, and pass interruption through scanner enumeration and matching.
+- Share validated artwork by AniList identity and URL version; persist missing
+  banners and failed-download retry deadlines instead of retrying on every visit.
+- Move entry/import saves, thumbnail extraction and Locate indexing into IO
+  workers; preserve outstanding tasks during shutdown.
+- Invalidate Organizer previews after inventory changes; retain manual scanning.
+- Fill Library grid rows across the available width while preserving poster
+  proportions, title limits, hover effects and cached images during resizing.
+- Add acceptance/heartbeat/layout regressions and a complete change record in
+  `PHASE_2_TRUSTWORTHY_SCANNING.md`.
+
 ## Unreleased — Phase 1: Data Safety and Core Identity
 
 - Follow-up: fixed Organizer Review button sizing/focus, replaced the review close

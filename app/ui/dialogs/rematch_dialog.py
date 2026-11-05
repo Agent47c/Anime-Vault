@@ -18,7 +18,7 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal, QRectF
 from app.ui.components.design import MotifHeader
 from app.ui.components.workflow import chrome, card as workflow_card, field, text, button, thumbnail
 from app import db
-from app.config import COVERS_DIR, is_offline
+from app.config import COVERS_DIR, OFFLINE_MODE
 from app.core import anilist_client
 from app.core.parser import normalize_for_matching
 
@@ -51,12 +51,16 @@ class AniListSearchWorker(QThread):
 
     def run(self):
         try:
-            results = anilist_client.search_anime(self.query, per_page=6)
-            for media in results:
-                if self.isInterruptionRequested():
-                    return
-                media["_preview_cover"] = anilist_client.download_cover(media, "preview-" + str(media["id"]))
-            self.results_ready.emit(results)
+            with anilist_client.cancellable(self.isInterruptionRequested):
+                results = anilist_client.search_anime(self.query, per_page=6)
+                for media in results:
+                    if self.isInterruptionRequested():
+                        return
+                    media["_preview_cover"] = anilist_client.download_cover(media, "preview-" + str(media["id"]))
+                if not self.isInterruptionRequested():
+                    self.results_ready.emit(results)
+        except InterruptedError:
+            pass
         except Exception as e:
             self.error_occurred.emit(str(e))
 
@@ -82,6 +86,9 @@ class RematchDialog(DrawerDialog):
             if not self.continuous_episodes and season.get("storage_state") == "ON_DISK" and season.get("relation_type") == "SEASON"
         ]
         self._search_worker = None
+        self._search_generation = 0
+        self._queued_search = None
+        self._search_closed = False
 
         self.setWindowTitle("Rematch Anime Metadata")
         self.resize(560, 900)
@@ -109,6 +116,24 @@ class RematchDialog(DrawerDialog):
             labels.addWidget(text(self.franchise.get("display_title") or "Unknown anime", "workflow_row_title"))
             labels.addWidget(text(self.franchise.get("root_folder_path") or "No local folder linked"))
             body.addWidget(linked)
+            from contextlib import closing
+            with closing(db.get_connection()) as conn:
+                unresolved = conn.execute('SELECT context_json,reason FROM matching_review WHERE local_id=?',(self.franchise_id,)).fetchone()
+            if unresolved:
+                import json
+                evidence = json.loads(unresolved['context_json'])
+                hint = text(unresolved['reason'] + '\nFile: ' + evidence.get('filename','') + '\nFolder: ' + evidence.get('folder',''))
+                hint.setWordWrap(True)
+                body.addWidget(hint)
+                if evidence.get('files'):
+                    from PyQt5.QtWidgets import QPlainTextEdit
+                    body.addWidget(text(f"Files needing review ({len(evidence['files'])})",'workflow_field_label'))
+                    files=QPlainTextEdit()
+                    files.setReadOnly(True)
+                    files.setAccessibleName('Files needing a metadata match')
+                    files.setPlainText('\n'.join(evidence['files']))
+                    files.setFixedHeight(120)
+                    body.addWidget(files)
         search = QWidget()
         row = QHBoxLayout(search)
         row.setContentsMargins(0, 0, 0, 0)
@@ -151,10 +176,15 @@ class RematchDialog(DrawerDialog):
             self._start_search(query)
 
     def _start_search(self, query: str):
+        self._search_generation += 1
+        self.apply_btn.setEnabled(False)
+        self.results_container.setEnabled(False)
         if self._search_worker and self._search_worker.isRunning():
-            self.status_lbl.setText("Search in progress…")
+            self._search_worker.requestInterruption()
+            self._queued_search = query
+            self.status_lbl.setText("Waiting for previous search to stop…")
             return
-        if is_offline():
+        if OFFLINE_MODE:
             self._clear_results()
             lbl = QLabel("Cannot search AniList while in Offline Mode.")
             lbl.setStyleSheet("color: #ef4444; font-size: 13px; padding: 20px;")
@@ -170,17 +200,32 @@ class RematchDialog(DrawerDialog):
 
 
         self._search_worker = AniListSearchWorker(query)
-        self._search_worker.results_ready.connect(self._on_results_ready)
-        self._search_worker.error_occurred.connect(self._on_search_error)
+        self._search_worker.generation = self._search_generation
+        self._search_worker.results_ready.connect(self._search_results)
+        self._search_worker.error_occurred.connect(self._search_error)
         # Keep the worker alive if the user navigates away during a search.
         from PyQt5.QtWidgets import QApplication
         self._search_worker.setParent(QApplication.instance())
+        from app.ui.io_task import track
+        track(self._search_worker)
         self._search_worker.finished.connect(self._search_worker.deleteLater)
         self._search_worker.finished.connect(self._search_finished)
         self._search_worker.start()
 
     def _search_finished(self):
-        self._search_worker = None
+        if self.sender() is self._search_worker:
+            self._search_worker = None
+            query, self._queued_search = self._queued_search, None
+            if query and not self._search_closed:
+                self._start_search(query)
+
+    def _search_results(self, results):
+        if not self._search_closed and self.sender().generation == self._search_generation:
+            self._on_results_ready(results)
+
+    def _search_error(self, message):
+        if not self._search_closed and self.sender().generation == self._search_generation:
+            self._on_search_error(message)
 
     def _clear_results(self):
         while self.results_layout.count():
@@ -189,6 +234,7 @@ class RematchDialog(DrawerDialog):
                 item.widget().deleteLater()
 
     def _on_results_ready(self, results: List[Dict]):
+        self.results_container.setEnabled(True)
         self.progress_bar.setVisible(False)
         self.search_status.hide()
         self._clear_results()
@@ -209,6 +255,7 @@ class RematchDialog(DrawerDialog):
             self.results_layout.addWidget(card)
 
     def _on_search_error(self, err_msg: str):
+        self.results_container.setEnabled(True)
         self.progress_bar.setVisible(False)
         self.search_status.hide()
         self._update_selection_status()
@@ -310,6 +357,10 @@ class RematchDialog(DrawerDialog):
     def reject(self):
         if getattr(self, "_apply_worker", None) and self._apply_worker.isRunning():
             return
+        self._search_closed = True
+        self._queued_search = None
+        if self._search_worker:
+            self._search_worker.requestInterruption()
         super().reject()
 
 

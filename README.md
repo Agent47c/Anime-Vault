@@ -73,5 +73,6 @@ other operating systems are not currently validated by CI.
 - [Organizer usage](ORGANIZER_USAGE.md)
 - [Proposed improvement priorities](SEANIME_COMPARISON_AND_PRIORITIES.md)
 - [Phase 1 implementation and complete change record](PHASE_1_DATA_SAFETY.md)
+- [Phase 2 scanning, matching, artwork and complete change record](PHASE_2_TRUSTWORTHY_SCANNING.md)
 - [Organizer button fixes, manual scans and preview caching](ORGANIZER_UI_AND_SCAN_CHANGES.md)
 - `anime-vault-ui/` contains design reference HTML, not the Python application's runtime.

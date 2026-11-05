@@ -254,56 +254,13 @@ class CustomEntryDialog(DrawerDialog):
             )
             return
 
-        # Find first video file
-        video_file = None
-        folder_path = Path(folder)
-        if folder_path.is_dir():
-            for f in sorted(folder_path.rglob("*")):
-                if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS:
-                    video_file = f
-                    break
+        from app.core.entry_service import grab_frame
+        from app.ui.io_task import start
+        start(self, lambda: grab_frame(folder), self._frame_ready)
 
-        if not video_file:
-            QMessageBox.information(
-                self, "No Video Found",
-                "No video files found in the specified folder."
-            )
-            return
-
-        # Try FFmpeg frame extraction
-        try:
-            tmp_path = Path(tempfile.gettempdir()) / "anime_thumb.jpg"
-            result = subprocess.run(
-                [
-                    "ffmpeg", "-y",
-                    "-i", str(video_file),
-                    "-ss", "00:02:00",
-                    "-vframes", "1",
-                    "-q:v", "2",
-                    str(tmp_path),
-                ],
-                capture_output=True,
-                timeout=30,
-            )
-            if result.returncode == 0 and tmp_path.is_file():
-                self.custom_cover_path = str(tmp_path)
-                pixmap = QPixmap(str(tmp_path)).scaled(
-                    140, 210, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
-                self.cover_preview.setPixmap(pixmap)
-            else:
-                QMessageBox.warning(
-                    self, "FFmpeg Error",
-                    "FFmpeg failed to extract a frame. Make sure FFmpeg is installed."
-                )
-        except FileNotFoundError:
-            QMessageBox.warning(
-                self, "FFmpeg Not Found",
-                "FFmpeg is not installed or not in PATH.\n"
-                "Install it from https://ffmpeg.org/ to use this feature."
-            )
-        except subprocess.TimeoutExpired:
-            QMessageBox.warning(self, "Timeout", "Frame extraction timed out.")
+    def _frame_ready(self, result):
+        self.custom_cover_path, image = result
+        self.cover_preview.setPixmap(QPixmap.fromImage(image))
 
     def _browse_folder(self):
         folder = QFileDialog.getExistingDirectory(
@@ -340,53 +297,18 @@ class CustomEntryDialog(DrawerDialog):
             "is_custom": 1,
         }
 
-        folder = data["root_folder_path"]
-        folder_changed = bool(folder and (not self.is_edit or folder != self.franchise_data.get("root_folder_path")))
-        if folder_changed:
-            try:
-                folder = str(Path(folder).resolve(strict=True))
-                if not Path(folder).is_dir():
-                    raise ValueError("Choose an anime folder.")
-                if self.is_edit:
-                    from app.core.scanner import _update_on_disk_info
-                    _update_on_disk_info(self.franchise_data["id"], folder)
-                data["root_folder_path"] = folder
-            except (OSError, ValueError) as error:
-                QMessageBox.warning(self, "Could not link anime folder", str(error))
-                return
+        from app.core.entry_service import save_entry
+        from app.ui.io_task import start
+        previous = dict(self.franchise_data) if self.is_edit else None
+        cover = self.custom_cover_path
+        start(self, lambda: save_entry(data, previous, cover), self._saved)
 
-        if self.is_edit:
-            fid = self.franchise_data["id"]
-            for key, val in data.items():
-                db.update_franchise_field(fid, key, val)
-        else:
-            data["storage_state"] = "NOT_DOWNLOADED"
-            if data.get("root_folder_path") and Path(data["root_folder_path"]).is_dir():
-                data["storage_state"] = "ON_DISK"
-            fid = db.upsert_franchise(data)
-            if folder_changed:
-                from app.core.scanner import _update_on_disk_info
-                try:
-                    _update_on_disk_info(fid, folder)
-                except (OSError, ValueError) as error:
-                    QMessageBox.warning(self, "Folder saved, scan incomplete", str(error))
-
-        # Save cover
-        if self.custom_cover_path:
-            COVERS_DIR.mkdir(parents=True, exist_ok=True)
-            dest = COVERS_DIR / f"{fid}.jpg"
-            from PIL import Image
-            try:
-                img = Image.open(self.custom_cover_path)
-                img = img.convert("RGB")
-                img.thumbnail((400, 600))
-                img.save(str(dest), "JPEG", quality=90)
-                db.update_franchise_field(fid, "cover_filename", f"{fid}.jpg")
-            except Exception:
-                # Fallback: simple copy
-                import shutil
-                shutil.copy2(self.custom_cover_path, str(dest))
-                db.update_franchise_field(fid, "cover_filename", f"{fid}.jpg")
-
+    def _saved(self, fid):
         self.entry_saved.emit(fid)
         self.accept()
+
+    def reject(self):
+        worker = getattr(self, '_apply_worker', None)
+        if worker and worker.isRunning():
+            return
+        super().reject()

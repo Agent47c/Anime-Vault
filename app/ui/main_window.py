@@ -981,7 +981,8 @@ class MainWindow(QMainWindow):
         set_window_geometry(geo_str)
 
     def _running_threads(self):
-        threads = []
+        from app.ui.io_task import running
+        threads = running()
         workflows = [self, self.organizer_page, self.organizer_page.merge_page, self.updates_page] + [p.workflow for p in getattr(self, "_navigation_pages", [])]
         for workflow in workflows:
             for name in ("_batch_worker", "_organize_worker", "_apply_worker", "_search_worker", "_worker", "_refresh_worker", "_merge_worker", "_merge_plan_worker"):

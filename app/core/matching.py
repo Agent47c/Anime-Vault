@@ -1,5 +1,6 @@
 """Match a local release while keeping the series and season identities separate."""
 import json
+import time
 from contextlib import closing
 from app import db
 from app.core import anilist_client as client
@@ -59,6 +60,9 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
             conn.execute("DELETE FROM franchises WHERE id=?", (fid,))
         conn.execute("UPDATE franchises SET anilist_id=?, display_title=?, title_en=?, title_romaji=?, title_native=?, synopsis=?, genres=?, needs_review=0, metadata_json=?, cover_filename=COALESCE(?,cover_filename), banner_filename=COALESCE(?,banner_filename) WHERE id=?", (root["id"], data["display_title"], data.get("title_en"), data.get("title_romaji"), data.get("title_native"), data["synopsis"], data["genres"], json.dumps(root), cover, banner, destination))
         assignments = [] if continuous else [(selected, owned[0]["id"] if owned else None), *additional]
+        from app.core.scan_state import decision
+        decision(conn,'series',destination,root['id'])
+        conn.execute('DELETE FROM matching_review WHERE local_id IN (?,?)',(fid,destination))
         local_ids = [sid for _, sid in assignments if sid is not None]
         if len(set(local_ids)) != len(local_ids):
             raise ValueError("Assign each selected release to a different local season.")
@@ -87,6 +91,8 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
                     "INSERT INTO seasons (franchise_id, anilist_id, season_number, title_display, episodes_total, airing_status, storage_state) VALUES (?, ?, ?, ?, ?, ?, 'NOT_DOWNLOADED')",
                     (destination, release_id, number, title, release.get("episodes"), release.get("status")),
                 )
+            if sid is not None:
+                decision(conn,'season',sid,release_id)
     db.recalculate_franchise_size(destination)
     db.recalculate_franchise_storage_state(destination)
     from app.core.identity import bind_release
@@ -124,10 +130,16 @@ def auto_match_indexed_folders(cancelled, progress=None, franchise_ids=None):
             continue
         fid = record["id"]
         local = db.get_seasons_for_franchise(fid)
+        with closing(db.get_connection()) as conn:
+            locked = {row['local_id'] for row in conn.execute("SELECT local_id FROM matching_decisions WHERE kind='season' AND source IN ('MANUAL','LEGACY_CONFIRMED')")}
+            custom = conn.execute("SELECT 1 FROM matching_decisions WHERE kind='series' AND local_id=? AND provider_id IS NULL AND source='MANUAL'",(fid,)).fetchone()
+        if custom:
+            continue
         numbered = [
             season for season in local if season["storage_state"] == "ON_DISK"
             and season["relation_type"] == "SEASON" and not season["anilist_id"]
             and (season.get("local_scan_key") or "").startswith("season:")
+            and season['id'] not in locked
         ]
         if db.uses_continuous_episodes(record):
             numbered = []
@@ -146,20 +158,42 @@ def auto_match_indexed_folders(cancelled, progress=None, franchise_ids=None):
                 if not media or relatives(media, "PREQUEL"):
                     continue
             else:
-                query = clean_title(folder.name)
-                title_key = normalize_for_matching(query)
-                if not title_key:
+                from app.core.match_evidence import context,choose
+                sample = next(((s,name) for s in sorted(local,key=lambda s:s.get('season_number') or 999)
+                               for name in json.loads(s.get('video_files_json') or '[]')), (None,''))
+                season,name = sample
+                evidence = context(name,str(Path(name).parent) if Path(name).parent.name else folder.name,
+                                   folder.name,season.get('season_number') if season else None,
+                                   season.get('relation_type') if season else None)
+                evidence['files'] = [str(Path(s['season_folder_path'])/name)
+                                     for s in local if s.get('season_folder_path')
+                                     for name in json.loads(s.get('video_files_json') or '[]')]
+                query = evidence['titles'][0] if evidence['titles'] else clean_title(folder.name)
+                if not normalize_for_matching(query):
                     continue
-                exact = [
-                    candidate for candidate in client.search_anime(query, per_page=8)
-                    if candidate.get("format") in tv and any(
-                        normalize_for_matching(title) == title_key
-                        for title in (candidate.get("title") or {}).values() if title
-                    )
-                ]
-                if len(exact) != 1 or relatives(exact[0], "PREQUEL"):
+                candidates = client.search_anime(query,per_page=8)
+                if cancelled():
+                    break
+                media,ranked = choose(candidates,evidence)
+                if media:
+                    # Do not let one good filename conceal unrelated media in
+                    # the same folder. Number-only names add no title evidence.
+                    from difflib import SequenceMatcher
+                    from app.core.match_evidence import base_title
+                    aliases=[normalize_for_matching(base_title(v)) for v in (media.get('title') or {}).values() if v]
+                    for path in evidence['files']:
+                        title=context(Path(path).name)['filename_title']
+                        if title and max((SequenceMatcher(None,normalize_for_matching(title),alias).ratio() for alias in aliases),default=0)<.65:
+                            evidence['conflicting_file']=path
+                            media=None
+                            break
+                if media is None or relatives(media,'PREQUEL'):
+                    with closing(db.get_connection()) as conn,conn:
+                        conn.execute('INSERT OR REPLACE INTO matching_review VALUES (?,?,?,?,?)',
+                            (fid,json.dumps(evidence),json.dumps([{k:r[k] for k in ('id','score','reasons','conflict')} for r in ranked]),
+                             'No unique, strongly supported release match. Review filenames, season/part and format.',int(time.time())))
+                        conn.execute('UPDATE franchises SET needs_review=1 WHERE id=?',(fid,))
                     continue
-                media = exact[0]
 
             # Follow only a single TV sequel at each step. A branch, split
             # cour, or an unverified link leaves the remaining folders for review.
@@ -197,12 +231,16 @@ def auto_match_indexed_folders(cancelled, progress=None, franchise_ids=None):
                 if not current or current["anilist_id"] != record["anilist_id"]:
                     continue
                 if not record["anilist_id"]:
+                    from app.core.scan_state import decision
+                    if not decision(conn,'series',fid,media['id'],'AUTO'):
+                        continue
                     if conn.execute("SELECT 1 FROM franchises WHERE anilist_id=?", (media["id"],)).fetchone():
                         continue
                     data = client.extract_franchise_data(media)
                     data.update(needs_review=0, is_custom=0)
                     fields = ", ".join(f"{key}=?" for key in data)
                     conn.execute(f"UPDATE franchises SET {fields} WHERE id=?", (*data.values(), fid))
+                    conn.execute('DELETE FROM matching_review WHERE local_id=?',(fid,))
                 for season in numbered:
                     number = season["season_number"]
                     release = chain.get(number)
@@ -212,6 +250,9 @@ def auto_match_indexed_folders(cancelled, progress=None, franchise_ids=None):
                     if conn.execute("SELECT 1 FROM seasons WHERE anilist_id=?", (release["id"],)).fetchone():
                         continue
                     data = client.extract_season_data(release, fid, number)
+                    from app.core.scan_state import decision
+                    if not decision(conn,'season',season['id'],release['id'],'AUTO'):
+                        continue
                     conn.execute(
                         "UPDATE seasons SET anilist_id=?, title_display=?, episodes_total=?, airing_status=?, "
                         "next_airing_ep=?, next_airing_at=? WHERE id=? AND anilist_id IS NULL",

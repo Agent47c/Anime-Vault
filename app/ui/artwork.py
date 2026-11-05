@@ -8,6 +8,20 @@ from app.config import COVERS_DIR, cached_online, OFFLINE_MODE
 from app.core import anilist_client
 
 
+def needs_artwork(filename, media, kind):
+    if not valid_image(filename):
+        return True
+    # User-selected/legacy artwork stays intact. Versioned provider assets
+    # refresh when metadata supplies a new URL.
+    if filename.startswith('anilist-') and media.get('id'):
+        import hashlib
+        cover = media.get('coverImage') or {}
+        url = media.get('bannerImage') if kind == 'banner' else cover.get('extraLarge') or cover.get('large') or cover.get('medium')
+        version = hashlib.sha256((url or 'absent').encode()).hexdigest()[:24]
+        return filename != f"anilist-{media['id']}-{kind}-{version}.jpg"
+    return False
+
+
 class _Signals(QObject):
     done = pyqtSignal(int, bool)
 
@@ -24,25 +38,17 @@ class _Fetch(QRunnable):
         changed = False
         try:
             media = json.loads(f.get("metadata_json") or "null")
-            if self.banner_only and media and not media.get("bannerImage"):
-                checked = float(db.get_state(f"banner_absent:{f['anilist_id']}", "0"))
-                if time.time() - checked < 86400:
-                    if valid_image(f.get("cover_filename")):
-                        return
-                else:
-                    media = anilist_client.get_anime_by_id(f["anilist_id"])
-            elif not media or "bannerImage" not in media:
+            # An explicit null is a stable absence, not a reason to re-query.
+            if not media or "bannerImage" not in media:
                 media = anilist_client.get_anime_by_id(f["anilist_id"])
             if media:
                 key = f"{f['id']}-{f['anilist_id']}"
                 # A poster is the hero fallback when AniList has no wide banner.
-                needs_cover = not valid_image(f.get("cover_filename")) and (not self.banner_only or not media.get("bannerImage"))
+                needs_cover = needs_artwork(f.get("cover_filename"),media,'cover') and (not self.banner_only or not media.get("bannerImage"))
                 cover = anilist_client.download_cover(media, key) if needs_cover else None
-                banner = None if valid_image(f.get("banner_filename")) else anilist_client.download_banner(media, key)
-                if self.banner_only and not media.get("bannerImage"):
-                    db.set_state(f"banner_absent:{f['anilist_id']}", str(time.time()))
+                banner = anilist_client.download_banner(media, key) if needs_artwork(f.get('banner_filename'),media,'banner') else None
                 current = db.get_franchise(f["id"])
-                if current and current.get("anilist_id") == f.get("anilist_id"):
+                if current and current.get("anilist_id") == f.get("anilist_id") and (cover or banner or media != json.loads(f.get('metadata_json') or 'null')):
                     db.cache_media(f["id"], media, cover, banner)
                     changed = bool(cover or banner)
         except Exception:
@@ -79,12 +85,12 @@ class ArtworkLoader(QObject):
             return
         if OFFLINE_MODE or not franchise.get("anilist_id") or (cached_online() is not True and not allow_network) or fid in self._pending:
             return
-        if time.monotonic() - self._attempts.get(fid, -1000) < 300:
+        attempt = (fid,franchise.get('anilist_id'),franchise.get('metadata_json'),banner_only)
+        if time.monotonic() - self._attempts.get(attempt, -1000) < 300:
             return
-        if valid_image(franchise.get("banner_filename")) and (banner_only or valid_image(franchise.get("cover_filename"))):
-            return
+        # Validation/decoding belongs to the worker, never a GUI paint/request.
         self._pending.add(fid)
-        self._attempts[fid] = time.monotonic()
+        self._attempts[attempt] = time.monotonic()
         self.pool.start(_Fetch(dict(franchise), self._signals, banner_only))
 
     def _finished(self, fid, changed):
