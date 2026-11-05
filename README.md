@@ -72,4 +72,5 @@ other operating systems are not currently validated by CI.
 - [Version history](CHANGELOG.md)
 - [Organizer usage](ORGANIZER_USAGE.md)
 - [Proposed improvement priorities](SEANIME_COMPARISON_AND_PRIORITIES.md)
+- [Phase 1 implementation and complete change record](PHASE_1_DATA_SAFETY.md)
 - `anime-vault-ui/` contains design reference HTML, not the Python application's runtime.
