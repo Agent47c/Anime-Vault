@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library – AnimeVault</title>
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@700&display=swap">
+<style>
+body{margin:0}
+:root{--bg:#0B0C10;--sf:#14161D;--sf2:#1C1F29;--ln:rgba(255,255,255,.12);--tx:#F2F3F7;--tx2:#B4B9CA;--tx3:#8E94A8;--ac:#8B8CFF;--onac:#0B0C10;--ring:#C4C5FF;--glass:rgba(20,22,29,.72)}
+@media (prefers-color-scheme:light){
+:root{--bg:#F5F5F7;--sf:#FFFFFF;--sf2:#ECECF1;--ln:rgba(0,0,0,.14);--tx:#1D1D1F;--tx2:#4A4A55;--tx3:#62626D;--ac:#4B4DD6;--onac:#FFFFFF;--ring:#2E30B8;--glass:rgba(255,255,255,.72)}
+}
+*{box-sizing:border-box}
+ul{list-style:none;margin:0;padding:0}
+h1,h2,p{margin:0}
+:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-9999px;top:12px;z-index:9;background:var(--ac);color:var(--onac);padding:12px 16px;border-radius:10px;font-weight:600}
+.skip:focus{left:12px}
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:1040px;background:var(--bg);color:var(--tx);font-family:Inter,"Segoe UI Variable","Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.5}
+.side{display:flex;flex-direction:column;gap:8px;padding:24px 16px;background:var(--glass);backdrop-filter:blur(24px) saturate(1.4);border-right:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:12px;padding:0 12px 20px;font-weight:700;font-size:17px}
+.mk{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--ac);color:var(--onac);font-weight:800}
+.lbl{padding:20px 12px 6px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.nl{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--tx2);text-decoration:none;font-weight:500}
+.nl:hover{background:var(--sf2);color:var(--tx)}
+.nl[aria-current]{background:var(--sf2);color:var(--tx);font-weight:600}
+.ic{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bd{margin-left:auto;min-width:22px;padding:1px 7px;border-radius:99px;background:var(--ac);color:var(--onac);font-size:12px;font-weight:700;text-align:center}
+.ct{margin-left:auto;color:var(--tx3);font-size:13px}
+.drive{margin-top:auto;padding:16px;border-radius:14px;background:var(--sf);border:1px solid var(--ln)}
+.drive strong{display:block;font-size:20px}
+.bar{height:8px;margin:10px 0;border-radius:99px;background:var(--sf2);overflow:hidden}
+.bar span{display:block;height:100%;width:91.7%;background:var(--ac)}
+.drive p{color:var(--tx2);font-size:13px}
+.drive a{display:inline-block;margin-top:8px;color:var(--ac);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.top{display:flex;align-items:center;gap:12px;padding:20px 40px}
+.search{position:relative;flex:1;max-width:560px}
+.search .ic{position:absolute;left:14px;top:11px;color:var(--tx3)}
+.search input{width:100%;height:44px;padding:0 70px 0 44px;border-radius:12px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font:inherit}
+.search input::placeholder{color:var(--tx3)}
+.search kbd{position:absolute;right:12px;top:11px;padding:1px 8px;border-radius:6px;background:var(--sf2);color:var(--tx3);font:600 12px Inter,sans-serif}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--ln);background:var(--sf2);color:var(--tx);font:600 15px Inter,sans-serif;text-decoration:none;cursor:pointer}
+.btn.p{background:var(--ac);color:var(--onac);border-color:transparent}
+.btn.g{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.35)}
+main{padding:0 40px 56px}
+.hero{display:flex;flex-direction:column;justify-content:flex-end;gap:14px;min-height:340px;padding:40px;border-radius:24px;color:#fff;background:linear-gradient(90deg,#0B0C10 0%,rgba(11,12,16,.6) 55%,rgba(11,12,16,0) 100%),linear-gradient(135deg,#4a3bb0,#171b3f 60%,#0e1020)}
+.eye{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#C9CBFF}
+.hero h1{font-size:52px;line-height:1.05;font-weight:800;letter-spacing:-.03em}
+.hero p{color:#D5D8E6}
+.hero progress{width:320px;height:6px;border-radius:99px;accent-color:#C4C5FF}
+.acts{display:flex;gap:12px;margin-top:6px}
+section.r{margin-top:40px}
+h2.st{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.row{display:grid;grid-auto-flow:column;grid-auto-columns:176px;gap:20px;overflow-x:auto;padding:8px 6px 16px;scroll-snap-type:x proximity}
+.row li{scroll-snap-align:start}
+.card{display:block;border-radius:14px;color:var(--tx);text-decoration:none}
+.art{position:relative;display:grid;place-items:center;aspect-ratio:2/3;border-radius:14px;font-size:60px;font-weight:800;color:rgba(255,255,255,.9);background:linear-gradient(160deg,hsl(var(--h) 55% 40%),hsl(calc(var(--h) + 40) 60% 16%));transition:transform .2s ease,box-shadow .2s ease}
+.card:hover .art,.card:focus-visible .art{transform:translateY(-4px) scale(1.03);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.card:focus-visible{outline:none}
+.card:focus-visible .art{outline:3px solid var(--ring);outline-offset:3px}
+.tag{position:absolute;left:10px;top:10px;padding:3px 10px;border-radius:99px;background:#fff;color:#14161D;font-size:12px;font-weight:700}
+.nm{display:block;margin-top:10px;font-weight:600;font-size:14px;line-height:1.3}
+.bar2{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:20px}
+.chip{min-height:44px;padding:0 16px;border-radius:99px;border:1px solid var(--ln);background:transparent;color:var(--tx2);font:500 14px Inter,sans-serif;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--tx);color:var(--bg);border-color:transparent;font-weight:600}
+.sort{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--tx2)}
+.sort select{height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:28px 20px}
+.mk{font-family:"Noto Serif JP","Yu Mincho",serif}
+.hero{position:relative;overflow:hidden;background:linear-gradient(90deg,#0B0C10 0%,rgba(11,12,16,.6) 55%,rgba(11,12,16,0) 100%),repeating-linear-gradient(105deg,rgba(255,255,255,.06) 0 2px,transparent 2px 28px),radial-gradient(circle at 88% 100%,rgba(217,45,69,.6),transparent 55%),linear-gradient(135deg,#4a3bb0,#171b3f 60%,#0e1020)}
+.hero::before{content:"";position:absolute;right:0;top:0;width:55%;height:100%;background:radial-gradient(rgba(255,255,255,.5) 1.1px,transparent 1.6px) 0 0/9px 9px;opacity:.16;mask-image:linear-gradient(90deg,transparent,#000)}
+.hero::after{content:"続" / "";position:absolute;right:48px;bottom:-40px;font:700 300px/1 "Noto Serif JP","Yu Mincho",serif;color:#fff;opacity:.1;pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.eps{width:286px;height:8px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 18px,transparent 18px 22px)}
+.eps span{display:block;width:174px;height:100%;background:repeating-linear-gradient(90deg,#C4C5FF 0 18px,transparent 18px 22px)}
+.tag{transform:rotate(-4deg);border:2px solid #14161D;box-shadow:2px 2px 0 rgba(0,0,0,.55);font-weight:800}
+.jp{margin-right:10px;padding:2px 10px;border-radius:6px;background:var(--ac);color:var(--onac);font-size:13px;font-weight:700;vertical-align:middle}
+:root{--rd:#D92D45;--rdt:#FF7083}
+@media (prefers-color-scheme:light){
+:root{--rdt:#B3122D}
+}
+.btn.p{background:var(--rd);color:#fff;border-color:transparent}
+.mk{background:var(--rd);color:#fff}
+.bd{background:var(--rd);color:#fff}
+.bar span{background:var(--rd)}
+.drive strong{color:var(--rdt)}
+.nl[aria-current] .ic{color:var(--rdt)}
+.tag{background:var(--rd);color:#fff}
+.jp{background:var(--rd);color:#fff}
+.eps span{background:repeating-linear-gradient(90deg,#FF7083 0 18px,transparent 18px 22px)}
+.hero .eye{color:#FFB3BD}
+.card:hover .art,.card:focus-visible .art{box-shadow:0 18px 40px rgba(217,45,69,.3)}
+.wv{position:absolute;left:0;right:0;bottom:0;height:22px;background:radial-gradient(circle at 50% 100%,transparent 0 38%,rgba(255,255,255,.18) 38% 44%,transparent 44% 58%,rgba(255,255,255,.18) 58% 64%,transparent 64%) 0 0/36px 22px repeat-x;pointer-events:none}
+.cs{display:inline-flex;gap:6px;margin-right:10px;padding:3px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.45);color:#fff;font-size:13px;font-weight:600}
+.hero>.wv{position:absolute;z-index:0}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}
+.dy{min-height:132px;padding:14px;border-radius:16px;background:var(--sf);border:1px solid var(--ln)}
+.dy h3{display:flex;justify-content:space-between;margin:0 0 10px;font-size:14px;font-weight:700;color:var(--tx2)}
+.dy h3 span{font:700 18px "Noto Serif JP","Yu Mincho",serif;color:var(--tx3)}
+.dy.td{border:2px solid var(--rd);background:linear-gradient(180deg,rgba(217,45,69,.16),var(--sf) 65%)}
+.dy.td h3{color:var(--rdt)}
+.dy a{display:block;min-height:44px;padding:8px 10px;border-radius:10px;background:var(--sf2);color:var(--tx);font-weight:600;font-size:14px;line-height:1.3;text-decoration:none}
+.dy a:hover{background:var(--ln)}
+.dy small{display:block;margin-top:2px;color:var(--tx2);font-size:13px;font-weight:400}
+.dy em{font-style:normal;color:var(--tx3);font-size:14px}
+/* accessibility layer */
+:root{color-scheme:dark light}
+@media (prefers-contrast:more){
+:root{--ln:rgba(255,255,255,.55);--tx2:#E6E8F0;--tx3:#CDD1DE}
+}
+@media (prefers-contrast:more) and (prefers-color-scheme:light){
+:root{--ln:rgba(0,0,0,.65);--tx2:#2B2B33;--tx3:#3D3D47}
+}
+@media (forced-colors:active){
+.ph::after,.wrap::before,.dh::before,.dh::after,.hero::before,.hero::after,.pg::before,.wv{display:none}
+.btn,.bt,.chip,.art,.pl,.dy,.pn,.tile,.ur,.mr,.cd,.note,.drive,.tag{border:1px solid CanvasText}
+.nl[aria-current]{outline:2px solid Highlight}
+:focus-visible{outline:3px solid Highlight}
+input[role=switch]:checked{background:Highlight;forced-color-adjust:none}
+.bar span,.seg i,.eps span{background:Highlight;forced-color-adjust:none}
+}
+@media (prefers-reduced-motion:reduce){
+*{transition:none!important}
+}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+<a class="skip" href="#main">Skip to library</a>
+<aside class="side">
+<div class="brand"><span class="mk" aria-hidden="true">ア</span><span>AnimeVault</span></div>
+<nav aria-label="Primary">
+<ul>
+<li><a class="nl" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Library</a></li>
+<li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Updates<span class="bd">3<span class="vh"> new</span></span></a></li>
+<li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Organizer</a></li>
+<li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-8h10l2 8"/></svg>Storage</a></li>
+<li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings</a></li>
+</ul>
+</nav>
+<h2 class="lbl">Collections</h2>
+<ul>
+<li><a class="nl" href="#">Watching<span class="ct">24</span></a></li>
+<li><a class="nl" href="#">Plan to watch<span class="ct">31</span></a></li>
+<li><a class="nl" href="#">Dropped<span class="ct">6</span></a></li>
+<li><a class="nl" href="#">Watched, removed<span class="ct">112</span></a></li>
+</ul>
+<div class="drive">
+<strong>250 GB free</strong>
+<div class="bar" role="meter" aria-label="Drive D used" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="2750" aria-valuetext="2.75 TB of 3 TB used"><span></span></div>
+<p>2.75 TB of 3 TB used</p>
+<a href="#">Review storage</a>
+</div>
+</aside>
+<div>
+<header class="top">
+<form class="search" role="search" onsubmit="return false">
+<label class="vh" for="q">Search library by English title</label>
+<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+<input id="q" type="search" placeholder="Search by English title">
+<kbd aria-hidden="true">Ctrl K</kbd>
+</form>
+<button class="btn" type="button">Refresh</button>
+<button class="btn p" type="button">Add anime</button>
+</header>
+<main id="main">
+<section class="hero" aria-labelledby="hero-t">
+<p class="eye"><span aria-hidden="true">続き · </span>Continue watching</p>
+<h1 id="hero-t">Solo Leveling</h1>
+<p><span class="cs"><span aria-hidden="true">秋</span> Fall 2026</span><span class="cs">Episode 9 airs Friday</span></p>
+<p>Season 2 · Episode 8 of 13 · 1080p · 34.8 GB on disk</p>
+<div class="eps" role="img" aria-label="Season 2 progress, 8 of 13 episodes watched"><span></span></div>
+<div class="acts">
+<a class="btn p" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>Play episode 8</a>
+<a class="btn g" href="#">Details</a>
+</div>
+<div class="wv" aria-hidden="true"></div>
+</section>
+<section class="r" aria-labelledby="rw">
+<h2 class="st" id="rw"><span class="jp" aria-hidden="true">放送</span>Airing this week</h2>
+<ol class="wk" style="list-style:none;margin:0;padding:0">
+<li class="dy"><h3>Mon <span aria-hidden="true">月</span></h3><a href="#">Bleach: TYBW<small>EP 12 · 23:30</small></a></li>
+<li class="dy td" aria-current="date"><h3>Tue · Today <span aria-hidden="true">火</span></h3><a href="#">Jujutsu Kaisen<small>EP 9 · 19:30</small></a></li>
+<li class="dy"><h3>Wed <span aria-hidden="true">水</span></h3><em>No episodes</em></li>
+<li class="dy"><h3>Thu <span aria-hidden="true">木</span></h3><a href="#">Spy x Family<small>EP 6 · 21:00</small></a></li>
+<li class="dy"><h3>Fri <span aria-hidden="true">金</span></h3><a href="#">Solo Leveling<small>EP 9 · 22:00</small></a></li>
+<li class="dy"><h3>Sat <span aria-hidden="true">土</span></h3><a href="#">One Punch Man<small>EP 4 · 17:00</small></a></li>
+<li class="dy"><h3>Sun <span aria-hidden="true">日</span></h3><em>No episodes</em></li>
+</ol>
+</section>
+<section class="r" aria-labelledby="r1">
+<h2 class="st" id="r1"><span class="jp" aria-hidden="true">新着</span>New seasons and episodes</h2>
+<ul class="row">
+<li><a class="card" href="#" style="--h:262"><span class="art"><span class="tag">New episode</span><span aria-hidden="true">J</span></span><span class="nm">Jujutsu Kaisen</span></a></li>
+<li><a class="card" href="#" style="--h:200"><span class="art"><span class="tag">New season</span><span aria-hidden="true">B</span></span><span class="nm">Bleach: Thousand-Year Blood War</span></a></li>
+<li><a class="card" href="#" style="--h:150"><span class="art"><span class="tag">Announced</span><span aria-hidden="true">F</span></span><span class="nm">Frieren: Beyond Journey’s End</span></a></li>
+<li><a class="card" href="#" style="--h:340"><span class="art"><span aria-hidden="true">V</span></span><span class="nm">Vinland Saga</span></a></li>
+<li><a class="card" href="#" style="--h:28"><span class="art"><span aria-hidden="true">S</span></span><span class="nm">Spy x Family</span></a></li>
+<li><a class="card" href="#" style="--h:300"><span class="art"><span aria-hidden="true">O</span></span><span class="nm">One Punch Man</span></a></li>
+</ul>
+</section>
+<section class="r" aria-labelledby="r2">
+<h2 class="st" id="r2"><span class="jp" aria-hidden="true">全作品</span>All anime</h2>
+<div class="bar2" role="group" aria-label="Filter library">
+<button class="chip" type="button" aria-pressed="true">All</button>
+<button class="chip" type="button" aria-pressed="false">Watching</button>
+<button class="chip" type="button" aria-pressed="false">Plan to watch</button>
+<button class="chip" type="button" aria-pressed="false">Airing</button>
+<button class="chip" type="button" aria-pressed="false">Has update</button>
+<label class="sort">Sort by <select><option>Name A to Z</option><option>Date added</option><option>Size on disk</option></select></label>
+</div>
+<ul class="grid">
+<li><a class="card" href="#" style="--h:262"><span class="art"><span aria-hidden="true">S</span></span><span class="nm">Solo Leveling</span></a></li>
+<li><a class="card" href="#" style="--h:10"><span class="art"><span aria-hidden="true">D</span></span><span class="nm">Demon Slayer</span></a></li>
+<li><a class="card" href="#" style="--h:45"><span class="art"><span aria-hidden="true">ア</span></span><span class="nm">Attack on Titan</span></a></li>
+<li><a class="card" href="#" style="--h:180"><span class="art"><span aria-hidden="true">C</span></span><span class="nm">Chainsaw Man</span></a></li>
+<li><a class="card" href="#" style="--h:320"><span class="art"><span aria-hidden="true">M</span></span><span class="nm">Mob Psycho 100</span></a></li>
+<li><a class="card" href="#" style="--h:120"><span class="art"><span aria-hidden="true">H</span></span><span class="nm">Hunter x Hunter</span></a></li>
+<li><a class="card" href="#" style="--h:220"><span class="art"><span aria-hidden="true">K</span></span><span class="nm">Kaguya-sama: Love Is War</span></a></li>
+<li><a class="card" href="#" style="--h:80"><span class="art"><span aria-hidden="true">N</span></span><span class="nm">Naruto Shippuden</span></a></li>
+</ul>
+</section>
+</main>
+</div>
+</div>
+
+</body>
+</html>

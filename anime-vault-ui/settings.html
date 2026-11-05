@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings – AnimeVault</title>
+<link rel="stylesheet" href="shared.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@700&display=swap">
+<style>
+body{margin:0}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+<a class="skip" href="#main">Skip to content</a>
+<aside class="side">
+<div class="brand"><span class="mk" aria-hidden="true">ア</span><span>AnimeVault</span></div>
+<nav aria-label="Primary"><ul><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Library</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Updates<span class="bd">3<span class="vh"> new</span></span></a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Organizer</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-8h10l2 8"/></svg>Storage</a></li><li><a class="nl" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings</a></li></ul></nav>
+<h2 class="lbl">Collections</h2>
+<ul><li><a class="nl" href="#">Watching<span class="ct">24</span></a></li><li><a class="nl" href="#">Plan to watch<span class="ct">31</span></a></li><li><a class="nl" href="#">Dropped<span class="ct">6</span></a></li><li><a class="nl" href="#">Watched, removed<span class="ct">112</span></a></li></ul>
+<div class="drive"><strong>250 GB free</strong><div class="bar" role="meter" aria-label="Drive D used" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="2750" aria-valuetext="2.75 TB of 3 TB used"><span></span></div><p>2.75 TB of 3 TB used</p><a href="#">Review storage</a></div>
+</aside>
+<div class="wrap">
+<header class="top"><form class="search" role="search" onsubmit="return false"><label class="vh" for="q">Search library by English title</label><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search by English title"><kbd aria-hidden="true">Ctrl K</kbd></form><button class="btn p" type="button">Add anime</button></header>
+<main id="main">
+<div class="ph" data-k="設定"><div><h1 class="pt">Settings</h1><p>Appearance, metadata, media player, scanning and backups</p></div></div>
+<div class="g2"><div style="display:grid;gap:24px">
+<section class="pn" aria-labelledby="a1"><h2 id="a1">Appearance and accessibility</h2><label class="row2"><span><b>Theme</b><small>Matches Windows by default</small></span><select class="s"><option>Match Windows</option><option>Dark</option><option>Light</option></select></label><label class="sw"><span><b>Compact library</b><small>Show more titles on wide monitors</small></span><input type="checkbox" role="switch"></label><label class="sw"><span><b>Reduce motion</b><small>Turn off hover and transition animations</small></span><input type="checkbox" role="switch"></label><fieldset><legend>Text size</legend><small>Scales every label, button and table in the app</small><div class="sg" role="radiogroup"><input type="radio" name="tz" id="z1" checked><label for="z1">Default</label><input type="radio" name="tz" id="z2"><label for="z2">Large</label><input type="radio" name="tz" id="z3"><label for="z3">Extra large</label></div></fieldset><label class="sw"><span><b>High contrast</b><small>Stronger borders and text. Also follows the Windows setting</small></span><input type="checkbox" role="switch"></label><label class="sw"><span><b>Decorative kanji and patterns</b><small>Turn off for a calmer, plainer look</small></span><input type="checkbox" role="switch" checked></label></section>
+<section class="pn" aria-labelledby="a2"><h2 id="a2">Media player</h2><label class="row2"><span><b>Default player</b><small>Used by Resume and Play episode</small></span><select class="s"><option>Windows default</option><option>VLC</option><option>MPV</option><option>MPC-HC</option></select></label><div class="row2"><span><b>Local streaming API</b><small>http://127.0.0.1:8765 · read-only</small></span><span class="pl ok">Running</span></div><div class="row2" style="border:0"><span><b>API access token</b><small>Protects requests for local video paths</small></span><button class="btn" type="button">Generate</button></div></section>
+<section class="pn" aria-labelledby="a3"><h2 id="a3">Metadata and AniList</h2><label class="sw"><span><b>Automatic metadata updates</b><small>Check for new seasons and episodes</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Prefer official English titles</b><small>Fall back to Romaji and Japanese</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Allow mature (18+) titles</b><small>Do not hide AniList results</small></span><input type="checkbox" role="switch"></label><label class="sw"><span><b>Rematch low-confidence titles</b><small>Ask before replacing existing metadata</small></span><input type="checkbox" role="switch" checked></label></section>
+</div><div style="display:grid;gap:24px">
+<section class="pn" aria-labelledby="a4"><h2 id="a4">Scanning and organization</h2><label class="sw"><span><b>Flat folder detection</b><small>Treat direct root video files as Season 1</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Preview file movements</b><small>Require confirmation before organizing</small></span><input type="checkbox" role="switch" checked></label><label class="row2"><span><b>Scheduled scan</b><small>How often folders are scanned</small></span><select class="s"><option>On startup</option><option>Every 6 hours</option><option>Daily</option><option>Manual</option></select></label></section>
+<section class="pn" aria-labelledby="a5"><h2 id="a5">Watched list import</h2><label class="sw"><span><b>Auto-apply high-confidence matches</b><small>Accept matches above 90%</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Review ambiguous matches</b><small>Show a confirmation drawer</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Ignore duplicate entries</b><small>Prevent duplicate library records</small></span><input type="checkbox" role="switch" checked></label></section>
+<section class="pn" aria-labelledby="a6"><h2 id="a6">Database and backup</h2><div class="row2"><span><b>Database</b><small>library.db · SQLite</small></span><span class="pl ok">Healthy</span></div><div class="row2"><span><b>Last backup</b><small>Today at 12:41 PM · 128 titles</small></span><button class="btn" type="button">Create backup</button></div><div class="row2" style="border:0"><span><b>Export</b><small>Full library for safe keeping</small></span><span class="acts"><button class="btn" type="button">JSON</button><button class="btn" type="button">CSV</button></span></div></section>
+</div></div>
+</main>
+<footer class="sb">Online · Local API running on port 8765 · Metadata cache: 128 titles · Last scan 12:41 PM · AnimeVault v1.0.0</footer>
+</div>
+</div>
+
+</body>
+</html>

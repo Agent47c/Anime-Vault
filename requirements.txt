@@ -1,0 +1,7 @@
+PyQt5>=5.15.9
+requests>=2.31.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+Pillow>=10.1.0
+Send2Trash>=2.1.0
+pywin32>=312; sys_platform == "win32"

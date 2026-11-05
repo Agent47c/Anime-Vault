@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merge library – AnimeVault</title>
+<link rel="stylesheet" href="shared.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@700&display=swap">
+<style>
+body{margin:0}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+<a class="skip" href="#main">Skip to content</a>
+<aside class="side">
+<div class="brand"><span class="mk" aria-hidden="true">ア</span><span>AnimeVault</span></div>
+<nav aria-label="Primary"><ul><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Library</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Updates<span class="bd">3<span class="vh"> new</span></span></a></li><li><a class="nl" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Organizer</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-8h10l2 8"/></svg>Storage</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings</a></li></ul></nav>
+<h2 class="lbl">Collections</h2>
+<ul><li><a class="nl" href="#">Watching<span class="ct">24</span></a></li><li><a class="nl" href="#">Plan to watch<span class="ct">31</span></a></li><li><a class="nl" href="#">Dropped<span class="ct">6</span></a></li><li><a class="nl" href="#">Watched, removed<span class="ct">112</span></a></li></ul>
+<div class="drive"><strong>250 GB free</strong><div class="bar" role="meter" aria-label="Drive D used" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="2750" aria-valuetext="2.75 TB of 3 TB used"><span></span></div><p>2.75 TB of 3 TB used</p><a href="#">Review storage</a></div>
+</aside>
+<div class="wrap">
+<header class="top"><form class="search" role="search" onsubmit="return false"><label class="vh" for="q">Search library by English title</label><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search by English title"><kbd aria-hidden="true">Ctrl K</kbd></form><button class="btn p" type="button">Add anime</button></header>
+<main id="main">
+<div class="tabs" role="tablist" aria-label="Organizer sections"><button class="tab" role="tab" aria-selected="false" type="button">Organize seasons and folders</button><button class="tab" role="tab" aria-selected="true" type="button">Merge all anime into one root library</button></div>
+<div class="ph" data-k="統合"><div><h1 class="pt">Season organizer</h1><p>Choose source roots and one destination. Preview every move, then select one or several anime.</p></div><span class="pl wn">Preview required</span></div>
+<div class="cols" style="margin-bottom:24px">
+<section class="pn" aria-labelledby="m1"><h2 id="m1">Source roots</h2><p class="d">Folders to merge from.</p><ul><li><label class="ck"><input type="checkbox" checked>E:\Anime Archive</label></li><li><label class="ck"><input type="checkbox" checked>D:\Downloads\Completed</label></li><li><label class="ck"><input type="checkbox">D:\Anime</label></li></ul></section>
+<section class="pn" aria-labelledby="m2"><h2 id="m2">Destination library</h2><p class="d">Every selected anime moves into this folder.</p><div class="dst"><label class="vh" for="dst">Destination library path</label><input class="in" id="dst" value="E:\Anime Library"><button class="btn" type="button">Browse…</button></div><div style="margin-top:12px"><button class="btn p" type="button">Generate move preview</button></div></section>
+</div>
+<section class="pn" aria-labelledby="m3"><h2 id="m3">Move preview</h2><p class="d">Files needing review stay in their original locations.</p>
+<div class="tw"><table class="t"><caption class="vh">Anime to move</caption><thead><tr><th scope="col"><span class="vh">Select</span></th><th scope="col">Anime</th><th scope="col">Ready files</th><th scope="col">Needs folder</th><th scope="col">Total size</th><th scope="col">Destination</th></tr></thead><tbody>
+<tr><td><input type="checkbox" aria-label="Select Bleach" checked></td><th scope="row"><strong>Bleach</strong><small>E:\Anime Archive\Bleach</small></th><td>13</td><td><span class="pl ok">0</span></td><td>130.2 GB</td><td>E:\Anime Library\Bleach</td></tr>
+<tr style="background:var(--sf2)"><td><input type="checkbox" aria-label="Select Naruto Shippuden" checked></td><th scope="row"><strong>Naruto Shippuden</strong><small>D:\Downloads\Completed\Naruto</small></th><td>21</td><td><span class="pl wn">4</span></td><td>80.6 GB</td><td>E:\Anime Library\Naruto Shippuden</td></tr>
+<tr><td><input type="checkbox" aria-label="Select Attack on Titan" checked></td><th scope="row"><strong>Attack on Titan</strong><small>E:\Anime Archive\Attack on Titan</small></th><td>25</td><td><span class="pl ok">0</span></td><td>36.0 GB</td><td>E:\Anime Library\Attack on Titan</td></tr>
+</tbody></table></div></section>
+<section class="pn" aria-labelledby="m4"><h2 id="m4">Files for Naruto Shippuden</h2><p class="d">Highlighted in the table above. Tick its checkbox there to include it.</p>
+<div class="tw"><table class="t"><caption class="vh">Files for the highlighted anime</caption><thead><tr><th scope="col">Source</th><th scope="col">Destination</th><th scope="col">Status</th></tr></thead><tbody>
+<tr><th scope="row" style="font-weight:400">Naruto Shippuden - 001.mkv</th><td>…\Naruto Shippuden\Season 1\Naruto Shippuden - 001.mkv</td><td><span class="pl ok">Ready</span></td></tr>
+<tr><th scope="row" style="font-weight:400">Naruto Shippuden - 002.mkv</th><td>…\Naruto Shippuden\Season 1\Naruto Shippuden - 002.mkv</td><td><span class="pl ok">Ready</span></td></tr>
+<tr><th scope="row" style="font-weight:400">recap_special.mkv</th><td>Choose a folder below</td><td><span class="pl wn">Needs folder</span></td></tr>
+<tr><th scope="row" style="font-weight:400">ova_01.mp4</th><td>Choose a folder below</td><td><span class="pl wn">Needs folder</span></td></tr>
+</tbody></table></div></section>
+<section class="pn" aria-labelledby="m5"><h2 id="m5">Before you move</h2>
+<div class="row2"><label for="nf"><b>For files needing a folder</b><small>Applies to the highlighted anime</small></label><span class="acts"><select class="s" id="nf"><option>Unassigned episodes</option><option>Specials</option><option>Extras</option></select><button class="btn" type="button">Approve folder for highlighted anime</button></span></div>
+<label class="ck" style="margin-top:12px"><input type="checkbox">I reviewed the selected files and destination</label>
+<p role="status" style="margin:12px 0 16px;color:var(--tx2)">2 anime selected · 46 files · 166.6 GB will move to E:\Anime Library. 4 files need a folder and stay where they are until you approve one.</p>
+<div class="acts"><button class="btn p" type="button" disabled style="opacity:.45;cursor:not-allowed">Move selected anime</button><button class="btn" type="button">Stop after current file</button><span style="align-self:center;color:var(--tx3);font-size:13px">Move unlocks after you tick the review box.</span></div></section>
+</main>
+<footer class="sb">Online · Local API running on port 8765 · Metadata cache: 128 titles · Last scan 12:41 PM · AnimeVault v1.0.0</footer>
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organizer – AnimeVault</title>
+<link rel="stylesheet" href="shared.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@700&display=swap">
+<style>
+body{margin:0}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+<a class="skip" href="#main">Skip to content</a>
+<aside class="side">
+<div class="brand"><span class="mk" aria-hidden="true">ア</span><span>AnimeVault</span></div>
+<nav aria-label="Primary"><ul><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Library</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Updates<span class="bd">3<span class="vh"> new</span></span></a></li><li><a class="nl" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Organizer</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-8h10l2 8"/></svg>Storage</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings</a></li></ul></nav>
+<h2 class="lbl">Collections</h2>
+<ul><li><a class="nl" href="#">Watching<span class="ct">24</span></a></li><li><a class="nl" href="#">Plan to watch<span class="ct">31</span></a></li><li><a class="nl" href="#">Dropped<span class="ct">6</span></a></li><li><a class="nl" href="#">Watched, removed<span class="ct">112</span></a></li></ul>
+<div class="drive"><strong>250 GB free</strong><div class="bar" role="meter" aria-label="Drive D used" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="2750" aria-valuetext="2.75 TB of 3 TB used"><span></span></div><p>2.75 TB of 3 TB used</p><a href="#">Review storage</a></div>
+</aside>
+<div class="wrap">
+<header class="top"><form class="search" role="search" onsubmit="return false"><label class="vh" for="q">Search library by English title</label><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search by English title"><kbd aria-hidden="true">Ctrl K</kbd></form><button class="btn p" type="button">Add anime</button></header>
+<main id="main">
+<div class="tabs" role="tablist" aria-label="Organizer sections"><button class="tab" role="tab" aria-selected="true" type="button">Organize seasons and folders</button><button class="tab" role="tab" aria-selected="false" type="button">Merge all anime into one root library</button></div>
+<div class="ph" data-k="整理"><div><h1 class="pt">Season organizer</h1><p>Scan folders, detect seasons, preview changes and organize files safely</p></div><span class="pl ok">Ready to scan</span></div>
+<div class="cols">
+<div>
+<section class="pn" aria-labelledby="o1"><h2 id="o1">Library roots</h2><p class="d">Folders the organizer will scan.</p><ul class="rl"><li class="rt"><span>D:\Anime</span><button class="x" type="button" aria-label="Remove D:\Anime">×</button></li><li class="rt"><span>E:\Anime Archive</span><button class="x" type="button" aria-label="Remove E:\Anime Archive">×</button></li><li class="rt"><span>D:\Downloads\Completed</span><button class="x" type="button" aria-label="Remove D:\Downloads\Completed">×</button></li></ul><button class="btn" type="button">Add library root</button>
+<div class="dz"><b>Drop anime folders here</b><span>or choose Add library root</span></div><div class="acts"><button class="btn p" type="button">Scan now</button><button class="btn" type="button">Stop</button></div></section>
+<section class="pn" aria-labelledby="o2"><h2 id="o2">Detection rules</h2>
+<label class="sw"><span><b>Treat direct video files as Season 1</b><small>Files inside the root folder</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Detect season names</b><small>S01, Season 2, Part II, Roman numerals</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Detect episode numbers</b><small>E01, - 01, Ep 12</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Keep subtitles and fonts</b><small>Moved together with their episodes</small></span><input type="checkbox" role="switch" checked></label><label class="sw"><span><b>Organize without confirmation</b><small>Off keeps a preview before any file moves</small></span><input type="checkbox" role="switch"></label></section>
+</div>
+<section class="pn" aria-labelledby="o3"><h2 id="o3">Organization preview</h2><p class="d">Review proposed season assignments. No files move until you confirm.</p>
+<div class="tw"><table class="t"><caption class="vh">Proposed season assignments</caption><thead><tr><th scope="col"><span class="vh">Select</span></th><th scope="col">Folder</th><th scope="col">Files</th><th scope="col">Proposed</th><th scope="col">Action</th></tr></thead><tbody>
+<tr><td><input type="checkbox" aria-label="Select Solo Leveling" checked></td><th scope="row"><strong>Solo Leveling</strong><small>D:\Anime\Solo Leveling\01.mkv … 04.mkv · flat root detected</small></th><td>4 files</td><td><span class="pl ac">Season 1</span></td><td><button class="btn" type="button">Review</button></td></tr>
+<tr><td><input type="checkbox" aria-label="Select Bleach" checked></td><th scope="row"><strong>Bleach</strong><small>D:\Anime\Bleach\Season 2</small></th><td>13 files</td><td><span class="pl ok">Matched</span></td><td><button class="btn" type="button">Review</button></td></tr>
+<tr><td><input type="checkbox" aria-label="Select Fate Strange Fake" checked></td><th scope="row"><strong>Fate Strange Fake</strong><small>D:\Anime\Fate Strange Fake</small></th><td>6 files</td><td><span class="pl wn">Needs rematch</span></td><td><button class="btn" type="button">Rematch</button></td></tr>
+<tr><td><input type="checkbox" aria-label="Select Mixed season structure" checked></td><th scope="row"><strong>Mixed season structure</strong><small>Root files + Season 1 folder detected</small></th><td>12 files</td><td><span class="pl wn">Needs review</span></td><td><button class="btn" type="button">Review</button></td></tr>
+</tbody></table></div>
+<div class="row2" style="border:0;margin-top:8px"><span style="color:var(--tx2)">25 files · 3 folders · 1 metadata review</span><button class="btn p" type="button">Organize selected files</button></div></section>
+</div>
+</main>
+<footer class="sb">Online · Local API running on port 8765 · Metadata cache: 128 titles · Last scan 12:41 PM · AnimeVault v1.0.0</footer>
+</div>
+</div>
+
+</body>
+</html>

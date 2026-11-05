@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storage – AnimeVault</title>
+<link rel="stylesheet" href="shared.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@700&display=swap">
+<style>
+body{margin:0}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+<a class="skip" href="#main">Skip to content</a>
+<aside class="side">
+<div class="brand"><span class="mk" aria-hidden="true">ア</span><span>AnimeVault</span></div>
+<nav aria-label="Primary"><ul><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Library</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Updates<span class="bd">3<span class="vh"> new</span></span></a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Organizer</a></li><li><a class="nl" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-8h10l2 8"/></svg>Storage</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings</a></li></ul></nav>
+<h2 class="lbl">Collections</h2>
+<ul><li><a class="nl" href="#">Watching<span class="ct">24</span></a></li><li><a class="nl" href="#">Plan to watch<span class="ct">31</span></a></li><li><a class="nl" href="#">Dropped<span class="ct">6</span></a></li><li><a class="nl" href="#">Watched, removed<span class="ct">112</span></a></li></ul>
+<div class="drive"><strong>250 GB free</strong><div class="bar" role="meter" aria-label="Drive D used" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="2750" aria-valuetext="2.75 TB of 3 TB used"><span></span></div><p>2.75 TB of 3 TB used</p><a href="#">Review storage</a></div>
+</aside>
+<div class="wrap">
+<header class="top"><form class="search" role="search" onsubmit="return false"><label class="vh" for="q">Search library by English title</label><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search by English title"><kbd aria-hidden="true">Ctrl K</kbd></form><button class="btn p" type="button">Add anime</button></header>
+<main id="main">
+<div class="ph" data-k="容量"><div><h1 class="pt">Storage</h1><p>Disk usage, watch status and how much space each collection takes</p></div><button class="btn p" type="button">Refresh storage</button></div>
+<section class="pn" aria-labelledby="s1"><h2 id="s1">Internal drive D:</h2><p class="d">Anime library and local media storage</p>
+<p><span class="big">250 GB</span> <span style="color:var(--tx2)">free of 3.00 TB</span></p>
+<div class="seg" role="img" aria-label="Anime library 2.6 TB, other files 150 GB, free space 250 GB"><i style="width:86.7%;background:var(--ac)"></i><i style="width:5%;background:var(--tx3)"></i></div>
+<div class="lg"><span>Anime library <b>2.60 TB</b></span><span>Other files <b>150 GB</b></span><span>Free space <b>250 GB</b></span></div></section>
+<div class="tiles"><div class="tile"><b>86</b><span>On disk, complete titles</span></div><div class="tile"><b>21</b><span>Partially on disk, need review</span></div><div class="tile"><b>86</b><span>Watched titles</span></div><div class="tile"><b>18</b><span>Removed, records kept</span></div><div class="tile"><b>246 GB</b><span>Watched files (potential reclaim)</span></div></div>
+<section class="pn" aria-labelledby="s2"><div class="row2" style="border:0;padding:0"><div><h2 id="s2">Largest anime collections</h2><p class="d" style="margin-bottom:0">File paths, watch status, health and reclaimable space</p></div><label class="sw" style="border:0;gap:12px"><b>Show potential reclaim</b><input type="checkbox" role="switch" checked></label></div>
+<div class="tw"><table class="t"><caption class="vh">Largest anime collections</caption><thead><tr><th scope="col">Anime</th><th scope="col">Seasons · size</th><th scope="col">Watch status</th><th scope="col">Health</th><th scope="col">Potential reclaim</th><th scope="col">Action</th></tr></thead><tbody>
+<tr><th scope="row"><strong>One Piece</strong><small>D:\Anime\One Piece</small></th><td>12 · 388 GB</td><td>Watching</td><td><span class="pl ok">Healthy</span></td><td>—</td><td><button class="btn" type="button">Open</button></td></tr>
+<tr><th scope="row"><strong>Bleach</strong><small>D:\Anime\Bleach</small></th><td>7 · 246 GB</td><td>Watched</td><td><span class="pl ok">Healthy</span></td><td>246 GB</td><td><button class="btn" type="button">Review</button></td></tr>
+<tr><th scope="row"><strong>Naruto Shippuden</strong><small>E:\Anime Archive\Naruto</small></th><td>5 · 192 GB</td><td>Watched</td><td><span class="pl wn">Missing episode</span></td><td>192 GB</td><td><button class="btn" type="button">Inspect</button></td></tr>
+</tbody></table></div>
+<p class="d" style="margin:12px 0 0">Potential reclaim counts watched files only. The app never deletes anything without your confirmation.</p></section>
+</main>
+<footer class="sb">Online · Local API running on port 8765 · Metadata cache: 128 titles · Last scan 12:41 PM · AnimeVault v1.0.0</footer>
+</div>
+</div>
+
+</body>
+</html>

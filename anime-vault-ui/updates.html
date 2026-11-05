@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Updates – AnimeVault</title>
+<link rel="stylesheet" href="shared.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@700&display=swap">
+<style>
+body{margin:0}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+<a class="skip" href="#main">Skip to content</a>
+<aside class="side">
+<div class="brand"><span class="mk" aria-hidden="true">ア</span><span>AnimeVault</span></div>
+<nav aria-label="Primary"><ul><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Library</a></li><li><a class="nl" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Updates<span class="bd">3<span class="vh"> new</span></span></a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Organizer</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-8h10l2 8"/></svg>Storage</a></li><li><a class="nl" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings</a></li></ul></nav>
+<h2 class="lbl">Collections</h2>
+<ul><li><a class="nl" href="#">Watching<span class="ct">24</span></a></li><li><a class="nl" href="#">Plan to watch<span class="ct">31</span></a></li><li><a class="nl" href="#">Dropped<span class="ct">6</span></a></li><li><a class="nl" href="#">Watched, removed<span class="ct">112</span></a></li></ul>
+<div class="drive"><strong>250 GB free</strong><div class="bar" role="meter" aria-label="Drive D used" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="2750" aria-valuetext="2.75 TB of 3 TB used"><span></span></div><p>2.75 TB of 3 TB used</p><a href="#">Review storage</a></div>
+</aside>
+<div class="wrap">
+<header class="top"><form class="search" role="search" onsubmit="return false"><label class="vh" for="q">Search library by English title</label><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search by English title"><kbd aria-hidden="true">Ctrl K</kbd></form><button class="btn p" type="button">Add anime</button></header>
+<main id="main">
+<div class="ph" data-k="更新"><div><h1 class="pt">Library updates</h1><p>Metadata, new episodes, seasons and local health warnings</p></div><button class="btn p" type="button">Refresh metadata</button></div>
+<div class="pn" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><div><h2>AniList connected</h2><p class="d" style="margin:2px 0 0">Last successful check today at 12:41 PM. A refresh also runs each time the app opens.</p></div><span class="pl ok" role="status">Connected</span></div>
+<div class="bar2" role="group" aria-label="Filter updates"><button class="chip" type="button" aria-pressed="true">All 3</button><button class="chip" type="button" aria-pressed="false">Episodes</button><button class="chip" type="button" aria-pressed="false">Seasons</button><button class="chip" type="button" aria-pressed="false">Health</button></div>
+<ul class="ul">
+<li class="ur" style="--h:262"><span class="th" aria-hidden="true"></span><div><h2>Jujutsu Kaisen</h2><p>Episode 8 is available for metadata matching and download tracking.</p><span class="pl ac">Episode available</span></div><div class="acts"><button class="btn p" type="button">Open update</button><button class="btn" type="button">Dismiss</button></div></li>
+<li class="ur" style="--h:200"><span class="th" aria-hidden="true"></span><div><h2>Bleach: Thousand-Year Blood War</h2><p>A new cour relation was added. Previous seasons are already on disk.</p><span class="pl ac">New cour</span></div><div class="acts"><button class="btn" type="button">View details</button><button class="btn p" type="button">Add to library</button></div></li>
+<li class="ur" style="--h:10"><span class="th" aria-hidden="true"></span><div><h2>Library health warning</h2><p>One Piece Season 4 contains a duplicate Episode 96 and a missing Episode 103.</p><span class="pl wn">Needs review</span></div><div class="acts"><button class="btn p" type="button">Review files</button></div></li>
+</ul>
+</main>
+<footer class="sb">Online · Local API running on port 8765 · Metadata cache: 128 titles · Last scan 12:41 PM · AnimeVault v1.0.0</footer>
+</div>
+</div>
+
+</body>
+</html>
