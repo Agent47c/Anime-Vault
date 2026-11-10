@@ -1,5 +1,9 @@
 # qBittorrent and website search integration
 
+> **9 November 2026 update:** Anime Vault now uses the built-in engine only.
+> External-client setup/control described below is historical and removed.
+> See [current setup and legacy queue recovery](BUILTIN_ONLY_DOWNLOADS.md).
+
 Implemented 6 November 2026, on top of Phase 2. Existing library, matching,
 organizing, history, Recycle Bin and API features are retained. No streaming
 API, torrent engine or website scraper is added. The optional selected-site

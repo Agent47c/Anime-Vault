@@ -281,7 +281,9 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
     if not path.is_file():
         return {"imported": 0, "merged": 0, "skipped": 0, "errors": []}
 
-    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    from app.core.text_import import read_text_list, ImportIndex
+    lines = read_text_list(path)
+    import_index=ImportIndex()
 
     imported = 0
     merged = 0
@@ -298,7 +300,10 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
         notes = parsed["notes"]
 
         # Check for existing entry
-        existing = db.find_franchise_by_title(title)
+        matches=import_index.matches(title)
+        if len(matches)>1:
+            skipped+=1;errors.append('Ambiguous library title needs review: '+title);continue
+        existing=matches[0] if matches else None
         if existing:
             # Merge: update watch status and notes
             fid = existing["id"]
@@ -330,6 +335,7 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
                     franchise_data.update(anilist_data)
 
             fid = db.upsert_franchise(franchise_data)
+            import_index.add(db.get_franchise(fid))
 
             # Download cover if we got AniList data
             if not is_offline() and "anilist_id" in franchise_data:

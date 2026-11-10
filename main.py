@@ -21,6 +21,10 @@ if __name__=='__main__' and sys.argv[1:2]==['--native-magnet-host']:
     from app.core.chrome_bridge import run
     raise SystemExit(run(sys.argv[2:]))
 
+if __name__=='__main__' and sys.argv[1:2]==['--builtin-torrent-host']:
+    from builtin_torrent_host import run
+    raise SystemExit(run())
+
 from app.startup import prepare_windowed_logging
 prepare_windowed_logging()
 

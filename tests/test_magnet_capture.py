@@ -131,22 +131,25 @@ class MagnetCaptureTests(unittest.TestCase):
         config={**downloads.DEFAULTS,'enabled':True,'destination':self.temp.name}
         db.set_state('downloads.settings',json.dumps(config))
         item_id=inbox.enqueue(MAGNET);item=inbox.next_link()
-        client=Mock();client.call.return_value=Mock(text='Ok.')
-        with patch.object(downloads,'Client',return_value=client):
+        adapter=Mock()
+        adapter.prepare.side_effect=lambda item,source:item.update(torrent_identity='a'*40)
+        with patch('app.core.builtin_torrents.engine',return_value=adapter):
             first=inbox.submit(item,self.fid,0)
             second=inbox.submit(item,self.fid,0)
-        self.assertEqual(first,second);self.assertEqual(client.call.call_count,1)
+        self.assertEqual(first,second);self.assertEqual(adapter.attach.call_count,1)
         self.assertEqual(len(downloads.jobs()),1)
 
     def test_uncertain_browser_submission_cannot_be_blindly_duplicated(self):
         config={**downloads.DEFAULTS,'enabled':True,'destination':self.temp.name}
         db.set_state('downloads.settings',json.dumps(config))
         inbox.enqueue(MAGNET);item=inbox.next_link()
-        client=Mock();client.call.side_effect=TimeoutError('uncertain')
-        with patch.object(downloads,'Client',return_value=client):
+        adapter=Mock()
+        adapter.prepare.side_effect=lambda item,source:item.update(torrent_identity='a'*40)
+        adapter.attach.side_effect=TimeoutError('uncertain')
+        with patch('app.core.builtin_torrents.engine',return_value=adapter):
             with self.assertRaises(TimeoutError): inbox.submit(item,self.fid,0)
             with self.assertRaises(ValueError): inbox.submit(item,self.fid,0)
-        self.assertEqual(client.call.call_count,1)
+        self.assertEqual(adapter.attach.call_count,1)
 
     def test_captured_link_is_prefilled_but_never_downloaded_without_confirmation(self):
         from app.ui.magnet_capture import MagnetReview
@@ -164,6 +167,35 @@ class MagnetCaptureTests(unittest.TestCase):
             download.assert_not_called()
         self.assertIsNone(inbox.next_link())
         dialog.deleteLater()
+
+    def test_review_drawer_stays_within_viewport_with_long_titles_and_paths(self):
+        from app.ui.magnet_capture import MagnetReview
+        from PyQt5.QtWidgets import QScrollArea,QLabel
+        from PyQt5.QtCore import QPoint
+        db.upsert_franchise({'display_title':'A very long library anime title '*12})
+        config={**downloads.DEFAULTS,'destination':'C:\\Downloads\\'+'LongFolderName'*20}
+        db.set_state('downloads.settings',json.dumps(config))
+        item={'id':'layout-only','name':'[SubsPlease] Hotel Inhumans S2 - 06 (1080p) [7E30AE87].mkv','uri':MAGNET}
+        with patch.object(downloads,'add_download') as download:
+            dialog=MagnetReview(item)
+            dialog.show()
+            for width in (560,480):
+                dialog.resize(width,720)
+                self.app.processEvents()
+                scroll=dialog.findChild(QScrollArea)
+                body=scroll.widget()
+                self.assertLessEqual(body.width(),scroll.viewport().width())
+                for control in (dialog.anime,dialog.season):
+                    left=control.mapTo(body,QPoint()).x()
+                    self.assertGreaterEqual(left,0)
+                    self.assertLessEqual(left+control.width(),body.width())
+                self.assertTrue(dialog.send_button.isVisible())
+            destination=next(label for label in body.findChildren(QLabel) if label.text().startswith('Destination:'))
+            self.assertEqual(destination.text().replace('\u200b',''),'Destination: '+config['destination'])
+            self.assertIn('\u200b',destination.text())
+            download.assert_not_called()
+            dialog.hide()
+            dialog.deleteLater()
 
     @unittest.skipUnless(shutil.which('node'),'Node.js is required for extension behavior tests')
     def test_chrome_extension_behaviors(self):

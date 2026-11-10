@@ -12,6 +12,7 @@ _PATHS = {
     "organizer": "M3 6a2 2 0 0 1 2-2h4l3 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
     "storage": "M5 5h14l3 10v4H2v-4z M2 15h20 M17 17h1",
     "settings": "M4 6h16 M4 12h16 M4 18h16 M8 4v4 M16 10v4 M10 16v4",
+    "downloads": "M12 3v12 M7 10l5 5 5-5 M4 17v4h16v-4",
     "list": "M4 6h16 M4 12h16 M4 18h16",
     "tray": "M4 13v7h16v-7 M12 3v12 M8 11l4 4 4-4",
     "power": "M12 3v9 M7 5a8 8 0 1 0 10 0",

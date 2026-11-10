@@ -472,6 +472,9 @@ def upsert_season(data: Dict[str, Any]) -> int:
 
     if existing:
         sid = existing["id"]
+        override=conn.execute('SELECT value FROM app_state WHERE key=?',('season_number_override:'+str(sid),)).fetchone()
+        if override:
+            data=dict(data);data['season_number']=int(override[0])
         sets = []
         vals = []
         for key in [
@@ -523,7 +526,7 @@ def upsert_season(data: Dict[str, Any]) -> int:
 def get_seasons_for_franchise(fid: int) -> List[Dict[str, Any]]:
     conn = get_connection()
     rows = conn.execute(
-        "SELECT * FROM seasons WHERE franchise_id = ? ORDER BY season_number, relation_type",
+        "SELECT * FROM seasons WHERE franchise_id = ? ORDER BY CASE WHEN relation_type='SEASON' AND (season_number=0 OR season_number IS NULL) THEN 10000 ELSE season_number END, relation_type",
         (fid,),
     ).fetchall()
     conn.close()
@@ -696,51 +699,38 @@ def rematch_franchise(fid: int, anilist_data: Dict[str, Any], cover_filename: Op
     conn.close()
 
 
-def backup_database() -> str:
+def backup_database(directory=None) -> str:
     """Create a timestamped SQLite database backup. Returns the backup filepath."""
-    import shutil
     from datetime import datetime
+    import uuid
     _ensure_dirs()
-    backups_dir = DATA_DIR / "backups"
+    backups_dir = Path(directory or get_state('backup_directory',str(DATA_DIR/'backups')))
+    if not backups_dir.is_absolute(): raise ValueError('Choose an absolute backup directory.')
     backups_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_file = backups_dir / f"library_backup_{ts}.db"
-    shutil.copy2(DB_PATH, backup_file)
+    backup_file = backups_dir / f"library_backup_{ts}_{uuid.uuid4().hex[:8]}.db"
+    with closing(get_connection()) as source, closing(sqlite3.connect(str(backup_file))) as target:
+        source.backup(target)
     return str(backup_file)
 
 
 def restore_database(backup_path: str) -> bool:
-    """Safely restore a SQLite database backup with rollback protection."""
-    import shutil
-    src = Path(backup_path)
-    if not src.is_file():
-        raise FileNotFoundError(f"Backup file not found: {backup_path}")
-
-    # Verify SQLite header
-    with open(src, "rb") as f:
-        header = f.read(16)
-        if not header.startswith(b"SQLite format 3"):
-            raise ValueError("Selected file is not a valid SQLite database backup.")
-
-    # Create safety rollback copy of current DB
-    rollback_path = DATA_DIR / "library.db.rollback"
-    if DB_PATH.is_file():
-        shutil.copy2(DB_PATH, rollback_path)
-
-    try:
-        shutil.copy2(src, DB_PATH)
-        # Verify opening
-        conn = get_connection()
-        conn.execute("SELECT COUNT(*) FROM franchises").fetchone()
-        conn.close()
-        if rollback_path.is_file():
-            rollback_path.unlink()
-        return True
-    except Exception as e:
-        if rollback_path.is_file():
-            shutil.copy2(rollback_path, DB_PATH)
-        raise e
-
+    """Restore through SQLite so active WAL files cannot override the backup."""
+    src=Path(backup_path)
+    if not src.is_file(): raise FileNotFoundError(f"Backup file not found: {backup_path}")
+    with closing(sqlite3.connect(src.resolve().as_uri()+'?mode=ro',uri=True)) as incoming:
+        if incoming.execute('PRAGMA quick_check').fetchone()[0]!='ok':
+            raise ValueError('Backup failed its database integrity check.')
+        incoming.execute('SELECT COUNT(*) FROM franchises').fetchone()
+        rollback=backup_database()
+        try:
+            with closing(get_connection()) as target: incoming.backup(target)
+            init_db()
+            return True
+        except Exception:
+            with closing(sqlite3.connect(rollback)) as safety, closing(get_connection()) as target:
+                safety.backup(target)
+            raise
 
 
 def dismiss_updates(fid: int):
@@ -792,6 +782,14 @@ def publish_updates(fid: int, details: Optional[str]) -> Optional[str]:
 
 def cache_media(fid: int, media: Dict[str, Any], cover=None, banner=None):
     """Save provider metadata and artwork without changing personal library fields."""
+    from app.core.release_calendar import remember_metadata
+    previous = get_franchise(fid)
+    if previous:
+        try:
+            remember_metadata(json.loads(previous.get('metadata_json') or '{}'))
+        except (TypeError, ValueError):
+            pass
+    remember_metadata(media)
     from app.core.anilist_client import extract_franchise_data
     data = extract_franchise_data(media)
     with closing(get_connection()) as conn, conn:
@@ -850,6 +848,9 @@ def updates_muted(fid):
 
 
 def get_series_library(**filters):
+    snapshot=current_refresh_view()
+    if not filters and snapshot is not None and 'series_groups' in snapshot:
+        return snapshot['series_groups']
     from app.core.series import build_groups
     all_entries = get_all_franchises(sort_by=filters.get("sort_by", "display_title"), sort_order=filters.get("sort_order", "ASC"))
     matching = {entry["id"] for entry in get_all_franchises(**filters)}
@@ -862,6 +863,8 @@ def get_series(fid):
 
 
 def uses_continuous_episodes(series):
+    if not series:
+        return False
     value = get_state(f"continuous_episodes:{series['id']}")
     return value == "1" if value is not None else series.get("anilist_id") == 21
 
@@ -870,8 +873,8 @@ def set_continuous_episodes(fid, enabled):
     set_state(f"continuous_episodes:{fid}", "1" if enabled else "0")
 
 
-def get_series_seasons(fid):
-    series = get_series(fid)
+def get_series_seasons(fid, series=None):
+    series = get_series(fid) if series is None else series
     if not series:
         return []
     seasons = []
@@ -880,7 +883,7 @@ def get_series_seasons(fid):
         for season in get_seasons_for_franchise(member_id):
             season["release_title"] = member["display_title"]
             seasons.append(season)
-    return sorted(seasons, key=lambda season: (season.get("season_number") or 0, season["id"]))
+    return sorted(seasons, key=lambda season: ((season.get('season_number') or 10000) if season.get('relation_type')=='SEASON' else (season.get('season_number') or 0), season['id']))
 
 
 def group_with_series(member_id, target_id):

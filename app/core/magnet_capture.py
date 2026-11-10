@@ -21,6 +21,9 @@ def validate(uri):
             identities.append(value.lower())
     if not identities:
         raise ValueError('The magnet link has no supported BitTorrent identity.')
+    import base64
+    identities=[('urn:btih:'+base64.b32decode(v.rsplit(':',1)[-1].upper()).hex())
+                if v.startswith('urn:btih:') and len(v.rsplit(':',1)[-1])==32 else v for v in identities]
     name=next((v for k,v in values if k=='dn'),'Unnamed torrent')
     name=' '.join(name.split())[:300]
     identity=hashlib.sha256('\n'.join(sorted(set(identities))).encode()).hexdigest()

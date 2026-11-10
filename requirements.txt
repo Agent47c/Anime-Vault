@@ -4,4 +4,5 @@ fastapi>=0.104.0
 uvicorn>=0.24.0
 Pillow>=10.1.0
 Send2Trash>=2.1.0
+libtorrent==2.0.15
 pywin32>=312; sys_platform == "win32"

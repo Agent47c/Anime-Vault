@@ -1,8 +1,8 @@
 const siteInput = document.getElementById('site');
 const status = document.getElementById('status');
-chrome.storage.local.get(['site', 'enabled']).then(config => {
+chrome.storage.local.get(['site', 'enabled', 'bridgeStatus']).then(config => {
   if (config.site) siteInput.value = config.site;
-  status.textContent = config.enabled ? 'Enabled for ' + config.site : 'Capture is disabled.';
+  status.textContent = (config.enabled ? 'Enabled for ' + config.site : 'Capture is disabled.') + ' ' + (config.bridgeStatus || 'Open Anime Vault to connect.');
 });
 document.getElementById('enable').addEventListener('click', async () => {
   try {

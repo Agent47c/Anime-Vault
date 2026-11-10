@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Anime Vault — Selected-site Magnet Capture",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Send magnet clicks from one chosen website to Anime Vault. Other websites keep their normal handler.",
   "minimum_chrome_version": "102",
-  "permissions": ["storage", "scripting", "nativeMessaging"],
+  "permissions": ["storage", "scripting", "nativeMessaging", "alarms"],
   "optional_host_permissions": ["https://*/*", "http://*/*"],
   "background": {"service_worker": "background.js"},
   "action": {"default_popup": "popup.html", "default_title": "Anime Vault site capture"}

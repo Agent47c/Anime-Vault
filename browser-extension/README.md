@@ -2,7 +2,8 @@
 
 This extension catches normal left-clicks on magnet links **only on the one
 website you enable**. It does not change Windows MAGNET defaults, intercept
-other websites, read browsing history or scrape search results.
+other websites or read browsing history. When you request a release search in
+Anime Vault, it reads results from a temporary tab on your enabled source site.
 
 ## One-time setup
 
@@ -63,3 +64,37 @@ tests. Local logic/content-script tests run with:
 ```text
 node --test browser-extension/tests/capture.test.js
 ```
+# Version 1.1.0: in-app source search
+
+Reload this unpacked extension in `chrome://extensions` after updating the app.
+Open its popup and enable the exact source website configured in Anime Vault.
+The existing extension ID and magnet capture setup remain valid.
+
+The app's **Downloads → Setup** guide registers the native connection and tests it.
+The bridge now receives search commands, reads a temporary inactive source tab,
+and returns structured releases to **Find Download Files**. The temporary tab is
+closed afterward. Nyaa-style tables and basic generic magnet rows are supported.
+Challenges or unsupported layouts ask you to open the website and retry.
+
+The new `alarms` permission reconnects a lost native connection. Host access remains
+limited to the exact site you enabled; no browsing-history permission or global
+Windows magnet-handler change is introduced. Browser/search fixtures run with:
+
+```powershell
+node --test browser-extension/tests/capture.test.js browser-extension/tests/search.test.js
+```
+
+Full setup, behavior and change details: [SETTINGS_DOWNLOAD_EXPERIENCE.md](../SETTINGS_DOWNLOAD_EXPERIENCE.md).
+
+## Version 1.1.1: source-search recovery
+
+Reload the extension at `chrome://extensions` to apply this update. Search now
+waits briefly for delayed results, recognizes explicit empty searches without a
+table, and distinguishes browser verification from missing magnet links or an
+unsupported layout. Each retry rechecks the selected origin and site permission.
+
+If the website requires verification, choose **Open source in Chrome** in the app,
+complete the website's check, then return and click **Search releases**. The app
+does not bypass browser checks. If the site layout is unsupported, use **Paste
+magnet / torrent** or enable another configured source. No files start downloading
+until the existing review/confirmation step is completed.

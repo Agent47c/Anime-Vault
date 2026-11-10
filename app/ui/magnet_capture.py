@@ -1,6 +1,6 @@
 """Compact browser-magnet review and same-instance inbox delivery."""
 from PyQt5.QtCore import QObject,QTimer,Qt
-from PyQt5.QtWidgets import QComboBox,QCompleter,QMessageBox
+from PyQt5.QtWidgets import QComboBox,QCompleter,QMessageBox,QSizePolicy
 from app import db
 from app.core import magnet_capture as inbox
 from app.core import downloads
@@ -9,17 +9,33 @@ from app.ui.dialogs.drawer import DrawerDialog
 from app.ui.io_task import IOTask,track,start
 
 
+def review_text(value,role='workflow_hint'):
+    """Wrap inside the drawer even for filenames and paths without spaces."""
+    import re
+    wrapped=re.sub(r'\S{28}',lambda match:match.group()+'\u200b',value)
+    label=text(wrapped,role)
+    label.setMinimumWidth(0)
+    label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
+    label.setToolTip(value)
+    return label
+
+
 class MagnetReview(DrawerDialog):
     def __init__(self,item,parent=None):
         super().__init__(parent)
         self.item=item
         self.sent=False
-        body,self.send_button=chrome(self,'Browser magnet received','Choose the library anime, then send this link to qBittorrent.','取込','Send to qBittorrent',self._send)
-        body.addWidget(text(item['name'],'workflow_row_title'))
-        body.addWidget(text('The magnet link has been filled in automatically. No download starts until you confirm.'))
+        config=downloads.settings()
+        body,self.send_button=chrome(self,'Browser magnet received','Choose the library anime, then confirm this download.','取込','Add download',self._send)
+        body.addWidget(review_text(item['name'],'workflow_row_title'))
+        body.addWidget(review_text('The magnet link has been filled in automatically. No download starts until you confirm.'))
         records=db.get_all_franchises()
         self.anime=QComboBox()
         self.anime.setEditable(True)
+        self.anime.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.anime.setMinimumContentsLength(16)
+        self.anime.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+        self.anime.view().setTextElideMode(Qt.ElideRight)
         self.anime.setInsertPolicy(QComboBox.NoInsert)
         self.anime.addItem('Choose anime…',None)
         for row in sorted(records,key=lambda r:r['display_title'].casefold()):
@@ -30,6 +46,9 @@ class MagnetReview(DrawerDialog):
         self.anime.setCurrentIndex(max(0,self.anime.findData(suggestion)))
         field(body,'Anime — type to find a title',self.anime)
         self.season=QComboBox()
+        self.season.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.season.setMinimumContentsLength(16)
+        self.season.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
         self.season.addItem('Continuing / season unknown',0)
         for number in range(1,101): self.season.addItem(f'Season {number}',number)
         from app.core.consolidation import explicit_season
@@ -37,13 +56,17 @@ class MagnetReview(DrawerDialog):
         self.season.setCurrentIndex(max(0,self.season.findData(number)))
         field(body,'Season folder',self.season)
         config=downloads.settings()
-        body.addWidget(text('Destination: '+config['destination']))
-        body.addWidget(text('Starts paused for file selection in qBittorrent.' if config['start_paused'] else 'Starts downloading immediately after you confirm.'))
-        body.addWidget(text('After completion, verified videos are indexed under this anime. Existing library files stay in place.'))
-        self.status=text('Confirm the anime and season before sending.')
+        body.addWidget(review_text('Destination: '+config['destination']))
+        paused_hint='Fetches metadata first. Choose files in Downloads to start.'
+        body.addWidget(review_text(paused_hint if config['start_paused'] else 'Starts downloading immediately after you confirm.'))
+        body.addWidget(review_text('After completion, verified videos are indexed under this anime. Existing library files stay in place.'))
+        self.status=review_text('Confirm the anime and season before sending.')
         body.addWidget(self.status)
         from app.ui.downloads import open_downloads
-        body.addWidget(button('Configure qBittorrent / download destination',lambda:open_downloads(self)))
+        configure=button('Configure downloads',lambda:open_downloads(self))
+        configure.setAccessibleName('Configure download engine and destination')
+        configure.setToolTip('Configure download engine and destination')
+        body.addWidget(configure)
         body.addStretch()
 
     def _send(self):
@@ -53,7 +76,7 @@ class MagnetReview(DrawerDialog):
             QMessageBox.information(self,'Choose anime','Choose the correct anime from the library list first.')
             return
         if not downloads.settings()['enabled']:
-            QMessageBox.information(self,'Configure qBittorrent','Enable and save the qBittorrent connection in Configure downloads, then return here.')
+            QMessageBox.information(self,'Configure downloads','Enable and save your download engine in Configure downloads, then return here.')
             return
         season=self.season.currentData()
         start(self,lambda:inbox.submit(self.item,fid,season),self._sent)
@@ -64,7 +87,7 @@ class MagnetReview(DrawerDialog):
         monitor().check()
         host=self.window()
         if hasattr(host,'statusBar'):
-            host.statusBar().showMessage('Torrent sent to qBittorrent. Downloads tracks its progress and completed files.',10000)
+            host.statusBar().showMessage('Download added. Open Downloads to choose files and track progress.',10000)
         self.accept()
 
     def reject(self):

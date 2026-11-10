@@ -76,13 +76,15 @@ class RematchDialog(DrawerDialog):
 
     def __init__(self, franchise_id: int, parent=None, season_id=None, selection_only=False):
         super().__init__(parent)
+        self.full_page=not selection_only
+        self.dispose_on_leave=not selection_only
         self.selection_only = selection_only
         self.franchise_id = franchise_id
-        self.franchise = db.get_franchise(franchise_id) or {}
+        self.franchise = (db.get_series(franchise_id) if franchise_id is not None else None) or {}
         self.selections = {}
         self.continuous_episodes = db.uses_continuous_episodes(self.franchise) if self.franchise else False
         self.local_seasons = [
-            season for season in db.get_seasons_for_franchise(franchise_id)
+            season for season in db.get_series_seasons(franchise_id)
             if not self.continuous_episodes and season.get("storage_state") == "ON_DISK" and season.get("relation_type") == "SEASON"
         ]
         self._search_worker = None
@@ -283,11 +285,17 @@ class RematchDialog(DrawerDialog):
         info.setSpacing(4)
         titles = media.get("title") or {}
         title = anilist_client.resolve_display_title(media)
-        heading = ResultTitle(title)
+        heading = QLabel(title)
+        heading.setTextFormat(Qt.PlainText);heading.setWordWrap(True)
+        heading.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
+        heading.setTextInteractionFlags(Qt.TextSelectableByMouse)
         heading.setObjectName("workflow_row_title")
         info.addWidget(heading)
-        details = [value for value in (titles.get("native"), str(media.get("seasonYear") or (media.get("startDate") or {}).get("year") or ""), media.get("format")) if value]
-        subtitle = ResultTitle(" \u00b7 ".join(details))
+        details = [value for value in (titles.get('romaji') if titles.get('romaji')!=title else None,titles.get("native"),str(media.get("seasonYear") or (media.get("startDate") or {}).get("year") or ""), media.get("format")) if value]
+        if media.get('status')=='NOT_YET_RELEASED':details.append('Announced · Not released')
+        subtitle = QLabel(" · ".join(details))
+        subtitle.setTextFormat(Qt.PlainText);subtitle.setWordWrap(True)
+        subtitle.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
         subtitle.setObjectName("workflow_hint")
         info.addWidget(subtitle)
         local = QComboBox()
@@ -295,10 +303,13 @@ class RematchDialog(DrawerDialog):
         local.addItem("Metadata only", None)
         for season in self.local_seasons:
             label = f"Local season {season['season_number']} \u00b7 {season['title_display']}"
-            local.addItem(label if len(label) < 64 else label[:63] + "\u2026", season["id"])
+            local.addItem(label, season["id"])
             local.setItemData(local.count()-1, label + "\n" + (season.get("season_folder_path") or ""), Qt.ToolTipRole)
         default = self.selections.get(media["id"], (None, next((s["id"] for s in self.local_seasons if s.get("anilist_id") == media["id"]), None)))[1]
         local.setCurrentIndex(max(0, local.findData(default)))
+        if media.get('status')=='NOT_YET_RELEASED':
+            local.setCurrentIndex(0);local.setEnabled(False)
+            local.setToolTip('Announced release. Metadata only; no local folder can be assigned yet.')
         if not single:
             info.addWidget(local)
         row.addLayout(info, 1)
@@ -327,6 +338,7 @@ class RematchDialog(DrawerDialog):
         count = len(self.selections)
         self.apply_btn.setEnabled(count == 1 if self.continuous_episodes or self.selection_only else bool(count))
         self.status_lbl.setText(f"{count} selected" if count else "Select one or more releases")
+        if not self.selection_only:self.apply_btn.setText(f"Review {count} seasons" if count>1 else "Apply match")
         self.status_lbl.setToolTip("\n".join(anilist_client.resolve_display_title(media) for media, _ in self.selections.values()))
 
     def _apply_match(self):
@@ -336,12 +348,42 @@ class RematchDialog(DrawerDialog):
             return
         if not self.selections or not self.franchise_id:
             return
+        selections=list(self.selections.values())
+        if len(selections)>1:
+            from app.ui.io_task import start
+            from app.ui.dialogs.match_review import prepare
+            self.status_lbl.setText('Checking that the selected seasons belong together…')
+            self.progress_bar.setRange(0,0);self.progress_bar.show()
+            start(self,lambda:prepare(self.franchise_id,selections),self._show_match_review)
+            worker=getattr(self,'_apply_worker',None)
+            if worker:worker.finished.connect(lambda: self.progress_bar.hide() if getattr(self,'_apply_worker',None) in (None,worker) else None)
+            return
+        self._start_apply(selections)
+
+    def _show_match_review(self,prepared):
+        if getattr(self,'_embedded',False) and not self.isVisible():
+            self.progress_bar.hide()
+            return
+        from app.ui.dialogs.match_review import MatchReview
+        from app.ui.navigation import navigate
+        self.progress_bar.hide()
+        self._confirmation=MatchReview(prepared,self)
+        self._confirmation.confirmed.connect(self._start_apply)
+        navigate(self._confirmation)
+
+    def _start_apply(self,selections):
         self.setEnabled(False)
-        self.status_lbl.setText("Applying selected releases?")
-        selections = list(self.selections.values())
+        self.status_lbl.setText("Applying selected releases…")
+        self.progress_bar.setRange(0,0);self.progress_bar.show()
         self._apply_worker = ApplyMatchWorker(self.franchise_id, selections)
         self._apply_worker.applied.connect(self._match_applied)
         self._apply_worker.failed.connect(self._match_failed)
+        from app.ui.io_task import track
+        track(self._apply_worker)
+        worker=self._apply_worker
+        worker.finished.connect(lambda: setattr(self,'_apply_worker',None) if getattr(self,'_apply_worker',None) is worker else None)
+        worker.finished.connect(worker.deleteLater)
+        worker.finished.connect(self.progress_bar.hide)
         self._apply_worker.start()
 
     def _match_applied(self, fid):
@@ -369,7 +411,8 @@ class ApplyMatchWorker(QThread):
     failed = pyqtSignal(str)
 
     def __init__(self, fid, selections):
-        super().__init__()
+        from PyQt5.QtWidgets import QApplication
+        super().__init__(QApplication.instance())
         self.fid, self.selections = fid, selections
 
     def run(self):
