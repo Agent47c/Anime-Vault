@@ -7,6 +7,22 @@ from app.core import anilist_client as client
 from app.core.parser import extract_season_number
 
 
+def _series_conflict(selections,roots):
+    """Name all differing provider groups without guessing which one is wrong."""
+    groups={}
+    for (media,_),root in zip(selections,roots):
+        group=groups.setdefault(root['id'],(root,[]))
+        group[1].append(media)
+    lines=['These releases are not verified seasons of the same series.',
+           '', 'Conflicting selections:']
+    for root,releases in groups.values():
+        lines.append('Series: '+client.resolve_display_title(root))
+        for release in releases:
+            lines.append('  • '+client.resolve_display_title(release))
+    lines.extend(['','Deselect the conflicting release(s) and try again, or group existing library entries manually.'])
+    return '\n'.join(lines)
+
+
 def series_root(media):
     root = cursor = media
     formats = {"ONA"} if media.get("format") == "ONA" else {"TV", "TV_SHORT"}
@@ -17,7 +33,7 @@ def series_root(media):
             break
         earlier = client.get_anime_by_id(prequels[0]["id"])
         if not earlier:
-            raise ValueError("Could not verify the earlier season. Retry when AniList is available.")
+            raise ValueError('Could not verify the earlier season for "'+client.resolve_display_title(media)+'". Retry when AniList is available.')
         cursor = earlier
         if earlier.get("format", "TV") in formats:
             root = earlier
@@ -25,19 +41,39 @@ def series_root(media):
     return root
 
 
+def review_selection(fid,selections):
+    if not db.get_franchise(fid):raise ValueError('This entry changed. Return to the Library and select its current card.')
+    if len({media['id'] for media,_ in selections})!=len(selections):raise ValueError('Select each release only once.')
+    assigned=[sid for _,sid in selections if sid is not None]
+    if len(set(assigned))!=len(assigned):raise ValueError('Assign each release to a different local season.')
+    seasons={s['id']:s for s in db.get_series_seasons(fid)}
+    roots=[series_root(media) for media,_ in selections]
+    if len({root['id'] for root in roots})!=1:raise ValueError(_series_conflict(selections,roots))
+    for media,sid in selections:
+        if sid is not None and (sid not in seasons or seasons[sid].get('storage_state')!='ON_DISK'):
+            raise ValueError('A selected local season changed. Select its folder again.')
+        if sid is not None and media.get('status')=='NOT_YET_RELEASED':
+            raise ValueError('An announced release cannot be assigned to an existing local season. Choose Metadata only for that release.')
+    return dict(root=roots[0],selections=selections,seasons=seasons)
+
+
 def apply_release_match(fid, media, season_id=None, additional=(), use_local=True):
+    if additional:review_selection(fid,[(media,season_id),*additional])
+    elif season_id is not None and media.get('status')=='NOT_YET_RELEASED':
+        raise ValueError('An announced release cannot be assigned to an existing local season. Choose Metadata only.')
     selected = {key: value for key, value in media.items() if key != "_preview_cover"}
     root = series_root(selected)
     for release, _ in additional:
-        if series_root(release)["id"] != root["id"]:
-            raise ValueError("Select only releases that AniList links to the same series.")
+        release_root=series_root(release)
+        if release_root["id"] != root["id"]:
+            raise ValueError(_series_conflict([(selected,season_id),(release,None)],[root,release_root]))
     source = db.get_franchise(fid)
     if not source:
         raise ValueError("This library entry no longer exists. Refresh the library.")
     continuous = db.uses_continuous_episodes(source)
     if continuous and (season_id is not None or additional):
         raise ValueError("Choose one series match for all continuing episodes.")
-    seasons = db.get_seasons_for_franchise(fid)
+    seasons = db.get_series_seasons(fid)
     owned = [s for s in seasons if s.get("storage_state") == "ON_DISK" and s.get("relation_type") == "SEASON"]
     if season_id is not None:
         owned = [s for s in owned if s["id"] == season_id]
@@ -54,14 +90,21 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
     with closing(db.get_connection()) as conn, conn:
         existing = conn.execute("SELECT id FROM franchises WHERE anilist_id=? AND id<>?", (root["id"], fid)).fetchone()
         destination = existing["id"] if existing else fid
+        allowed_owners={fid,destination,*((db.get_series(fid) or {}).get('series_member_ids') or []),*((db.get_series(destination) or {}).get('series_member_ids') or [])}
         if destination != fid:
-            conn.execute("UPDATE seasons SET franchise_id=? WHERE franchise_id=?", (destination, fid))
-            conn.execute("UPDATE franchises SET user_rating=COALESCE(user_rating, ?), user_notes=CASE WHEN user_notes='' THEN ? ELSE user_notes END WHERE id=?", (source.get("user_rating"), source.get("user_notes") or "", destination))
-            conn.execute("DELETE FROM franchises WHERE id=?", (fid,))
+            # Keep the old card ID, season ownership and all user/history data.
+            # Group under the provider owner instead of deleting the source.
+            links=json.loads(db.get_state('series_overrides','{}'))
+            links[str(fid)]=destination
+            conn.execute("INSERT INTO app_state(key,value) VALUES('series_overrides',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",(json.dumps(links),))
+            selected_titles=selected.get('title') or {}
+            conn.execute("UPDATE franchises SET anilist_id=NULL,metadata_json=?,display_title=?,title_en=?,title_romaji=?,title_native=?,needs_review=0 WHERE id=?",
+                (json.dumps(selected),client.resolve_display_title(selected),selected_titles.get('english'),selected_titles.get('romaji'),selected_titles.get('native'),fid))
         conn.execute("UPDATE franchises SET anilist_id=?, display_title=?, title_en=?, title_romaji=?, title_native=?, synopsis=?, genres=?, needs_review=0, metadata_json=?, cover_filename=COALESCE(?,cover_filename), banner_filename=COALESCE(?,banner_filename) WHERE id=?", (root["id"], data["display_title"], data.get("title_en"), data.get("title_romaji"), data.get("title_native"), data["synopsis"], data["genres"], json.dumps(root), cover, banner, destination))
         assignments = [] if continuous else [(selected, owned[0]["id"] if owned else None), *additional]
         from app.core.scan_state import decision
         decision(conn,'series',destination,root['id'])
+        if destination!=fid:decision(conn,'series',fid,root['id'])
         conn.execute('DELETE FROM matching_review WHERE local_id IN (?,?)',(fid,destination))
         local_ids = [sid for _, sid in assignments if sid is not None]
         if len(set(local_ids)) != len(local_ids):
@@ -72,7 +115,7 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
         for release, sid in assignments:
             release_id = release["id"]
             linked = conn.execute("SELECT * FROM seasons WHERE anilist_id=?", (release_id,)).fetchone()
-            if linked and linked["franchise_id"] != destination:
+            if linked and linked["franchise_id"] not in allowed_owners:
                 raise ValueError("This release is already linked to another library entry.")
             if linked and sid is not None and linked["id"] != sid:
                 if linked["season_folder_path"]:
@@ -86,7 +129,8 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
                     (release_id, title, release.get("episodes"), release.get("status"), sid if sid is not None else linked["id"]),
                 )
             else:
-                number = conn.execute("SELECT COALESCE(MAX(season_number), 0) + 1 FROM seasons WHERE franchise_id=?", (destination,)).fetchone()[0]
+                from app.core.season_numbering import infer
+                number=infer(release,root,[selected,*[m for m,_ in additional]]) or 0
                 conn.execute(
                     "INSERT INTO seasons (franchise_id, anilist_id, season_number, title_display, episodes_total, airing_status, storage_state) VALUES (?, ?, ?, ?, ?, ?, 'NOT_DOWNLOADED')",
                     (destination, release_id, number, title, release.get("episodes"), release.get("status")),
@@ -95,6 +139,8 @@ def apply_release_match(fid, media, season_id=None, additional=(), use_local=Tru
                 decision(conn,'season',sid,release_id)
     db.recalculate_franchise_size(destination)
     db.recalculate_franchise_storage_state(destination)
+    from app.core.season_numbering import repair_metadata_numbers
+    repair_metadata_numbers(destination)
     from app.core.identity import bind_release
     for release, sid in assignments:
         if sid is not None:

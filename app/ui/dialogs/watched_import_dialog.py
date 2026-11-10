@@ -11,7 +11,7 @@ from difflib import SequenceMatcher
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame, QProgressBar, QFileDialog,
-    QCheckBox, QMessageBox, QComboBox, QApplication,
+    QCheckBox, QMessageBox, QComboBox, QApplication, QGridLayout,
 )
 from PyQt5.QtGui import QColor, QFont, QPixmap
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
@@ -24,6 +24,7 @@ from app import preferences as prefs
 from app.config import is_offline, COVERS_DIR
 from app.core import anilist_client
 from app.core.parser import parse_txt_line, clean_title, normalize_for_matching
+from app.core.text_import import read_text_list, title_key, ImportIndex
 from app.ui.dialogs.rematch_dialog import RematchDialog
 
 
@@ -33,100 +34,19 @@ class ParseAndMatchWorker(QThread):
     finished = pyqtSignal(list)
     error = pyqtSignal(str)
 
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, rematch_existing=False):
         super().__init__()
-        self.filepath = filepath
+        self.filepath=filepath;self.rematch_existing=rematch_existing
 
     def run(self):
+        from app.core.import_preview import preview_lines
         try:
-            path = Path(self.filepath)
-            if not path.is_file():
-                self.error.emit(f"File not found: {self.filepath}")
-                return
-
-            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-            results = []
-            seen = set()
-
-            for line in lines:
-                if self.isInterruptionRequested():
-                    break
-                parsed = parse_txt_line(line)
-                if not parsed or not parsed["title"]:
-                    continue
-
-                raw_title = parsed["title"]
-                notes = parsed["notes"]
-                norm_query = normalize_for_matching(raw_title)
-                if prefs.enabled("import_ignore_duplicates") and norm_query in seen:
-                    continue
-                seen.add(norm_query)
-
-                # 1. Check existing library
-                existing = db.find_franchise_by_title(raw_title)
-                if existing and prefs.enabled("import_ignore_duplicates"):
-                    continue
-                if existing:
-                    item = {
-                        "raw_line": line,
-                        "raw_title": raw_title,
-                        "notes": notes,
-                        "matched_title": existing.get("display_title", raw_title),
-                        "status": "MERGED",
-                        "confidence": 100,
-                        "anilist_media": None,
-                        "existing_id": existing["id"],
-                    }
-                    results.append(item)
-                    self.item_matched.emit(item)
-                    continue
-
-                # 2. Check AniList if online
-                matched_media = None
-                conf = 0
-                matched_title = raw_title
-                status = "NOT_FOUND"
-
-                if not is_offline():
-                    try:
-                        search_res = anilist_client.search_anime(raw_title, per_page=1)
-                        if search_res:
-                            matched_media = search_res[0]
-                            title_dict = matched_media.get("title") or {}
-                            matched_title = title_dict.get("english") or title_dict.get("romaji") or raw_title
-                            romaji = title_dict.get("romaji") or ""
-
-                            r1 = SequenceMatcher(None, norm_query, normalize_for_matching(matched_title)).ratio()
-                            r2 = SequenceMatcher(None, norm_query, normalize_for_matching(romaji)).ratio()
-                            conf = int(max(r1, r2) * 100)
-
-                            if conf >= 90:
-                                status = "MATCHED"
-                            elif conf >= 50:
-                                status = "REVIEW"
-                            else:
-                                status = "AMBIGUOUS"
-                    except Exception:
-                        pass
-
-                if matched_media:
-                    matched_media["_preview_cover"] = anilist_client.download_cover(matched_media, "preview-" + str(matched_media["id"]))
-                item = {
-                    "raw_line": line,
-                    "raw_title": raw_title,
-                    "notes": notes,
-                    "matched_title": matched_title,
-                    "status": status,
-                    "confidence": conf,
-                    "anilist_media": matched_media,
-                    "existing_id": None,
-                }
-                results.append(item)
-                self.item_matched.emit(item)
-
+            results=[]
+            for item in preview_lines(read_text_list(self.filepath),online=not is_offline(),
+                    rematch_existing=self.rematch_existing,cancelled=self.isInterruptionRequested):
+                results.append(item);self.item_matched.emit(item)
             self.finished.emit(results)
-        except Exception as e:
-            self.error.emit(str(e))
+        except Exception as error:self.error.emit(str(error))
 
 
 from app.ui.dialogs.drawer import DrawerDialog
@@ -161,7 +81,7 @@ class WatchedImportDialog(DrawerDialog):
         title = text("Drop a .txt file here", "workflow_row_title")
         title.setAlignment(Qt.AlignCenter)
         drop.addWidget(title)
-        hint = text("One anime name per line, English or Japanese")
+        hint = text("One anime per line. Numbered lists such as 1) Anime title are supported.")
         hint.setAlignment(Qt.AlignCenter)
         drop.addWidget(hint)
         drop.addWidget(button("Choose TXT file", self._browse_file), 0, Qt.AlignHCenter)
@@ -174,16 +94,19 @@ class WatchedImportDialog(DrawerDialog):
         for label, value in (("Watched", "WATCHED"), ("Watching", "WATCHING"), ("Plan to watch", "PLAN_TO_WATCH"), ("Dropped", "DROPPED")):
             self.import_status_combo.addItem(label, value)
         field(body, "Status for imported titles", self.import_status_combo)
-        counts = QHBoxLayout()
-        counts.setSpacing(12)
-        self._count_labels = {}
-        for key, caption in (("matched", "Automatically matched"), ("review", "Need review"), ("unmatched", "Not found")):
-            tile, labels = card()
-            value = text("0", "workflow_metric")
-            labels.addWidget(value)
-            labels.addWidget(text(caption))
-            self._count_labels[key] = value
-            counts.addWidget(tile, 1)
+        self.rematch_existing=QCheckBox('Find metadata for existing unmatched titles')
+        self.rematch_existing.setChecked(prefs.enabled('import_rematch_existing'))
+        self.rematch_existing.toggled.connect(lambda checked:prefs.save('import_rematch_existing',checked))
+        self.rematch_existing.setToolTip('Only unambiguous matches are selected automatically. Nothing changes until Apply.')
+        body.addWidget(self.rematch_existing)
+        self.result_filter=QComboBox();self.result_filter.addItems(['All titles','Already in library','New / needs match','Duplicate lines'])
+        self.result_filter.currentIndexChanged.connect(self._filter_rows)
+        field(body,'Show imported titles',self.result_filter)
+        counts=QGridLayout();counts.setSpacing(12)
+        self._count_labels={}
+        for index,(key,caption) in enumerate((('existing','Already in library'),('matched','Metadata matched'),('review','Need review'),('unmatched','Not found'))):
+            tile,labels=card();value=text('0','workflow_metric');labels.addWidget(value);labels.addWidget(text(caption))
+            self._count_labels[key]=value;counts.addWidget(tile,index//2,index%2)
         body.addLayout(counts)
         self.progress_bar = QProgressBar()
         self.progress_bar.setFixedHeight(4)
@@ -239,7 +162,7 @@ class WatchedImportDialog(DrawerDialog):
             label.setText("0")
         self.apply_btn.setEnabled(False)
 
-        self._worker = ParseAndMatchWorker(filepath)
+        self._worker = ParseAndMatchWorker(filepath,rematch_existing=self.rematch_existing.isChecked())
         self._worker.item_matched.connect(self._add_item_row)
         self._worker.finished.connect(self._on_parse_finished)
         self._worker.error.connect(self._on_parse_error)
@@ -269,6 +192,7 @@ class WatchedImportDialog(DrawerDialog):
         skip_review = not prefs.enabled("import_review") and item.get("anilist_media") and item.get("confidence", 0) >= 50
         selected = item.get("enabled", item["status"] == "MERGED" or (prefs.enabled("import_auto") and bool(high or skip_review)))
         item["enabled"] = bool(selected)
+        if item["status"]=="DUPLICATE":selected=False;checkbox.setEnabled(False)
         checkbox.setChecked(bool(selected))
         checkbox.setAccessibleName("Include " + item["raw_title"])
         def select(state):
@@ -289,21 +213,38 @@ class WatchedImportDialog(DrawerDialog):
         titles.addWidget(subtitle)
         layout.addLayout(titles, 1)
         status = item["status"]
-        ready = status in ("MATCHED", "MERGED", "CUSTOM_SAVED")
+        ready = status in ("MATCHED", "MERGED", "CUSTOM_SAVED", "EXISTING_MATCHED", "DUPLICATE")
         row.setMinimumHeight(84 if ready else 112 if not media else 88)
-        label = "Saved" if status == "CUSTOM_SAVED" else "In library" if status == "MERGED" else f"{item['confidence']}% \u00b7 Matched" if ready else f"{item['confidence']}% \u00b7 Review" if media else "Not found"
+        label = ('Duplicate line' if status=='DUPLICATE' else 'Existing · Match found' if status=='EXISTING_MATCHED' else
+                 'Already in library' if status=='MERGED' else 'Saved' if status=='CUSTOM_SAVED' else
+                 'Existing · Review' if item.get('existing_id') else f"{item['confidence']}% · Matched" if status=='MATCHED' else
+                 'Lookup failed' if status=='ERROR' else f"{item['confidence']}% · Review" if media else 'Not found')
+        if item.get('error'):row.setToolTip(item['error'])
         pill = text(label, "workflow_match")
         pill.setWordWrap(False)
         pill.setProperty("tone", "success" if ready else "warning" if media else "danger")
         layout.addWidget(pill, 0, Qt.AlignVCenter)
-        if not ready:
+        if not ready or (item.get('existing_id') and not item.get('existing_provider')):
             actions = QVBoxLayout()
             actions.setSpacing(6)
             actions.addWidget(button("Choose match", lambda checked=False, it=item: self._review_item(it)))
-            if not media:
+            if not media and not item.get('existing_id'):
                 actions.addWidget(button("Add custom", lambda checked=False, it=item: self._add_custom(it)))
             layout.addLayout(actions)
+        row.import_item=item
         self.items_layout.addWidget(row)
+        self._filter_rows()
+
+    def _filter_rows(self,*_):
+        mode=self.result_filter.currentIndex()
+        for index in range(self.items_layout.count()):
+            row=self.items_layout.itemAt(index).widget()
+            if row is None:continue
+            item=row.import_item
+            visible=(mode==0 or mode==1 and bool(item.get('existing_id')) or
+                     mode==2 and not item.get('existing_id') and item['status']!='DUPLICATE' or
+                     mode==3 and item['status']=='DUPLICATE')
+            row.setVisible(visible)
 
     def _refresh_rows(self):
         self._clear_items()
@@ -315,7 +256,7 @@ class WatchedImportDialog(DrawerDialog):
         picker = RematchDialog(None, parent=self, selection_only=True)
         picker.search_input.setText(item["raw_title"])
         def chosen(media):
-            item.update({"matched_title": anilist_client.resolve_display_title(media), "anilist_media": media, "existing_id": None, "status": "MATCHED", "confidence": 100, "enabled": True})
+            item.update({"matched_title": anilist_client.resolve_display_title(media), "anilist_media": media, "existing_id": item.get("existing_id"), "status": "EXISTING_MATCHED" if item.get("existing_id") else "MATCHED", "update_metadata": bool(item.get("existing_id")), "safe_match": True, "confidence": 100, "enabled": True})
             self._refresh_rows()
         picker.match_chosen.connect(chosen)
         picker._start_search(item["raw_title"])
@@ -345,12 +286,15 @@ class WatchedImportDialog(DrawerDialog):
 
     def _refresh_summary(self):
         total = len(self.parsed_items)
-        matched = sum(it.get("status") in ("MATCHED", "MERGED", "CUSTOM_SAVED") for it in self.parsed_items)
-        review = sum(it.get("status") in ("REVIEW", "AMBIGUOUS") for it in self.parsed_items)
-        for key, value in (("matched", matched), ("review", review), ("unmatched", total - matched - review)):
+        matched=sum(it.get('status') in ('MATCHED','EXISTING_MATCHED') for it in self.parsed_items)
+        review=sum(it.get('status') in ('REVIEW','AMBIGUOUS','ERROR') for it in self.parsed_items)
+        existing=sum(bool(it.get('existing_id')) for it in self.parsed_items)
+        unmatched=sum(it.get('status')=='NOT_FOUND' and not it.get('existing_id') for it in self.parsed_items)
+        duplicates=sum(it.get('status')=='DUPLICATE' for it in self.parsed_items)
+        for key,value in (('existing',existing),('matched',matched),('review',review),('unmatched',unmatched)):
             self._count_labels[key].setText(str(value))
-        selected = sum(bool(it.get("enabled")) for it in self.parsed_items)
-        self.summary_lbl.setText(f"{total} titles found \u00b7 {selected} selected")
+        selected=sum(bool(it.get('enabled')) for it in self.parsed_items)
+        self.summary_lbl.setText(f'{total} lines · {existing} already in library · {duplicates} duplicates skipped · {selected} selected')
         self.apply_btn.setText(f"Apply {selected} matches")
         self.apply_btn.setEnabled(selected > 0 and not getattr(self, "_parsing", False))
 
@@ -379,6 +323,6 @@ class WatchedImportDialog(DrawerDialog):
         imported, merged = result
         QMessageBox.information(self, "Import Complete",
             f"Successfully processed watched list:\n\n{imported} new titles added\n"
-            f"{merged} existing titles updated with {self.import_status_combo.currentText()} status")
+            f"{merged} existing entries updated with {self.import_status_combo.currentText()} status and any confirmed metadata")
         self.import_completed.emit()
         self.accept()

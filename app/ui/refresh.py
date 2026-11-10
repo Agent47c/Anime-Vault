@@ -104,13 +104,20 @@ class RefreshWorker(QThread):
                 for name in row:
                     if name:
                         path = COVERS_DIR / name
-                        images[image_key(path)] = QImage(str(path))
+                        key=image_key(path)
+                        if key in images:continue
+                        from app.core.image_profiles import load_cached_image
+                        images[key] = load_cached_image(path)
                         try:
                             stat = path.stat()
                             image_versions[image_key(path)] = (stat.st_mtime_ns, stat.st_size)
                         except OSError:
                             image_versions[image_key(path)] = None
-            self.ready.emit({"connection": memory, "disk": disk, "images": images, "scan_errors": errors, "allow_network": self.allow_network, "image_versions": image_versions})
+            snapshot={"connection": memory, "disk": disk, "images": images, "scan_errors": errors, "allow_network": self.allow_network, "image_versions": image_versions}
+            from app.core.library_index import LibraryIndex
+            with db.refresh_view(snapshot):snapshot['library_index']=LibraryIndex()
+            snapshot['series_groups']=snapshot['library_index'].groups
+            self.ready.emit(snapshot)
         except InterruptedError:
             memory.close()
         except Exception as error:

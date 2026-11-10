@@ -51,7 +51,8 @@ def start(dialog, operation, success):
         dialog.setEnabled(True)
         QMessageBox.warning(dialog,'Operation could not finish',message)
     def finished():
-        dialog._apply_worker=None
+        if getattr(dialog,'_apply_worker',None) is worker:
+            dialog._apply_worker=None
         _active.discard(worker)
         worker.deleteLater()
     worker.succeeded.connect(done)

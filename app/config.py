@@ -233,7 +233,16 @@ def launch_video_file(video_path: str) -> bool:
         player_exe = installed[player_type]
 
     if player_exe:
-        subprocess.Popen([player_exe, str(path)])
+        arguments=[]
+        if player_type in ('vlc','mpv'):
+            prefix='--sub-language=' if player_type=='vlc' else '--slang='
+            audio='--audio-language=' if player_type=='vlc' else '--alang='
+            for key,flag in (('playback.slang',prefix),('playback.alang',audio)):
+                language=db.get_state(key,'')
+                if language in ('eng','jpn'): arguments.append(flag+language)
+            if db.get_state('playback.subtitles','1')=='0': arguments.append('--no-spu' if player_type=='vlc' else '--sid=no')
+            if db.get_state('playback.fullscreen','0')=='1': arguments.append('--fullscreen')
+        subprocess.Popen([player_exe,*arguments,str(path)])
         return True
     else:
         # Fallback to Windows default registered handler

@@ -7,6 +7,8 @@ DEFAULTS = {
     "allow_mature": True, "rematch_low_confidence": True,
     "flat_detection": True, "preview_moves": True,
     "import_auto": True, "import_review": True, "import_ignore_duplicates": True,
+    "import_rematch_existing": True,
+    "folder_watchers": False, "list_watchers": False,
 }
 
 

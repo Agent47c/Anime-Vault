@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy, QPlainTextEdit, QComboBox, QMenu, QGridLayout, QButtonGroup,
 )
 from PyQt5.QtGui import QPixmap, QFont, QColor, QPainter, QPainterPath
-from PyQt5.QtCore import Qt, pyqtSignal, QRectF
+from PyQt5.QtCore import Qt, pyqtSignal, QRectF,QTimer
 
 from app.ui.artwork import artwork_loader
 from app.ui.components.close_button import CloseButton
@@ -70,9 +70,12 @@ class DetailModal(QDialog):
     """Anime detail modal replicating the Anime Details Modal reference mockup."""
 
     data_changed = pyqtSignal()
+    loaded = pyqtSignal()
+    dispose_on_leave = True
 
-    def __init__(self, franchise_id: int, parent=None):
+    def __init__(self, franchise_id: int, parent=None, async_load=False):
         super().__init__(parent)
+        self._detail_generation=0;self._detail_closed=False
         self.franchise_id = franchise_id
         self.setObjectName("series_details")
         self.setWindowTitle("Anime Details")
@@ -88,19 +91,91 @@ class DetailModal(QDialog):
             }
         """)
 
-
-        self._load_data()
-        self._setup_ui()
         artwork_loader().changed.connect(self._metadata_changed)
+        if async_load:
+            layout=QVBoxLayout(self);self._loading_label=QLabel('Loading anime details…');layout.addWidget(self._loading_label);layout.addStretch()
+            QTimer.singleShot(0,self._reload_async)
+            return
+        if not self._load_data():
+            layout=QVBoxLayout(self)
+            message=QLabel('This library entry changed or was removed. Go back to the Library to select its current card.')
+            message.setWordWrap(True);layout.addWidget(message);layout.addStretch()
+            return
+        self._setup_ui()
         artwork_loader().request(self.franchise)
 
+    def _reload_async(self,notify=False):
+        if self._detail_closed:return
+        from app.ui.io_task import IOTask,track
+        from app.ui.detail_data import prepare_details
+        from PyQt5 import sip
+        self._detail_generation+=1;generation=self._detail_generation
+        if hasattr(self,'_loading_label') and not sip.isdeleted(self._loading_label):self._loading_label.setText('Loading anime details…')
+        fid=self.franchise_id
+        worker=IOTask(lambda:prepare_details(fid));track(worker)
+        def ready(data):
+            if sip.isdeleted(self) or self._detail_closed or generation!=self._detail_generation:
+                if data:data['snapshot']['connection'].close()
+                return
+            if data is None:
+                self.data_changed.emit();self.reject();return
+            self.franchise=data['franchise'];self.franchise_id=self.franchise['id'];self.seasons=data['seasons']
+            self.continuous_episodes=data['continuous'];self.episode_coverage=data['coverage']
+            self._poster_source=data['poster'];self._prepared_resume=data['resume']
+            self._building_detail=True;self.setUpdatesEnabled(False)
+            old=self.layout()
+            if old is not None:
+                def clear(layout):
+                    while layout.count():
+                        item=layout.takeAt(0)
+                        if item.widget():item.widget().hide();item.widget().deleteLater()
+                        elif item.layout():clear(item.layout())
+                clear(old);sip.delete(old)
+            builder=self._build_ui_steps()
+            def build_next():
+                if sip.isdeleted(self) or self._detail_closed or generation!=self._detail_generation:
+                    builder.close();data['snapshot']['connection'].close();return
+                try:
+                    with db.refresh_view(data['snapshot']):next(builder)
+                except StopIteration:
+                    data['snapshot']['connection'].close()
+                    self._building_detail=False;self.setUpdatesEnabled(True)
+                    artwork_loader().request(self.franchise);self.loaded.emit()
+                    if notify:self.data_changed.emit()
+                except Exception as error:
+                    data['snapshot']['connection'].close()
+                    self._building_detail=False;self.setUpdatesEnabled(True);failed(str(error))
+                else:QTimer.singleShot(0,build_next)
+            build_next()
+        def failed(message):
+            if sip.isdeleted(self) or self._detail_closed or generation!=self._detail_generation:return
+            QMessageBox.warning(self,'Could not load anime details',message)
+        worker.succeeded.connect(ready);worker.failed.connect(failed)
+        worker.finished.connect(worker.deleteLater);worker.start()
+
+    def done(self,result):
+        self._detail_closed=True;self._detail_generation+=1
+        worker=getattr(self,'_worker',None)
+        if worker and worker.isRunning():worker.requestInterruption()
+        super().done(result)
+
     def _load_data(self):
+        self._poster_source=None
         self.franchise = db.get_series(self.franchise_id)
-        self.seasons = db.get_series_seasons(self.franchise_id)
+        if not self.franchise:
+            self.seasons=[];self.continuous_episodes=False
+            self.episode_coverage=episode_inventory([],continuous=False)
+            return False
+        self.franchise_id=self.franchise['id']
+        self.seasons = db.get_series_seasons(self.franchise_id,series=self.franchise)
         self.continuous_episodes = db.uses_continuous_episodes(self.franchise)
         self.episode_coverage = episode_inventory(self.seasons, continuous=self.continuous_episodes)
+        return True
 
     def _setup_ui(self):
+        for _ in self._build_ui_steps():pass
+
+    def _build_ui_steps(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(40, 24, 40, 28)
         scroll = SmoothScrollArea()
@@ -249,6 +324,7 @@ class DetailModal(QDialog):
         notice.setStyleSheet("font-size: 11px; color: #898d9f; line-height: 1.4;")
         notice.setWordWrap(True)
         right_layout = QVBoxLayout()
+        yield  # Let navigation/input run between independent layout sections.
         right_layout.setSpacing(20)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_column = QWidget()
@@ -317,8 +393,14 @@ class DetailModal(QDialog):
         actions.addWidget(folder_btn)
         actions.addWidget(edit_btn)
         actions.addWidget(rematch_btn)
+        from app.ui.downloads import open_downloads
+        download_btn = QPushButton('Find Download Files')
+        download_btn.setCursor(Qt.PointingHandCursor)
+        from app.ui.pages.release_search_page import open_release_search
+        download_btn.clicked.connect(lambda:open_release_search(self,self.franchise_id))
         actions.addStretch()
         right_layout.addLayout(actions)
+        right_layout.addWidget(download_btn,0,Qt.AlignLeft)
         release_notice = QFrame()
         release_notice.setObjectName("final_panel")
         notice_layout = QHBoxLayout(release_notice)
@@ -451,6 +533,7 @@ class DetailModal(QDialog):
         # ===================================================================
         # Section: NOTES
         # ===================================================================
+        yield
         notes_box = QVBoxLayout()
         notes_box.setSpacing(12)
 
@@ -488,6 +571,10 @@ class DetailModal(QDialog):
         seasons_title = QLabel("EPISODES, MOVIES AND SPECIALS" if self.continuous_episodes else "SEASONS ON DISK")
         seasons_title.setStyleSheet("font-size: 11px; font-weight: 700; color: #b0b3c2; letter-spacing: 0.5px;")
         seasons_box.addWidget(seasons_title)
+        if not self.continuous_episodes and any(s.get('relation_type')=='SEASON' for s in self.seasons):
+            numbering=QPushButton('Edit season numbers')
+            numbering.clicked.connect(self._edit_season_numbers)
+            seasons_box.addWidget(numbering,0,Qt.AlignLeft)
         coverage_btn = QPushButton("Episode and movie check")
         coverage_btn.clicked.connect(self._show_coverage)
         tools_row.insertWidget(tools_row.count() - 1, coverage_btn)
@@ -534,6 +621,7 @@ class DetailModal(QDialog):
         main_layout.addWidget(scroll, 1)
 
     def check_release_episode(self, release):
+        if not self.franchise:return
         from app.ui.pages.episode_page import EpisodeWorker
         self._release_request = dict(release)
         self._available_release_path = None
@@ -605,6 +693,7 @@ class DetailModal(QDialog):
                 QMessageBox.warning(self, "Could not play episode", str(error))
 
     def _resume_candidate(self):
+        if getattr(self,'_building_detail',False):return self._prepared_resume
         saved = get_last_episode_path()
         if not saved:
             return None, None
@@ -665,7 +754,7 @@ class DetailModal(QDialog):
                 interval = self.episode_coverage["folder_ranges"].get(season["id"])
                 title = f"Episodes {interval[0]}\u2013{interval[1]}" if interval else "Episode folder"
             else:
-                badge = f"S{season['season_number']}" if kind == "SEASON" else {"MOVIE": "MOV", "COLLECTION": "ALT"}.get(kind, "SP")
+                badge = f"S{season['season_number'] or '?'}" if kind == "SEASON" else {"MOVIE": "MOV", "COLLECTION": "ALT"}.get(kind, "SP")
                 title = f"{badge} \u00b7 {title}"
             grid.setRowMinimumHeight(row, 76)
             info = QWidget()
@@ -676,7 +765,8 @@ class DetailModal(QDialog):
             heading.setWordWrap(True)
             heading.setStyleSheet("font-weight: 700;")
             info_layout.addWidget(heading)
-            path = QLabel(season.get("season_folder_path") or "Not downloaded")
+            announced=season.get("airing_status")=="NOT_YET_RELEASED"
+            path = QLabel(season.get("season_folder_path") or ("Announced · Not released" if announced else "Not downloaded"))
             path.setTextFormat(Qt.PlainText)
             path.setWordWrap(True)
             path.setObjectName("subheading")
@@ -686,13 +776,14 @@ class DetailModal(QDialog):
             health = self.episode_coverage["seasons"].get(season["id"]) or season_health(season)
             count = health["found_count"] if kind == "SEASON" else len(files)
             expected = None if self.continuous_episodes else season.get("episodes_total")
-            grid.addWidget(QLabel(f"{count} / {expected}" if expected else str(count)), row, 1)
+            grid.addWidget(QLabel('Not released' if announced and not files else f"{count} / {expected}" if expected else str(count)), row, 1)
             state = season.get("storage_state")
-            note = "Airing" if season.get("airing_status") == "RELEASING" else "Finished"
-            if state != "ON_DISK":
+            from app.core.series_grouping import release_status
+            note=release_status(season.get("airing_status"))
+            if state != "ON_DISK" and not announced:
                 note = "Watched, removed" if state == "WATCHED_REMOVED" else "Missing from disk"
             gaps = health["missing_episodes"]
-            if gaps and not self.continuous_episodes:
+            if gaps and not self.continuous_episodes and not announced:
                 note += f" / {len(gaps)} gaps"
             status = QLabel(note)
             status.setWordWrap(True)
@@ -724,6 +815,8 @@ class DetailModal(QDialog):
                     options.addAction("Play episode", lambda item=season: self._on_play_season(item))
                     options.addAction("Match season", lambda sid=season["id"]: self._match_season(sid))
                     play.setMenu(options)
+            elif announced:
+                label=QLabel("Not released");label.setObjectName("subheading");buttons.addWidget(label)
             else:
                 locate = QPushButton("Locate")
                 locate.clicked.connect(lambda checked=False, sid=season["id"]: self._locate_season(sid))
@@ -749,39 +842,15 @@ class DetailModal(QDialog):
         self._on_rematched(self.franchise_id)
 
     def _group_with_series(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Group library entries")
-        layout = QVBoxLayout(dialog)
-        heading = QLabel("Choose the series card that should contain this entry")
-        heading.setObjectName("heading")
-        heading.setWordWrap(True)
-        layout.addWidget(heading)
-        description = QLabel("Seasons and arcs will appear together. Files, release metadata, ratings and notes stay in their existing records.")
-        description.setWordWrap(True)
-        layout.addWidget(description)
-        choices = QComboBox()
-        own = set(self.franchise.get("series_member_ids", [self.franchise_id]))
-        for entry in db.get_series_library():
-            if not own.intersection(entry["series_member_ids"]):
-                choices.addItem(entry["display_title"], entry["id"])
-        layout.addWidget(choices)
-        apply = QPushButton("Group under selected series")
-        apply.setEnabled(choices.count() > 0)
-        def perform():
-            target = choices.currentData()
-            db.group_with_series(self.franchise_id, target)
-            self._on_rematched(target)
-            dialog.accept()
-        apply.clicked.connect(perform)
-        layout.addWidget(apply, 0, Qt.AlignLeft)
-        reset = QPushButton("Reset manual grouping for this series")
-        def reset_group():
-            db.reset_manual_grouping(self.franchise_id)
-            self._on_rematched(self.franchise_id)
-            dialog.accept()
-        reset.clicked.connect(reset_group)
-        layout.addWidget(reset, 0, Qt.AlignLeft)
-        layout.addStretch()
+        from app.ui.pages.group_series_page import GroupSeriesPage
+        page=GroupSeriesPage(self.franchise_id,self)
+        page.grouped.connect(self._on_rematched)
+        navigate(page)
+
+    def _edit_season_numbers(self):
+        from app.ui.dialogs.season_numbers import SeasonNumbers
+        dialog=SeasonNumbers(self.franchise_id,self)
+        dialog.saved.connect(self._on_rematched)
         navigate(dialog)
 
     def _show_coverage(self):
@@ -838,10 +907,7 @@ class DetailModal(QDialog):
     def _metadata_changed(self, fid):
         if fid != self.franchise_id:
             return
-        self._load_data()
-        self.poster_label.setPixmap(self._create_modal_poster())
-        self.synopsis_label.setText(format_synopsis(self.franchise.get("synopsis")))
-        self.synopsis_label.updateGeometry()
+        self._reload_async()
 
     def _show_api_json(self):
         from app.api.server import franchise_payload
@@ -885,8 +951,9 @@ class DetailModal(QDialog):
         cover = self.franchise.get("cover_filename")
         cover_path = COVERS_DIR / cover if cover else None
         loaded = False
-        if cover_path and cover_path.is_file():
-            img = QPixmap(str(cover_path))
+        source=getattr(self,'_poster_source',None)
+        if source is not None or cover_path and cover_path.is_file():
+            img = QPixmap.fromImage(source) if source is not None else QPixmap(str(cover_path))
             if not img.isNull():
                 scaled = img.scaled(220, 310, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
                 painter.drawPixmap((220 - scaled.width()) // 2, (310 - scaled.height()) // 2, scaled)
@@ -1006,7 +1073,7 @@ class DetailModal(QDialog):
             st_pill.setText("Watched, removed")
             st_pill.setStyleSheet("background-color: #242938; color: #b0b3c2; border-radius: 8px; padding: 2px 8px; font-size: 11px;")
         else:
-            st_pill.setText("Not downloaded")
+            st_pill.setText("Announced · Not released" if s.get('airing_status')=='NOT_YET_RELEASED' else "Not downloaded")
             st_pill.setStyleSheet("background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border-radius: 8px; padding: 2px 8px; font-size: 11px;")
         layout.addWidget(st_pill)
 
@@ -1090,6 +1157,8 @@ class DetailModal(QDialog):
             """)
             btn.clicked.connect(lambda checked=False, s_data=s: self._delete_season(s_data))
             layout.addWidget(btn)
+        elif s.get('airing_status')=='NOT_YET_RELEASED':
+            layout.addWidget(QLabel('Not released'))
         else:
             btn = QPushButton("Locate")
             btn.setCursor(Qt.PointingHandCursor)
@@ -1200,30 +1269,18 @@ class DetailModal(QDialog):
         navigate(dlg)
 
     def _match_season(self, sid):
-        owner = db.get_season(sid)["franchise_id"]
+        season=db.get_season(sid)
+        if not season:
+            self._on_rematched(self.franchise_id)
+            return
+        owner = season["franchise_id"]
         dlg = RematchDialog(owner, self, season_id=sid)
         dlg.rematched.connect(self._on_rematched)
         navigate(dlg)
 
     def _on_rematched(self, fid: int):
         self.franchise_id = fid
-        self._load_data()
-        self.poster_label.setPixmap(self._create_modal_poster())
-        self.synopsis_label.setText(format_synopsis(self.franchise.get("synopsis")))
-        artwork_loader().request(self.franchise)
-        from PyQt5 import sip
-        def clear(layout):
-            while layout.count():
-                item = layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-                elif item.layout():
-                    clear(item.layout())
-        previous = self.layout()
-        clear(previous)
-        sip.delete(previous)
-        self._setup_ui()
-        self.data_changed.emit()
+        self._reload_async(notify=True)
 
     def _play_on_streaming_site(self):
         """Open local streaming bridge in browser and save state."""
@@ -1316,8 +1373,7 @@ class DetailModal(QDialog):
         def completed(result):
             if result != QDialog.Accepted:
                 return
-            self._load_data()
-            self.data_changed.emit()
+            self._reload_async(notify=True)
         navigate(dialog, completed)
 
 
@@ -1326,7 +1382,6 @@ class DetailModal(QDialog):
         def completed(result):
             if result != QDialog.Accepted:
                 return
-            self._load_data()
             self.data_changed.emit()
             self.accept()
         navigate(dialog, completed)
@@ -1337,8 +1392,7 @@ class DetailModal(QDialog):
         def completed(result):
             if result != QDialog.Accepted:
                 return
-            self._load_data()
-            self.data_changed.emit()
+            self._reload_async(notify=True)
         navigate(dialog, completed)
 
 
@@ -1349,5 +1403,4 @@ class DetailModal(QDialog):
             start(self,lambda: db.update_season_folder(season_id,folder),self._located_season)
 
     def _located_season(self, _):
-        self._load_data()
-        self.data_changed.emit()
+        self._reload_async(notify=True)

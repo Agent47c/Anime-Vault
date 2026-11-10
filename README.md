@@ -7,6 +7,14 @@ PyQt5 and SQLite. Metadata comes from AniList and Jikan.
 
 ## Existing features
 
+- Categorized settings, guided download setup and a main Downloads queue, with
+  selected-site Chrome searches and reviewed missing-episode downloads.
+  See [SETTINGS_DOWNLOAD_EXPERIENCE.md](SETTINGS_DOWNLOAD_EXPERIENCE.md).
+
+- Optional built-in torrent downloader with file selection, pause/resume,
+  restart recovery and completed-file indexing. No external torrent client is required.
+  Setup and implementation details: [BUILTIN_DOWNLOADER.md](BUILTIN_DOWNLOADER.md).
+
 - Series library with seasons/arcs, metadata, cached artwork and manual rematching.
 - Episode browser, local availability checks and external-player launching.
 - Release calendar, update review and persistent update preferences.
@@ -74,5 +82,7 @@ other operating systems are not currently validated by CI.
 - [Proposed improvement priorities](SEANIME_COMPARISON_AND_PRIORITIES.md)
 - [Phase 1 implementation and complete change record](PHASE_1_DATA_SAFETY.md)
 - [Phase 2 scanning, matching, artwork and complete change record](PHASE_2_TRUSTWORTHY_SCANNING.md)
+- [Built-in download setup and old-entry recovery](BUILTIN_ONLY_DOWNLOADS.md)
+- [Selected-site Chrome magnet capture and setup](BROWSER_MAGNET_CAPTURE.md)
 - [Organizer button fixes, manual scans and preview caching](ORGANIZER_UI_AND_SCAN_CHANGES.md)
 - `anime-vault-ui/` contains design reference HTML, not the Python application's runtime.

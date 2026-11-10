@@ -35,7 +35,9 @@ class MatchingTests(unittest.TestCase):
         self.assertEqual(destination, canonical)
         self.assertEqual(db.get_season(sid)['anilist_id'], 200)
         self.assertEqual(db.get_season(sid)['season_number'], 2)
-        self.assertEqual(db.get_season(sid)['franchise_id'], canonical)
+        self.assertEqual(db.get_season(sid)['franchise_id'], self.fid)
+        self.assertIsNotNone(db.get_franchise(self.fid))
+        self.assertEqual(db.get_series(self.fid)['id'],canonical)
         self.assertEqual(db.get_franchise(canonical)['display_title'], 'Series')
 
 

@@ -1,4 +1,8 @@
 # Environment and secrets
+*.pem
+*.key
+/browser-extension.crx
+/Tac/
 .env
 .env.local
 .env.*.local

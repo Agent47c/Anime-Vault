@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QFrame, QWidget, QLabel, QScrollArea, QPushButton, QLayout, QSizePolicy, QApplication
 from app.ui.components.design import MotifHeader
 from app.ui.components.close_button import CloseButton
+from app.ui.components.smooth_scroll import SmoothScrollArea
 
 
 def text(value, role="workflow_hint"):
@@ -45,7 +46,7 @@ def chrome(dialog, title, subtitle, glyph, primary_label, callback):
     head.addLayout(row)
     head.addWidget(text(subtitle))
     root.addWidget(header)
-    scroll = QScrollArea()
+    scroll = SmoothScrollArea()
     scroll.setWidgetResizable(True)
     scroll.setFrameShape(QFrame.NoFrame)
     scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

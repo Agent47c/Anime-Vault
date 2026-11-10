@@ -164,7 +164,7 @@ def parse_txt_line(line: str) -> Optional[Dict[str, str]]:
     """Parse a single line from a .txt import file.
     Returns dict with 'title' and optional 'notes', or None for blank/comment lines.
     """
-    line = line.strip()
+    line = line.lstrip('\ufeff').strip()
     if not line or line.startswith("#"):
         return None
 
@@ -177,11 +177,25 @@ def parse_txt_line(line: str) -> Optional[Dict[str, str]]:
             notes = parts[1].strip()
             break
 
-    title = clean_title(line)
+    # A watch-list title is not a release filename. Keep meaningful brackets,
+    # punctuation and numeric names (86, 91 Days, 2.5 Dimensional Seduction).
+    title = strip_import_numbering(line)
+    title = re.sub(r'\s+', ' ', title).strip()
     if not title:
         return None
 
     return {"title": title, "notes": notes}
+
+
+def strip_import_numbering(value: str) -> str:
+    value=value.lstrip('\ufeff').strip()
+    # Markdown bullets/check lists are presentation, never part of a title.
+    value=re.sub(r'^(?:[-*•]\s+)(?:\[[ xX]\]\s*)?', '', value)
+    value=re.sub(r'^(?:\(\d{1,5}\)|\[\d{1,5}\]|\d{1,5}[)\]]|\d{1,5}\.(?=\s|$)|\d{1,5}\s+[-:]|\d{1,5}:(?=\s))\s*', '', value)
+    # Also support "1 (Anime title)" without dropping the entire title as junk.
+    wrapped=re.fullmatch(r'\d{1,5}\s+\((.+)\)',value)
+    if wrapped:value=wrapped.group(1).strip()
+    return value
 
 
 def parse_filename(filename: str) -> Dict[str, any]:
