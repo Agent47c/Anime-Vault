@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Deterministic Windows scrolling regression
+
+- Explicitly enable animation inside the wheel-reversal test so hosted Windows
+  reduced-motion defaults do not bypass the branch being tested. Keep separate
+  reduced-motion coverage and application behavior unchanged.
+
 ## Unreleased — Handle unsupported printer ICC profiles
 
 - Identify `70727472` as the ICC printer/output class `prtr` in one cached banner.

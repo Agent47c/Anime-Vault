@@ -41,11 +41,14 @@ class WheelScrollingTests(unittest.TestCase):
 
     def test_wheel_reversal_does_not_wait_for_previous_scroll_target(self):
         scroll,_,_,_=self.area();bar=scroll.verticalScrollBar();bar.setValue(500)
-        self.wheel(scroll.viewport());self.wheel(scroll.viewport());QTest.qWait(25)
-        before=bar.value();self.assertGreater(before,500)
-        self.wheel(scroll.viewport(),120)
-        self.assertLess(scroll._animation.endValue(),before)
-        QTest.qWait(200);self.assertLess(bar.value(),before)
+        # Hosted Windows can disable system animations. Exercise the animated
+        # branch explicitly; the next test independently covers reduced motion.
+        with patch('app.ui.components.smooth_scroll.motion_duration',return_value=160):
+            self.wheel(scroll.viewport());self.wheel(scroll.viewport());QTest.qWait(25)
+            before=bar.value();self.assertGreater(before,500)
+            self.wheel(scroll.viewport(),120)
+            self.assertLess(scroll._animation.endValue(),before)
+            QTest.qWait(200);self.assertLess(bar.value(),before)
 
     def test_reduced_motion_and_touchpad_remain_responsive(self):
         scroll,_,_,_=self.area();bar=scroll.verticalScrollBar()
