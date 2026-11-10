@@ -11,6 +11,8 @@ def scan(progress_callback=None,scan_progress=None,new_only=False,allow_network=
     cancelled = lambda: bool(scan_progress and (scan_progress.is_cancelled() if hasattr(scan_progress,'is_cancelled') else scan_progress.cancelled))
     processed,new,updated,unchanged,changed_files = 0,0,0,0,0
     errors,indexed_ids,states = [],set(),{}
+    from app.core.download_queue import scan_exclusions
+    unverified=scan_exclusions()
     for watched in db.get_watched_directories():
         if cancelled():
             break
@@ -40,6 +42,11 @@ def scan(progress_callback=None,scan_progress=None,new_only=False,allow_network=
                 continue
             scope = state.key(folder)
             seen_scopes.add(scope)
+            # A watcher can fire as soon as a client creates a partial .mkv.
+            # Keep saved history and defer these scopes until verified completion.
+            if any(folder==path or folder.is_relative_to(path) or path.is_relative_to(folder) for path in unverified):
+                unchanged+=1
+                continue
             existing = db.find_franchise_by_folder_path(str(folder))
             if new_only and existing:
                 unchanged += 1

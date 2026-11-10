@@ -123,6 +123,9 @@ class QuitConfirmDialog(QDialog):
             warning = text("Background work is in progress. Exiting will stop it safely.")
             warning.setObjectName("quit_warning")
             labels.addWidget(warning)
+        from app.core import builtin_torrents
+        if builtin_torrents.active():
+            labels.addWidget(text('Built-in downloads continue in the tray. Exiting completely saves progress and stops transfers.'))
         body.addWidget(status)
         self.choice_group = QButtonGroup(self)
         self.tray_radio, self.exit_radio = QRadioButton(), QRadioButton()
@@ -239,6 +242,10 @@ class MainWindow(QMainWindow):
         self._download_monitor = monitor()
         self._download_monitor.changed.connect(self._on_data_updated)
         QTimer.singleShot(0,self._download_monitor.check)
+        from app.ui.magnet_capture import MagnetInboxPump
+        self._magnet_inbox = MagnetInboxPump(self)
+        from app.ui.library_watchers import LibraryWatchers
+        self._library_watchers=LibraryWatchers(self)
         self.stacked_widget.currentChanged.connect(self._refresh_dirty_page)
 
         # Check connectivity on startup
@@ -290,12 +297,15 @@ class MainWindow(QMainWindow):
         self.updates_page = UpdatesPage()
         self.storage_page = StoragePage()
         self.settings_page = SettingsPage()
+        from app.ui.pages.downloads_page import DownloadsPage
+        self.downloads_page=DownloadsPage()
 
         self.stacked_widget.addWidget(self.library_page)    # 0
         self.stacked_widget.addWidget(self.organizer_page)  # 1
         self.stacked_widget.addWidget(self.updates_page)    # 2
         self.stacked_widget.addWidget(self.storage_page)    # 3
         self.stacked_widget.addWidget(self.settings_page)   # 4
+        self.stacked_widget.addWidget(self.downloads_page)  # 5
 
         content_column = QVBoxLayout()
         content_column.setContentsMargins(0, 0, 0, 0)
@@ -313,7 +323,7 @@ class MainWindow(QMainWindow):
         self.task_status_button.hide()
         root_layout.addWidget(self.task_status_button)
         root_layout.addWidget(self.bottom_bar)
-        for scope in (self.title_bar, top_header, sidebar, self.bottom_bar, self.task_status_button, self.library_page, self.organizer_page, self.updates_page, self.storage_page, self.settings_page):
+        for scope in (self.title_bar, top_header, sidebar, self.bottom_bar, self.task_status_button, self.library_page, self.organizer_page, self.updates_page, self.storage_page, self.settings_page,self.downloads_page):
             scope.setProperty("animevaultThemeScope", True)
         self._task_timer = QTimer(self)
         self._task_timer.setInterval(500)
@@ -443,7 +453,7 @@ class MainWindow(QMainWindow):
 
         # Navigation Buttons (Library, Updates, Organizer, Storage, Settings)
         self.nav_buttons = []
-        nav_items = [("Library", 0), ("Updates", 2), ("Organizer", 1), ("Storage", 3), ("Settings", 4)]
+        nav_items = [("Library", 0), ("Updates", 2), ("Downloads",5),("Organizer", 1), ("Storage", 3), ("Settings", 4)]
         for text, index in nav_items:
             btn_frame = ClickableFrame()
             btn_frame.setCursor(Qt.PointingHandCursor)
@@ -735,13 +745,23 @@ class MainWindow(QMainWindow):
 
 
     def _open_airing_detail(self, release):
-        modal = DetailModal(release["fid"], parent=self)
+        if not db.get_franchise(release['fid']):
+            self._on_data_updated()
+            return
+        modal = DetailModal(release["fid"], parent=self,async_load=True)
         modal.data_changed.connect(self._on_data_updated)
+        def initial_ready():
+            modal.loaded.disconnect(initial_ready)
+            modal.check_release_episode(release)
+        modal.loaded.connect(initial_ready)
         navigate(modal)
-        modal.check_release_episode(release)
 
     def _open_detail_modal(self, franchise_id: int):
-        modal = DetailModal(franchise_id, parent=self)
+        if not db.get_franchise(franchise_id):
+            # An old card can be clicked while a rematch refresh is being applied.
+            self._on_data_updated()
+            return
+        modal = DetailModal(franchise_id, parent=self,async_load=True)
         modal.data_changed.connect(self._on_data_updated)
         navigate(modal)
 
@@ -772,6 +792,7 @@ class MainWindow(QMainWindow):
         elif auto_metadata and not previous:
             self._start_background_updater()
         self.organizer_page.apply_settings_preferences()
+        if hasattr(self,'_library_watchers'):self._library_watchers.reload()
 
     def _check_new_anime(self):
         self._start_refresh(scan_library=True, new_only=True)
@@ -793,6 +814,7 @@ class MainWindow(QMainWindow):
             self._start_refresh(allow_network=False)
 
     def _on_data_updated(self):
+        if hasattr(self,'_library_watchers'):self._library_watchers.reload()
         self._dirty_pages.update((self.library_page, self.storage_page, self.updates_page))
         self._start_refresh()
 
@@ -1087,6 +1109,26 @@ class MainWindow(QMainWindow):
 
     def _cleanup_and_exit(self):
         from app.ui.artwork import artwork_loader
+        # Prevent new monitor/inbox work while the native session is flushed in
+        # an app-owned worker. The existing exit timer waits for it off the GUI.
+        if hasattr(self,'_download_monitor'):
+            self._download_monitor.closing=True
+            self._download_monitor.timer.stop()
+        if hasattr(self,'_magnet_inbox'):
+            self._magnet_inbox.timer.stop()
+        if hasattr(self,'_library_watchers'):self._library_watchers.stop()
+        if hasattr(self,'downloads_page'):self.downloads_page.timer.stop()
+        from app.core.downloads import begin_shutdown
+        begin_shutdown()
+        if not getattr(self,'_torrent_shutdown_started',False):
+            self._torrent_shutdown_started=True
+            from app.ui.io_task import IOTask,track
+            from app.core.downloads import shutdown_builtin
+            worker=IOTask(shutdown_builtin)
+            track(worker)
+            worker.failed.connect(lambda message:self.statusBar().showMessage('Download shutdown: '+message,10000))
+            worker.finished.connect(worker.deleteLater)
+            worker.start()
         loader = artwork_loader()
         loader.pool.clear()
         threads = self._running_threads()

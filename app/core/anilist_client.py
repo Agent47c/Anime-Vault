@@ -324,8 +324,8 @@ def _cached_artwork(media, kind, url, legacy_filename):
             if row['state'] == 'ABSENT' or (row['state'] == 'FAILED' and row['retry_at'] > time.time()):
                 return None
             if row['state'] == 'READY' and (COVERS_DIR / row['filename']).is_file():
-                from PyQt5.QtGui import QImage
-                if not QImage(str(COVERS_DIR / row['filename'])).isNull():
+                from app.core.image_profiles import load_cached_image
+                if not load_cached_image(COVERS_DIR / row['filename']).isNull():
                     return row['filename']
         filename = f"anilist-{media['id']}-{kind}-{version}.jpg"
         result = _download_artwork(url, filename) if url else None
@@ -348,12 +348,14 @@ def _download_artwork(url, filename):
         resp = requests.get(url, timeout=15)
         _check_cancelled()
         resp.raise_for_status()
-        if QImage.fromData(resp.content).isNull():
+        from app.core.image_profiles import repair_jpeg_profile
+        content=repair_jpeg_profile(resp.content)
+        if QImage.fromData(content).isNull():
             return None
         destination = COVERS_DIR / filename
         import uuid
         temporary = destination.with_suffix('.' + uuid.uuid4().hex + '.download')
-        temporary.write_bytes(resp.content)
+        temporary.write_bytes(content)
         temporary.replace(destination)
         return filename
     except (requests.RequestException, OSError):
@@ -413,7 +415,10 @@ def traverse_franchise_tree(root_media: Dict) -> List[Dict[str, Any]]:
             if not mapped_type:
                 continue
 
-            if edge_type == "SEQUEL":
+            if node_format in ('MOVIE','OVA','SPECIAL') or (node_format=='ONA' and root_media.get('format')!='ONA'):
+                mapped_type=node_format
+                sn=0
+            elif edge_type == "SEQUEL":
                 season_counter += 1
                 sn = season_counter
             elif node_format in ("MOVIE", "OVA", "ONA", "SPECIAL"):
@@ -424,4 +429,8 @@ def traverse_franchise_tree(root_media: Dict) -> List[Dict[str, Any]]:
 
             queue.append((node, mapped_type, sn))
 
+    from app.core.season_numbering import infer
+    catalog=[entry['media'] for entry in results]
+    for entry in results:
+        if entry['relation_type']=='SEASON':entry['season_number']=infer(entry['media'],root_media,catalog) or 0
     return results

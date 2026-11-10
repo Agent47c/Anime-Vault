@@ -71,6 +71,14 @@ class UpdaterThread(QThread):
                     )
 
             if not self._cancelled:
+                from app.core.release_calendar import refresh as refresh_calendar
+                try:
+                    refresh_calendar(cancelled=lambda: self._cancelled)
+                except InterruptedError:
+                    pass
+                except Exception as exc:
+                    self.error.emit(f"Release calendar: {exc}")
+            if not self._cancelled:
                 from app.core.series import refresh_series_links
                 refresh_series_links(cancelled=lambda: self._cancelled)
             self.finished_signal.emit(updates_found)

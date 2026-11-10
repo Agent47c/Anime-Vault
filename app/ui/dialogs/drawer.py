@@ -11,6 +11,9 @@ class DrawerDialog(QDialog):
         self.finished.connect(self._clear_shade)
 
     def showEvent(self, event):
+        if getattr(self,'full_page',False):
+            QDialog.showEvent(self,event)
+            return
         if getattr(self, "_embedded", False):
             QDialog.showEvent(self, event)
             return

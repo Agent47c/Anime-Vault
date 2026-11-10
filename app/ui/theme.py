@@ -131,11 +131,22 @@ QPushButton#entry_rating:checked { background: $accent_secondary; color: $on_ind
 QListWidget { background: $bg_card; border: 1px solid $border; border-radius: 12px; }
 QListWidget::item { min-height: 36px; padding: 4px 8px; }
 QListWidget::item:selected { background: $bg_card_alt; color: $text_primary; }
-QCheckBox::indicator, QListWidget::indicator {
+QListView#torrent_files { background: $bg_card; color: $text_primary; border: 1px solid $border; border-radius: 12px; padding: 4px; outline: none; }
+QListView#torrent_files::item { min-height: 36px; padding: 4px 8px; border-radius: 8px; }
+QListView#torrent_files::item:hover, QListView#torrent_files::item:selected { background: $bg_card_alt; color: $text_primary; }
+QListView#torrent_files::indicator { width: 18px; height: 18px; border: 1px solid $text_muted; border-radius: 5px; background: $bg_card; }
+QListView#torrent_files::indicator:checked { background: $accent_secondary; border-color: $accent_secondary; }
+QListView#group_series_choices { background: $bg_card; color: $text_primary; border: 1px solid $border; border-radius: 16px; padding: 8px; outline: none; }
+QListView#group_series_choices::item { border: 1px solid transparent; border-radius: 12px; padding: 8px 12px; margin: 2px 0; font-size: 14px; }
+QListView#group_series_choices::item:hover { background: $bg_card_alt; }
+QListView#group_series_choices::item:selected { background: $bg_card_alt; border: 1px solid $accent_secondary; color: $text_primary; }
+QListView#group_series_choices::indicator { width: 20px; height: 20px; border: 2px solid $text_muted; border-radius: 6px; background: $bg_card; }
+QListView#group_series_choices::indicator:checked { background: $accent_secondary; border-color: $accent_secondary; }
+QCheckBox::indicator, QListWidget::indicator, QTableView::indicator {
     width: 16px; height: 16px; border: 2px solid $text_muted;
     border-radius: 5px; background: $bg_card;
 }
-QCheckBox::indicator:checked, QListWidget::indicator:checked {
+QCheckBox::indicator:checked, QListWidget::indicator:checked, QTableView::indicator:checked {
     border: 2px solid $accent_secondary; background: $accent_secondary;
 }
 QWidget#entry_form_body, QDialog#entry_drawer { background: $bg_card; }
@@ -232,6 +243,13 @@ QFrame#settings_panel { background: $bg_card; border: 1px solid $border; border-
 QWidget#settings_content { background: $bg_primary; }
 QWidget#settings_row { background: transparent; }
 QWidget#settings_page QLabel#settings_heading { font-size: 34px; font-weight: 800; }
+QLabel#download_heading { font-size: 34px; font-weight: 800; color: $text_primary; }
+QWidget#downloads_page, QDialog#release_search_page { background: $bg_primary; }
+QTabWidget#settings_tabs::pane { border: none; border-top: 1px solid $border; background: $bg_primary; }
+QTabWidget#settings_tabs QTabBar { font-size: 14px; font-weight: 600; }
+QTabWidget#settings_tabs QTabBar::tab { background: transparent; color: $text_secondary; border: none; border-bottom: 2px solid transparent; min-width: 105px; min-height: 24px; padding: 10px 12px; font-size: 14px; }
+QTabWidget#settings_tabs QTabBar::tab:selected { color: $text_primary; border-bottom-color: $accent; font-weight: 600; }
+QTabWidget#settings_tabs QTabBar::tab:hover { background: $bg_card_alt; }
 QWidget#settings_page QLabel#settings_subtitle { font-size: 14px; color: $text_secondary; }
 QWidget#settings_page QLabel#settings_panel_title { font-size: 16px; font-weight: 700; }
 QWidget#settings_page QLabel#settings_label { font-size: 14px; font-weight: 600; }
@@ -269,6 +287,8 @@ QWidget#workflow_header { background: $bg_card; border-bottom: 1px solid $border
 QFrame#workflow_footer { background: $bg_card; border-top: 1px solid $border; }
 QLabel#workflow_title { font-size: 22px; font-weight: 800; color: $text_primary; }
 QLabel#workflow_hint { font-size: 14px; color: $text_secondary; }
+QLabel#workflow_hint, QLabel#workflow_row_title { background: transparent; }
+QStackedWidget#setup_steps { background: transparent; }
 QLabel#workflow_field_label { font-size: 13px; font-weight: 600; color: $text_secondary; }
 QLabel#workflow_row_title { font-size: 16px; font-weight: 700; color: $text_primary; }
 QFrame#workflow_card, QFrame#result_card { background: $bg_card_alt; border: none; border-radius: 16px; }
@@ -607,7 +627,7 @@ def get_stylesheet(theme: str = "dark") -> str:
         selection-background-color: {c["bg_hover"]};
         selection-color: {c["text_primary"]};
     }}
-    QTableWidget::item {{
+    QTableWidget::item, QTableView::item {{
         padding: 10px 14px;
         border-bottom: 1px solid {c["border"]};
     }}
@@ -708,6 +728,8 @@ def apply_theme(app: QApplication, theme: str = "dark"):
     from PyQt5.QtCore import QTimer
     from app.ui.components.dropdowns import install_dropdown_style
     install_dropdown_style(app)
+    from app.ui.components.wheel_routing import install_wheel_routing
+    install_wheel_routing(app)
     requested = theme
     if theme == "system":
         theme = "light" if prefs.windows_light_theme() else "dark"

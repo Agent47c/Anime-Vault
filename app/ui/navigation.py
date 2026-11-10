@@ -31,7 +31,7 @@ def navigate(dialog, callback=None):
     page.workflow = dialog
     page._nav_previous = previous
     page._nav_completed = False
-    drawer = isinstance(dialog, DrawerDialog)
+    drawer = isinstance(dialog, DrawerDialog) and not getattr(dialog,'full_page',False)
     centered = getattr(dialog, "centered_workflow", False)
     backdrop = None
     if drawer or centered:
@@ -115,7 +115,12 @@ def navigate(dialog, callback=None):
                 cleanup_page()
 
     def leave_page(index):
-        if host.stacked_widget.currentWidget() is not page and not page._nav_completed:
+        target=host.stacked_widget.currentWidget()
+        ancestor=target
+        while ancestor is not None:
+            if ancestor is page:return  # A child drawer can return to this page.
+            ancestor=getattr(ancestor,'_nav_previous',None)
+        if target is not page and not page._nav_completed:
             dialog.reject()
 
     if getattr(dialog, "dispose_on_leave", False):

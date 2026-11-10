@@ -76,7 +76,7 @@ class Regressions(unittest.TestCase):
         worker = UpdaterThread()
         found = []
         worker.update_found.connect(lambda fid, details: found.append(details))
-        with patch("app.core.updater.is_offline", return_value=False), patch.object(anilist_client, "get_anime_by_id", return_value={"id": 21, "title": {"english": "One Piece"}}), patch.object(worker, "_check_for_updates", return_value=old):
+        with patch("app.core.release_calendar.refresh"), patch("app.core.updater.is_offline", return_value=False), patch.object(anilist_client, "get_anime_by_id", return_value={"id": 21, "title": {"english": "One Piece"}}), patch.object(worker, "_check_for_updates", return_value=old):
             worker.run()
         self.assertEqual(found, [])
         self.assertFalse(db.get_franchise(self.fid)["has_new_update"])

@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QFrame, QGroupBox, QGridLayout, QFormLayout, QComboBox,
     QCheckBox, QFileDialog, QListWidget, QListWidgetItem,
-    QMessageBox, QProgressBar, QApplication, QLineEdit, QButtonGroup,
+    QMessageBox, QProgressBar, QApplication, QLineEdit, QButtonGroup, QTabWidget,
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, pyqtSignal, QThread
@@ -60,9 +60,23 @@ class SettingsPage(QWidget):
 
     preferences_changed = pyqtSignal()
 
+    def _add_panel(self,panel):
+        title=panel.property('settings_section')
+        categories={
+            'Appearance and accessibility':'Appearance & Accessibility','Application behavior':'Appearance & Accessibility','About':'Appearance & Accessibility',
+            'Metadata and AniList':'Scanning & Organization','Scanning and organization':'Scanning & Organization','Library roots and scanning':'Scanning & Organization',
+            'Watched list import':'Watchers & Import Lists','Media player':'Media Player','Database and backup':'Database & Backup','Downloads':'Downloads & Sources'}
+        column=self._tab_layouts[categories[title]]
+        column.insertWidget(column.count()-1,panel)
+
+    def _extend_settings(self):
+        from app.ui.settings_sections import extend_settings
+        extend_settings(self)
+
     def _panel(self, title):
         panel = QFrame()
         panel.setObjectName("settings_panel")
+        panel.setProperty("settings_section", title)
         box = QVBoxLayout(panel)
         box.setContentsMargins(20, 20, 20, 20)
         box.setSpacing(0)
@@ -126,37 +140,42 @@ class SettingsPage(QWidget):
         self.setObjectName("settings_page")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
-        content = QWidget()
-        content.setObjectName("settings_content")
-        page = QVBoxLayout(content)
-        page.setContentsMargins(32, 12, 32, 32)
-        page.setSpacing(20)
+        layout.setContentsMargins(28, 12, 28, 24)
         header = MotifHeader("\u8a2d\u5b9a")
         heading = QVBoxLayout(header)
         heading.setContentsMargins(0, 0, 0, 0)
-        heading.setSpacing(4)
         title = QLabel("Settings")
         title.setObjectName("settings_heading")
         heading.addWidget(title)
-        subtitle = QLabel("Appearance, metadata, media player, scanning and backups")
+        subtitle = QLabel("Your library, playback and download preferences. Changes are saved across restarts.")
         subtitle.setObjectName("settings_subtitle")
         subtitle.setWordWrap(True)
         heading.addWidget(subtitle)
-        page.addWidget(header)
-        grid = QGridLayout()
-        grid.setSpacing(20)
-        left, right = QVBoxLayout(), QVBoxLayout()
-        for column in (left, right):
+        layout.addWidget(header)
+        self.tabs = QTabWidget()
+        self.tabs.setObjectName('settings_tabs')
+        self.tabs.setDocumentMode(True)
+        self.tabs.setUsesScrollButtons(True)
+        self.tabs.setElideMode(Qt.ElideNone)
+        self.tabs.setAccessibleName("Settings categories")
+        self._tab_layouts = {}
+        for name in ("Appearance & Accessibility", "Scanning & Organization", "Watchers & Import Lists", "Media Player", "Downloads & Sources", "Database & Backup"):
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            scroll.setFrameShape(QFrame.NoFrame)
+            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            content = QWidget()
+            content.setObjectName("settings_content")
+            column = QVBoxLayout(content)
+            column.setContentsMargins(0, 20, 0, 0)
             column.setSpacing(20)
-        grid.addLayout(left, 0, 0)
-        grid.addLayout(right, 0, 1)
-        grid.setColumnStretch(0, 1)
-        grid.setColumnStretch(1, 1)
-        page.addLayout(grid)
-        page.addStretch()
+            column.addStretch()
+            self._tab_layouts[name] = column
+            scroll.setWidget(content)
+            caption={'Appearance & Accessibility':'Appearance','Scanning & Organization':'Scanning','Watchers & Import Lists':'Watchers & Lists','Media Player':'Media Player','Downloads & Sources':'Downloads & Sources','Database & Backup':'Database & Backup'}[name]
+            index = self.tabs.addTab(scroll, caption.replace('&','&&'))
+            self.tabs.setTabToolTip(index, name)
+        layout.addWidget(self.tabs, 1)
 
         panel, box = self._panel("Appearance and accessibility")
         self.theme_combo = QComboBox()
@@ -186,7 +205,7 @@ class SettingsPage(QWidget):
         box.addWidget(size_row, 0, Qt.AlignLeft)
         self._toggle(box, "High contrast", "Stronger borders and text; also follows Windows", "high_contrast")
         self._toggle(box, "Decorative kanji and patterns", "Turn off for a calmer, plainer look", "decorations")
-        left.addWidget(panel)
+        self._add_panel(panel)
 
         panel, box = self._panel("Media player")
         self.player_combo = QComboBox()
@@ -210,14 +229,14 @@ class SettingsPage(QWidget):
         self.player_status.setObjectName("settings_hint")
         self.player_status.setWordWrap(True)
         box.addWidget(self.player_status)
-        left.addWidget(panel)
+        self._add_panel(panel)
 
         panel, box = self._panel("Metadata and AniList")
         self._toggle(box, "Automatic metadata updates", "Check for new seasons and episodes", "metadata_auto")
         self._toggle(box, "Prefer official English titles", "Fall back to Romaji and Japanese; applies to new matches", "prefer_english")
         self._toggle(box, "Allow mature (18+) titles", "Include adult titles in search results", "allow_mature")
         self._toggle(box, "Rematch low-confidence titles", "Allow automatic exact-title checks for entries needing review", "rematch_low_confidence")
-        left.addWidget(panel)
+        self._add_panel(panel)
 
         panel, box = self._panel("Application behavior")
         self.quit_combo = QComboBox()
@@ -230,11 +249,10 @@ class SettingsPage(QWidget):
         self.always_admin_cb = SettingsSwitch(get_always_admin())
         self.always_admin_cb.toggled.connect(set_always_admin)
         self._row(box, "Always run as administrator", "Applies on next launch. Windows approval is still required.", self.always_admin_cb)
-        left.addWidget(panel)
+        self._add_panel(panel)
         panel, box = self._panel("About")
         self._row(box, "Anime Vault", "Anime Library & Storage Manager v1.0.0")
-        left.addWidget(panel)
-        left.addStretch()
+        self._add_panel(panel)
 
         panel, box = self._panel("Scanning and organization")
         self._toggle(box, "Flat folder detection", "Treat direct root video files as Season 1", "flat_detection")
@@ -245,14 +263,14 @@ class SettingsPage(QWidget):
         self.schedule_combo.setCurrentIndex(max(0, self.schedule_combo.findData(db.get_state("scan_schedule", "startup"))))
         self.schedule_combo.currentIndexChanged.connect(self._set_schedule)
         self._row(box, "Scheduled scan", "Check folders for newly added anime", self.schedule_combo)
-        right.addWidget(panel)
+        self._add_panel(panel)
 
         panel, box = self._panel("Watched list import")
         self._toggle(box, "Auto-select high-confidence matches", "Select matches at 90% or higher; Apply still confirms the import", "import_auto")
         self._toggle(box, "Review ambiguous matches", "Leave uncertain matches unchecked for your review", "import_review")
         self._toggle(box, "Ignore duplicate entries", "Skip repeated titles and entries already in the library", "import_ignore_duplicates")
         self._row(box, "Import watched list", "Review anime titles from a text file", self._button("Open importer (Ctrl+I)", self._open_watched_importer))
-        right.addWidget(panel)
+        self._add_panel(panel)
 
         panel, box = self._panel("Database and backup")
         self._row(box, "Database", "library.db - SQLite (WAL)")
@@ -268,13 +286,15 @@ class SettingsPage(QWidget):
         self.backup_status.setObjectName("settings_hint")
         self.backup_status.setWordWrap(True)
         box.addWidget(self.backup_status)
-        right.addWidget(panel)
+        self._add_panel(panel)
 
         panel, box = self._panel("Downloads")
-        self._row(box, "qBittorrent and search source", "Configure the local client, search URL and completed-download indexing.")
-        from app.ui.downloads import open_downloads
-        box.addWidget(self._button("Configure downloads",lambda:open_downloads(self)))
-        right.addWidget(panel)
+        self._row(box, "Download activity", "Setup is below. Transfers and release searches have their own Downloads destination.")
+        def open_queue():
+            host=self.window()
+            if hasattr(host,'_on_nav_clicked'):host._on_nav_clicked(5)
+        box.addWidget(self._button("Open Downloads",open_queue))
+        self._add_panel(panel)
 
         panel, box = self._panel("Library roots and scanning")
         detail = QLabel("Folders used to discover and index your anime.")
@@ -301,11 +321,9 @@ class SettingsPage(QWidget):
         self.scan_status.setObjectName("settings_hint")
         self.scan_status.setWordWrap(True)
         box.addWidget(self.scan_status)
-        right.addWidget(panel)
-        right.addStretch()
-        scroll.setWidget(content)
-        layout.addWidget(scroll)
+        self._add_panel(panel)
         self._refresh_dirs_list()
+        self._extend_settings()
 
     def _set_text_size(self, value):
         db.set_state("text_scale", value)
@@ -331,6 +349,7 @@ class SettingsPage(QWidget):
         if folder:
             db.add_watched_directory(folder)
             self._refresh_dirs_list()
+            self.preferences_changed.emit()
 
     def _remove_directory(self):
         item = self.dirs_list.currentItem()
@@ -340,13 +359,17 @@ class SettingsPage(QWidget):
         dir_id = item.data(Qt.UserRole)
         db.remove_watched_directory(dir_id)
         self._refresh_dirs_list()
+        self.preferences_changed.emit()
 
     def _scan_directories(self):
+        if self._scan_worker and self._scan_worker.isRunning(): return
         self.scan_progress.setVisible(True)
         self.scan_progress.setRange(0, 0)
         self.scan_status.setText("Scanning directories...")
 
         self._scan_worker = ScanWorker()
+        from app.ui.io_task import track
+        track(self._scan_worker)
         self._scan_worker.progress.connect(self._on_scan_progress)
         self._scan_worker.finished.connect(self._on_scan_finished)
         self._scan_worker.error.connect(self._on_scan_error)
@@ -410,15 +433,8 @@ class SettingsPage(QWidget):
         navigate(dlg)
 
     def _backup_db(self):
-        try:
-            backup_path = db.backup_database()
-            self.backup_status.setText(f"✅ Backup created: {Path(backup_path).name}")
-            QMessageBox.information(
-                self, "Backup Successful",
-                f"SQLite database backup successfully saved to:\n\n{backup_path}"
-            )
-        except Exception as e:
-            self.backup_status.setText(f"❌ Backup failed: {str(e)}")
+        from app.ui.io_task import start
+        start(self,db.backup_database,lambda path:self.backup_status.setText('Backup created: '+str(path)))
 
     def _restore_db(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -435,28 +451,29 @@ class SettingsPage(QWidget):
             QMessageBox.Yes | QMessageBox.No,
         )
         if confirm == QMessageBox.Yes:
-            try:
-                db.restore_database(path)
-                self.backup_status.setText(f"✅ Database restored from: {Path(path).name}")
-                QMessageBox.information(self, "Restore Complete", "Database restored successfully.")
+            from app.ui.io_task import start, running
+            from app.core import builtin_torrents
+            from app.core.downloads import jobs
+            from app.core.download_queue import status
+            if running() or builtin_torrents.active() or any(status(item) in ('Queued','Downloading') for item in jobs()):
+                self.backup_status.setText('Stop transfers and wait for background tasks before restoring. Disabled downloads can be resumed afterward.')
+                return
+            def restored(_):
+                self.backup_status.setText('Database restored. A safety backup was kept.')
+                self._refresh_dirs_list()
                 self.scan_completed.emit()
-            except Exception as e:
-                self.backup_status.setText(f"❌ Restore failed: {str(e)}")
-                QMessageBox.warning(self, "Restore Failed", f"Failed to restore database:\n{str(e)}")
+            start(self,lambda:db.restore_database(path),restored)
+            host=self.window()
+            host.setEnabled(False)
+            self._apply_worker.finished.connect(lambda:host.setEnabled(True))
 
     def _export_json(self):
-        try:
-            filepath = export_json()
-            self.backup_status.setText(f"✅ Exported to: {filepath}")
-        except Exception as e:
-            self.backup_status.setText(f"❌ Error: {str(e)}")
+        from app.ui.io_task import start
+        start(self,export_json,lambda path:self.backup_status.setText('Exported: '+str(path)))
 
     def _export_csv(self):
-        try:
-            filepath = export_csv()
-            self.backup_status.setText(f"✅ Exported to: {filepath}")
-        except Exception as e:
-            self.backup_status.setText(f"❌ Error: {str(e)}")
+        from app.ui.io_task import start
+        start(self,export_csv,lambda path:self.backup_status.setText('Exported: '+str(path)))
 
     def _on_theme_changed(self):
         theme = self.theme_combo.currentData()
