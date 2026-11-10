@@ -17,6 +17,14 @@ class WorkflowTests(unittest.TestCase):
     def setUpClass(cls):
         support.Regressions.setUpClass.__func__(cls)
 
+    def wait_write(self,dialog):
+        from PyQt5.QtTest import QTest
+        import time
+        end=time.monotonic()+5
+        while getattr(dialog,'_apply_worker',None) is not None and time.monotonic()<end:
+            QTest.qWait(5)
+        self.assertIsNone(getattr(dialog,'_apply_worker',None),'IO worker did not finish')
+
     def season(self):
         folder = Path(self.temp.name) / "selected"
         folder.mkdir()
@@ -66,6 +74,7 @@ class WorkflowTests(unittest.TestCase):
             dialog.parsed_items.append({"raw_title": title, "matched_title": title, "notes": "note", "raw_line": title, "existing_id": None, "anilist_media": None, "enabled": enabled})
         with patch("app.ui.dialogs.watched_import_dialog.QMessageBox.information"):
             dialog._apply_all_matches()
+            self.wait_write(dialog)
         self.assertEqual(db.find_franchise_by_title("New title")["watch_status"], "PLAN_TO_WATCH")
         self.assertIsNone(db.find_franchise_by_title("Not selected"))
         dialog.deleteLater()
@@ -78,6 +87,7 @@ class WorkflowTests(unittest.TestCase):
         dialog.watch_status_combo.setCurrentIndex(dialog.watch_status_combo.findData("DROPPED"))
         dialog.notes_input.setPlainText("Personal notes\nSecond line")
         dialog._save()
+        self.wait_write(dialog)
         record = db.find_franchise_by_title("Custom title")
         self.assertEqual(record["watch_status"], "DROPPED")
         self.assertEqual(record["title_en"], "English title")
@@ -97,6 +107,7 @@ class WorkflowTests(unittest.TestCase):
         dialog.rating_combo.setCurrentIndex(dialog.rating_combo.findData(0))
         dialog.notes_input.setPlainText("Updated notes")
         dialog._save()
+        self.wait_write(dialog)
         record = db.get_franchise(self.fid)
         self.assertIsNone(record["user_rating"])
         self.assertEqual(record["title_en"], "English")

@@ -339,6 +339,8 @@ class OrganizerPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._rules = dict(DEFAULT_RULES)
+        for key in ('detect_season_names','detect_episode_numbers','keep_subtitles_fonts'):
+            self._rules[key]=db.get_state('organizer.rule:'+key,'1')=='1'
         from app import preferences as prefs
         self._rules["treat_direct_as_season_1"] = prefs.enabled("flat_detection")
         self._rules["organize_without_confirmation"] = not prefs.enabled("preview_moves")
@@ -907,8 +909,10 @@ class OrganizerPage(QWidget):
             r_layout.setContentsMargins(6, 4, 6, 4)
             r_layout.setSpacing(6)
 
-            p_lbl = ElidedLabel(d["folder_path"])
-            p_lbl.setToolTip(d["folder_path"])
+            state = d.get('availability','UNSCANNED')
+            suffix = ' · ' + state.title() if state in ('OFFLINE','INACCESSIBLE') else ''
+            p_lbl = ElidedLabel(d["folder_path"] + suffix)
+            p_lbl.setToolTip(d.get('scan_error') or d["folder_path"])
             p_lbl.setMinimumWidth(0)
             p_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
             p_lbl.setStyleSheet("color: #f3f4f6; font-size: 12px; background: transparent; border: none; padding: 0;")
@@ -1093,15 +1097,19 @@ class OrganizerPage(QWidget):
 
     def apply_settings_preferences(self):
         from app import preferences as prefs
-        for key, value in (("treat_direct_as_season_1", prefs.enabled("flat_detection")), ("organize_without_confirmation", not prefs.enabled("preview_moves"))):
+        previous=dict(self._rules)
+        for key, value in [("treat_direct_as_season_1", prefs.enabled("flat_detection")), ("organize_without_confirmation", not prefs.enabled("preview_moves"))]+[(name,db.get_state('organizer.rule:'+name,'1')=='1') for name in ('detect_season_names','detect_episode_numbers','keep_subtitles_fonts')]:
             self._rules[key] = value
             switch = self.rule_switches[key]
             switch.blockSignals(True)
             switch.setChecked(value)
             switch.blockSignals(False)
+        if previous!=self._rules:self._mark_preview_stale('Detection rules changed — click Scan now')
 
     def _on_rule_toggled(self, key: str):
         self._rules[key] = self.rule_switches[key].isChecked()
+        if key in ('detect_season_names','detect_episode_numbers','keep_subtitles_fonts'):
+            db.set_state('organizer.rule:'+key,'1' if self._rules[key] else '0')
         from app import preferences as prefs
         if key == "treat_direct_as_season_1":
             prefs.save("flat_detection", self._rules[key])

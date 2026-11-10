@@ -79,7 +79,8 @@ class PreferencesTests(unittest.TestCase):
         worker.finished.connect(output.append)
         with patch("app.ui.dialogs.watched_import_dialog.is_offline", return_value=True):
             worker.run()
-        self.assertEqual(output, [[]])
+        self.assertEqual([item['status'] for item in output[0]],['MERGED','DUPLICATE'])
+        self.assertTrue(all(not item['enabled'] for item in output[0]))
         prefs.save("import_ignore_duplicates", False)
         output.clear()
         worker.run()

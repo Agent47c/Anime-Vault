@@ -228,6 +228,9 @@ class EpisodePage(QDialog):
             self.release_filter.addItem(label, value)
         self.release_filter.currentIndexChanged.connect(self._filter_releases)
         layout.addWidget(self.release_filter)
+        from app.ui.components.workflow import button
+        from app.ui.downloads import open_downloads
+        layout.addWidget(button('Find an episode / download…',lambda:open_downloads(self,self.fid)),0,Qt.AlignLeft)
         self.status = QLabel("Finding video files?")
         self.status.setObjectName("subheading")
         self.status.setWordWrap(True)

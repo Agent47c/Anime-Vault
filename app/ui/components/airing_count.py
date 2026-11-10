@@ -196,7 +196,7 @@ class AiringDay(QWidget):
         self.dot = QLabel()
         self.dot.setObjectName("airing_release_dot")
         self.dot.setFixedSize(6, 6)
-        self.dot.setVisible(bool(entries))
+        self.dot.setVisible(bool(entries) and not today)
         headings.addWidget(self.dot)
         column.addLayout(headings)
         self.release_button = AiringCount(entries, self.surface)
@@ -217,6 +217,7 @@ class AiringDay(QWidget):
             details.addWidget(title)
             meta = QLabel(f"EP {first.get('episode', '?')} \u00b7 {first.get('time', '')}")
             meta.setObjectName("airing_release_time")
+            meta.setToolTip(meta.text())
             details.addWidget(meta)
             if len(entries) > 1:
                 more = QLabel(f"+{len(entries)-1} more")
@@ -237,6 +238,10 @@ class AiringDay(QWidget):
         super().resizeEvent(event)
         self.surface.resize(self.width(), 122)
         self.surface.move(0, 4)
+        if self.width() < 140:
+            self.surface.layout().setContentsMargins(10, 10, 10, 10)
+        else:
+            self.surface.layout().setContentsMargins(14, 10, 14, 10)
         self.date_label.setText(self.date.strftime("%a").upper() + ("  " + self.date.strftime("%d") if not self.today or self.width() >= 150 else ""))
         self.dot.setVisible(bool(self.release_button.entries) and (not self.today or self.width() >= 160))
 

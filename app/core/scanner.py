@@ -6,6 +6,7 @@ and merges txt-imported entries with on-disk entries.
 
 import json
 import os
+import threading
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Callable
 from collections import defaultdict
@@ -26,146 +27,42 @@ from app.core import anilist_client
 # ---------------------------------------------------------------------------
 class ScanProgress:
     """Simple progress container for scanner callbacks."""
-    def __init__(self):
+    def __init__(self, cancellation=None):
         self.current = 0
         self.total = 0
         self.current_item = ""
         self.cancelled = False
+        self.cancellation = cancellation
+
+    def is_cancelled(self):
+        return self.cancelled or bool(self.cancellation and self.cancellation())
 
 
 # ---------------------------------------------------------------------------
 # Full library scan
 # ---------------------------------------------------------------------------
+_scan_lock = threading.Lock()
+
+
 def scan_watched_directories(
     progress_callback: Optional[Callable[[str, int, int], None]] = None,
     scan_progress: Optional[ScanProgress] = None,
     *, new_only: bool = False, allow_network: bool = True,
 ) -> Dict[str, Any]:
-    """Scan all watched directories, match folders against AniList,
-    and merge with existing library entries.
-
-    Args:
-        progress_callback: Optional fn(message, current, total)
-        scan_progress: Optional ScanProgress for cancellation support
-
-    Returns:
-        Summary dict with counts.
-    """
-    dirs = db.get_watched_directories()
-    if not dirs:
-        return {"scanned": 0, "new": 0, "updated": 0, "errors": []}
-
-    def path_key(path):
-        return os.path.normcase(os.path.abspath(path))
-
-    known_folders, known_loose = set(), set()
-    if new_only:
-        from contextlib import closing
-        with closing(db.get_connection()) as conn:
-            known_folders.update(path_key(row[0]) for row in conn.execute(
-                "SELECT root_folder_path FROM franchises WHERE root_folder_path IS NOT NULL AND root_folder_path <> ''"
-            ))
-            for row in conn.execute("SELECT scan_root, local_scan_key FROM seasons WHERE scan_root IS NOT NULL"):
-                key = row["local_scan_key"] or ""
-                if key.startswith("loose-root:"):
-                    known_loose.add((path_key(row["scan_root"]), key))
-                elif row["scan_root"]:
-                    known_folders.add(path_key(row["scan_root"]))
-
-    # Collect all anime folders across all watched directories
-    anime_folders = []
-    for wd in dirs:
-        folder = Path(wd["folder_path"]).resolve()
-        if not folder.is_dir():
-            continue
-        try:
-            for entry in folder.iterdir():
-                if path_key(entry) not in known_folders and entry.is_dir():
-                    anime_folders.append({
-                        "path": str(entry),
-                        "name": entry.name,
-                        "watched_dir_id": wd["id"],
-                    })
-        except PermissionError:
-            continue
-
-    from app.core.loose import inspect_loose_episodes
-    for wd in dirs:
-        if Path(wd["folder_path"]).is_dir():
-            loose, unknown = inspect_loose_episodes(wd["folder_path"])
-            for item in loose:
-                if (path_key(item["folder_path"]), "loose-root:" + item["loose_key"]) in known_loose:
-                    continue
-                item.update({"path": wd["folder_path"], "name": item["anime_name"], "watched_dir_id": wd["id"]})
-                anime_folders.append(item)
-
-    total = len(anime_folders)
-    new_count = 0
-    updated_count = 0
-    errors = []
-    indexed_ids = set()
-
-    for idx, af in enumerate(anime_folders):
-        if scan_progress and scan_progress.cancelled:
-            break
-
-        folder_name = af["name"]
-        clean_name = clean_title(folder_name)
-
-        if progress_callback:
-            progress_callback(f"Scanning: {clean_name}", idx + 1, total)
-        if scan_progress:
-            scan_progress.current = idx + 1
-            scan_progress.total = total
-            scan_progress.current_item = clean_name
-
-        # Check if already in library by folder path first, then by title match
-        if af.get("is_loose_group"):
-            indexed_ids.add(index_loose_group(af))
-            updated_count += 1
-            continue
-        existing = db.find_franchise_by_folder_path(af["path"])
-        if not existing:
-            existing = db.find_franchise_by_title(clean_name)
-        if not existing:
-            # Also try the raw folder name
-            existing = db.find_franchise_by_title(folder_name)
+    """Incremental metadata scan; unchanged inventories never enter API matching."""
+    from app.core.incremental import scan
+    while not _scan_lock.acquire(timeout=.05):
+        if scan_progress and (scan_progress.is_cancelled() if hasattr(scan_progress,'is_cancelled') else scan_progress.cancelled):
+            raise InterruptedError('Scan cancelled')
+    try:
+        return scan(progress_callback,scan_progress,new_only,allow_network)
+    finally:
+        _scan_lock.release()
 
 
-        try:
-            if existing:
-                _update_on_disk_info(existing["id"], af["path"])
-                indexed_ids.add(existing["id"])
-                updated_count += 1
-            else:
-                fid = _create_from_folder(af, clean_name)
-                if fid:
-                    indexed_ids.add(fid)
-                    new_count += 1
-        except OSError as error:
-            errors.append(f"{folder_name}: {error}")
-
-        # Update scan time
-        db.update_watched_directory_scan_time(af["watched_dir_id"])
-
-    def cancelled():
-        return bool(scan_progress and scan_progress.cancelled)
-
-    if allow_network and not cancelled() and (indexed_ids or not new_only) and not is_offline():
-        from app.core.matching import auto_match_indexed_folders
-        errors.extend(auto_match_indexed_folders(cancelled, progress_callback, indexed_ids if new_only else None))
-
-    return {
-        "scanned": total,
-        "new": new_count,
-        "updated": updated_count,
-        "errors": errors,
-    }
-
-
-def _create_from_folder(af: Dict, clean_name: str) -> Optional[int]:
+def _create_from_folder(af: Dict, clean_name: str, inventory=None) -> Optional[int]:
     """Index the local folder before attempting metadata matching."""
-    groups = collect_video_groups(af["path"])
+    groups = collect_video_groups(af["path"], inventory=inventory)
     if not groups:
         return None
     franchise_data = {
@@ -177,11 +74,11 @@ def _create_from_folder(af: Dict, clean_name: str) -> Optional[int]:
         "needs_review": 1,
     }
     fid = db.upsert_franchise(franchise_data)
-    _update_on_disk_info(fid, af["path"], groups=groups)
+    _update_on_disk_info(fid, af["path"], groups=groups, inventory=inventory)
     return fid
 
 
-def collect_video_groups(folder_path: str):
+def collect_video_groups(folder_path: str, inventory=None):
     """Recursively inventory exact paths; local arcs and alternate editions stay distinct."""
     from app.core.parser import extract_episode_range, extract_episode_numbers, classification_filename
     import re
@@ -198,12 +95,19 @@ def collect_video_groups(folder_path: str):
     def fail(error):
         raise error  # Never persist a partial inventory after an unreadable subtree.
 
-    for current, dirs, files in os.walk(root, onerror=fail, followlinks=False):
+    if inventory is None:
+        directories = os.walk(root, onerror=fail, followlinks=False)
+    else:
+        by_parent = defaultdict(list)
+        for path in inventory:
+            by_parent[str(Path(path).parent)].append(Path(path).name)
+        directories = [(parent, [], names) for parent,names in sorted(by_parent.items())]
+    for current, dirs, files in directories:
         dirs[:] = [name for name in dirs if extract_season_number(name, None) != -1 and not (Path(current) / name).is_symlink()]
         parent = Path(current)
         for name in files:
             file = parent / name
-            if file.suffix.lower() not in VIDEO_EXTENSIONS or file.is_symlink() or extract_season_number(name, None) == -1:
+            if file.suffix.lower() not in VIDEO_EXTENSIONS or (inventory is None and file.is_symlink()) or extract_season_number(name, None) == -1:
                 continue
             if re.search(r'Re-edit|One Piece Log', name, re.I):
                 add('collection:reedits', 0, 'COLLECTION', 'Re-edits', file)
@@ -273,13 +177,13 @@ def collect_video_groups(folder_path: str):
     return list(groups.values())
 
 
-def _update_on_disk_info(fid: int, folder_path: str, groups=None):
+def _update_on_disk_info(fid: int, folder_path: str, groups=None, changed_paths=None, inventory=None):
     """Replace the local inventory from a complete scan, without moving any files."""
     root = Path(folder_path).resolve()
     if not root.is_dir():
         return
     if groups is None:
-        groups = collect_video_groups(folder_path)
+        groups = collect_video_groups(folder_path,inventory=inventory)
     all_existing = db.get_seasons_for_franchise(fid)
     def belongs_to_root(season):
         if season.get("scan_root"):
@@ -315,7 +219,7 @@ def _update_on_disk_info(fid: int, folder_path: str, groups=None):
                 "relation_type": group["relation_type"], "title_display": group["title"],
                 "season_folder_path": str(common),
                 "video_files_json": json.dumps([file.relative_to(common).as_posix() for file in files]),
-                "size_bytes": sum(file.stat().st_size for file in files), "storage_state": "ON_DISK",
+                "size_bytes": sum(inventory[str(file)][0] if inventory is not None else file.stat().st_size for file in files), "storage_state": "ON_DISK",
                 "episode_start": declared[0] if declared else None,
                 "episode_end": declared[1] if declared else None,
                 "numbering_source": "folder" if declared else "observed",
@@ -359,7 +263,7 @@ def _update_on_disk_info(fid: int, folder_path: str, groups=None):
     db.recalculate_franchise_storage_state(fid)
     from app.core.identity import sync_inventory
     for sid in used_ids:
-        sync_inventory(sid)
+        sync_inventory(sid, changed_paths=changed_paths)
 
 
 # ---------------------------------------------------------------------------
@@ -377,7 +281,9 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
     if not path.is_file():
         return {"imported": 0, "merged": 0, "skipped": 0, "errors": []}
 
-    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    from app.core.text_import import read_text_list, ImportIndex
+    lines = read_text_list(path)
+    import_index=ImportIndex()
 
     imported = 0
     merged = 0
@@ -394,7 +300,10 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
         notes = parsed["notes"]
 
         # Check for existing entry
-        existing = db.find_franchise_by_title(title)
+        matches=import_index.matches(title)
+        if len(matches)>1:
+            skipped+=1;errors.append('Ambiguous library title needs review: '+title);continue
+        existing=matches[0] if matches else None
         if existing:
             # Merge: update watch status and notes
             fid = existing["id"]
@@ -426,6 +335,7 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
                     franchise_data.update(anilist_data)
 
             fid = db.upsert_franchise(franchise_data)
+            import_index.add(db.get_franchise(fid))
 
             # Download cover if we got AniList data
             if not is_offline() and "anilist_id" in franchise_data:

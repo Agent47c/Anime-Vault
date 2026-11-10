@@ -345,12 +345,31 @@ class LibraryPage(QWidget):
         self.hero_card.details_clicked.connect(self.card_clicked.emit)
         layout.addWidget(self.hero_card)
 
+        self.calendar_panel = QWidget()
+        calendar_layout = QVBoxLayout(self.calendar_panel)
+        calendar_layout.setContentsMargins(0, 0, 0, 0)
+        calendar_layout.setSpacing(12)
+        layout.addWidget(self.calendar_panel, 0, Qt.AlignLeft)
         airing_heading, airing_title = section_heading("\u653e\u9001", "Airing this week")
-        layout.addLayout(airing_heading)
-        self.airing_week = QHBoxLayout()
+        airing_title.setText('Release calendar')
+        calendar_layout.addLayout(airing_heading)
+        self._calendar_offset = 0
+        self.calendar_range = QLabel()
+        self.calendar_range.setObjectName('subheading')
+        calendar_controls = QHBoxLayout()
+        calendar_controls.setSpacing(8)
+        calendar_controls.addWidget(self.calendar_range)
+        calendar_controls.addStretch()
+        for text, delta in [('Previous week', -1), ('This week', 0), ('Next week', 1)]:
+            button = QPushButton(text)
+            button.setAccessibleName(text + ' in release calendar')
+            button.clicked.connect(lambda checked=False, step=delta: self._change_calendar_week(step))
+            calendar_controls.addWidget(button)
+        calendar_layout.addLayout(calendar_controls)
+        self.airing_week = QGridLayout()
         self._airing_week_signature = None
         self.airing_week.setSpacing(8)
-        layout.addLayout(self.airing_week)
+        calendar_layout.addLayout(self.airing_week)
 
         release_heading, self.release_title = section_heading("\u65b0\u7740", "New seasons and episodes")
         self.release_heading_widget = QWidget()
@@ -453,6 +472,7 @@ class LibraryPage(QWidget):
             
             
             ("Has new update", "UPDATE"),
+            ("Needs review", "REVIEW"),
         ]
 
         for label, val in filters:
@@ -614,10 +634,16 @@ class LibraryPage(QWidget):
             btn.style().polish(btn)
         self.refresh_display()
 
+    def _change_calendar_week(self, step):
+        self._calendar_offset = self._calendar_offset + step if step else 0
+        self._refresh_airing_week()
+
     def _refresh_airing_week(self):
         today = datetime.now().date()
-        monday = today - timedelta(days=today.weekday())
-        dates = [monday + timedelta(days=offset) for offset in range(7)]
+        monday = today - timedelta(days=today.weekday()) + timedelta(weeks=self._calendar_offset)
+        dates = [monday + timedelta(days=offset) for offset in range(14)]
+        self.calendar_range.setText(f"{dates[0]:%d %b} – {dates[-1]:%d %b %Y}")
+        self.calendar_range.setToolTip('Two full weeks · local time. Previous releases are saved for 12 weeks. Sync with internet to update the schedule.')
         schedule = {date: {} for date in dates}
 
         def add(fid, title, stamp, episode, release_id=None, season_id=None):
@@ -644,6 +670,22 @@ class LibraryPage(QWidget):
             except (AttributeError, TypeError, ValueError):
                 continue
 
+        # Map provider releases only to currently linked local anime/seasons.
+        # Cached history survives the provider's nextAiringEpisode moving on.
+        from app.core.release_calendar import saved
+        owners = {}
+        for record in db.get_all_franchises():
+            if record.get('anilist_id'):
+                owners.setdefault(record['anilist_id'], (record['id'], record['display_title'], None))
+        with closing(db.get_connection()) as conn:
+            for row in conn.execute('SELECT anilist_id, franchise_id, title_display, id FROM seasons WHERE anilist_id IS NOT NULL'):
+                owners[row[0]] = (row[1], row[2], row[3])
+        for release in saved():
+            owner = owners.get(release.get('mediaId'))
+            if owner:
+                fid, title, sid = owner
+                add(fid, title, release.get('airingAt'), release.get('episode'), release.get('mediaId'), sid)
+
         signature = (today, tuple((date, tuple(schedule[date].items())) for date in dates))
         if signature == self._airing_week_signature:
             return
@@ -653,7 +695,7 @@ class LibraryPage(QWidget):
 
         covers = {record["id"]: record.get("cover_filename") for record in db.get_all_franchises()}
         kanji = "\u6708\u706b\u6c34\u6728\u91d1\u571f\u65e5"
-        for date in dates:
+        for index, date in enumerate(dates):
             entries = schedule[date]
             preview_entries = [
                 {"fid": fid, "release_id": release_id, "season_id": sid, "title": title, "episode": episode, "time": time, "cover": covers.get(fid), "airing_at": stamp}
@@ -662,12 +704,15 @@ class LibraryPage(QWidget):
             preview_entries.sort(key=lambda entry: (entry.get("airing_at") or 0, entry["title"]))
             day = AiringDay(date, date == today, kanji[date.weekday()], preview_entries)
             day.selected.connect(self.airing_clicked.emit)
-            self.airing_week.addWidget(day, 1, Qt.AlignTop)
+            self.airing_week.addWidget(day, index // 7, index % 7, Qt.AlignTop)
+            self.airing_week.setColumnStretch(index % 7, 1)
 
     def refresh(self):
         """Full refresh of stats and cards."""
         from app.core.library_index import LibraryIndex
-        self._library_index = LibraryIndex()
+        snapshot=db.current_refresh_view()
+        self._library_index = snapshot.get('library_index') if snapshot else None
+        if self._library_index is None:self._library_index=LibraryIndex()
         self.hero_card.refresh()
         self._refresh_airing_week()
         while self.release_layout.count():
@@ -715,6 +760,8 @@ class LibraryPage(QWidget):
 
         if self._current_filter == "UPDATE":
             franchises = [f for f in franchises if f.get("has_new_update")]
+        elif self._current_filter == 'REVIEW':
+            franchises = [f for f in franchises if any(self._library_index.by_id[mid].get('needs_review') for mid in f['series_member_ids'])]
 
         if self.view_mode == "grid":
             self._render_grid(franchises)
@@ -767,8 +814,13 @@ class LibraryPage(QWidget):
             if not self._cards:
                 self.views_stack.setMinimumHeight(100)
             return
-        available = self.page_scroll.viewport().width() - 80
-        cols = max(1, (available + 20) // (PosterCard.CARD_WIDTH + 20))
+        margins = self.page_scroll.widget().layout().contentsMargins()
+        available = max(1,self.page_scroll.viewport().width() - margins.left() - margins.right())
+        gap = self.grid_layout.horizontalSpacing()
+        cols = max(1, (available + gap) // (PosterCard.CARD_WIDTH + gap))
+        width, extra = divmod(max(1,available - gap * (cols - 1)),cols)
+        for idx,card in enumerate(self._cards):
+            card.set_card_width(width + (1 if idx % cols < extra else 0))
         if cols != self._grid_columns:
             self.grid_container.setUpdatesEnabled(False)
             while self.grid_layout.count():
@@ -784,6 +836,9 @@ class LibraryPage(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        # Other library controls may have a wider minimum size; keep the calendar
+        # inside the visible viewport rather than clipping its rightmost days.
+        self.calendar_panel.setFixedWidth(max(400, self.width() - 70))
         self._resize_timer.start()
 
     def _artwork_changed(self, fid):

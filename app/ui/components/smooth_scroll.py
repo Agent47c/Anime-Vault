@@ -20,9 +20,20 @@ class SmoothScrollArea(QScrollArea):
         self._animation.setDuration(motion_duration(160))
         bar = self.verticalScrollBar()
         start = bar.value()
+        delta = -event.angleDelta().y()
         target = self._animation.endValue() if self._animation.state() == QAbstractAnimation.Running else start
-        target = max(bar.minimum(), min(bar.maximum(), int(target - event.angleDelta().y())))
+        # Reversing the wheel must reverse immediately, not drain an old target.
+        if (target-start)*delta<0:
+            target=start
+        target = max(bar.minimum(), min(bar.maximum(), int(target + delta)))
         self._animation.stop()
+        if target==start:
+            event.ignore()
+            return
+        if not self._animation.duration():
+            bar.setValue(target)
+            event.accept()
+            return
         self._animation.setStartValue(start)
         self._animation.setEndValue(target)
         self._animation.start()
