@@ -27,6 +27,10 @@ branch protection. Avoid force-pushing `main` and do not move released tags.
 
 ## Privacy and safety
 
+Install `requirements-dev.txt` before running the test suite. It includes the
+runtime requirements plus HTTPX2 for Starlette's API test client. CI installs
+this file so fresh runners do not depend on packages left on a developer machine.
+
 Maintainer-authorized direct pushes still require the same validation and staged
 privacy review. Do not bypass a server-side branch rule or force-push shared
 history. An owner-requested source snapshot does not certify a finished release.

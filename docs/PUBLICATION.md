@@ -16,6 +16,14 @@ Before publication, `python scripts/check.py` passed **502 tests**, source compi
 
 This is a source snapshot, not a newly certified stable release or installer. The original `v1.0.0` tag is preserved. Open findings in the [whole-app audit](../WHOLE_APP_AUDIT_2026-11-12.md), including scattered-location season counting, remain unresolved by this documentation/publication pass.
 
+The initial remote run exposed two API-test import errors: fresh Starlette
+requires HTTPX2, while the developer machine already had a compatible test client.
+`requirements-dev.txt` now explicitly declares HTTPX2 and CI installs the development
+manifest. This is a test-environment correction; runtime requirements are unchanged.
+The corrected manifest was also installed into a new isolated virtual environment:
+all 502 tests passed there in 128.6 seconds, with a maximum scanner heartbeat
+gap of 50.3 ms. The two API security tests passed using HTTPX2.
+
 ## Excluded material
 
 Personal databases, `.env`, tokens/keys, watch-list TXT files, cached provider artwork, raw audit logs, crash dumps, torrent/resume state, downloaded media, virtual environments and build outputs are not part of the public snapshot. Local credential-manager helpers remain ignored. Screenshot titles, cover art, paths and transfer figures are fictional; screenshots are not evidence of live downloads.

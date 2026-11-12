@@ -2,6 +2,10 @@
 
 ## Unreleased — Public repository documentation and source snapshot
 
+- Declare HTTPX2 in a separate development requirements file and install it in
+  CI, correcting fresh-runner API tests that previously depended on an undeclared
+  local test-client package. Runtime dependencies and application behavior stay unchanged.
+
 - Rewrite the README around verified features, source installation, current
   built-in downloads, privacy, validation and explicitly open audit findings.
 - Add six current-app screenshots generated from fictional, isolated demo data;

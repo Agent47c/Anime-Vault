@@ -117,11 +117,12 @@ Download setup is optional. See the [current built-in download guide](docs/DOWNL
 ## Development and validation
 
 ```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe scripts/check.py
 node --test browser-extension/tests/capture.test.js browser-extension/tests/search.test.js
 ```
 
-The Python command compiles the source and runs the regression suite with temporary databases, offline metadata mode and Qt's offscreen platform. The extension tests require Node.js; CI uses Node 22.
+The Python command compiles the source and runs the regression suite with temporary databases, offline metadata mode and Qt's offscreen platform. Development dependencies include HTTPX2 for Starlette's API test client; normal application use only needs `requirements.txt`. The extension tests require Node.js; CI uses Node 22.
 
 **Latest publication validation:** 502 Python tests and 18 extension tests passed. These checks do not certify real-drive power-loss recovery, every DPI/theme combination or a clean-machine installer.
 
