@@ -125,6 +125,10 @@ class PerformancePathTests(unittest.TestCase):
             page.refresh()
             health.assert_not_called()
             page._select_filter("Health")
+            from PyQt5.QtTest import QTest
+            for _ in range(100):
+                if page._health_worker is None:break
+                QTest.qWait(10)
             health.assert_called_once()
         page.deleteLater()
 

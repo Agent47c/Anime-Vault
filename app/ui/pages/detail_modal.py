@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy, QPlainTextEdit, QComboBox, QMenu, QGridLayout, QButtonGroup,
 )
 from PyQt5.QtGui import QPixmap, QFont, QColor, QPainter, QPainterPath
-from PyQt5.QtCore import Qt, pyqtSignal, QRectF,QTimer
+from PyQt5.QtCore import Qt, pyqtSignal, QRectF,QTimer,QEvent
 
 from app.ui.artwork import artwork_loader
 from app.ui.components.close_button import CloseButton
@@ -57,6 +57,10 @@ class SynopsisLabel(QLabel):
         super().setText(text)
         self._fit_text()
 
+    def changeEvent(self,event):
+        super().changeEvent(event)
+        if event.type()==QEvent.FontChange:self._fit_text()
+
     def _fit_text(self):
         if self.width() <= 0:
             return
@@ -83,13 +87,10 @@ class DetailModal(QDialog):
         self.setMinimumSize(940, 660)
         self.setSizeGripEnabled(True)
         self.setModal(True)
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #15161d;
-                border: 1px solid #303139;
-                border-radius: 18px;
-            }
-        """)
+        # Start with the final theme, rather than temporarily styling controls
+        # and forcing a repolish of every child at the end of construction.
+        from app.ui.detail_style import qss
+        self.setStyleSheet(qss())
 
         artwork_loader().changed.connect(self._metadata_changed)
         if async_load:
@@ -154,7 +155,10 @@ class DetailModal(QDialog):
         worker.finished.connect(worker.deleteLater);worker.start()
 
     def done(self,result):
+        from app.ui.user_edits import user_edits
+        user_edits().flush()
         self._detail_closed=True;self._detail_generation+=1
+        if hasattr(self,'episode_panel'):self.episode_panel.stop()
         worker=getattr(self,'_worker',None)
         if worker and worker.isRunning():worker.requestInterruption()
         super().done(result)
@@ -176,37 +180,48 @@ class DetailModal(QDialog):
         for _ in self._build_ui_steps():pass
 
     def _build_ui_steps(self):
+        from app.ui.home_style import load_fonts
+        load_fonts()
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(40, 24, 40, 28)
+        main_layout.setContentsMargins(20, 12, 20, 28)
         scroll = SmoothScrollArea()
         self.right_scroll = scroll
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         content = QWidget()
+        content.setObjectName('detail_canvas')
         content_layout = QVBoxLayout(content)
         content_layout.setContentsMargins(0, 0, 8, 0)
         content_layout.setSpacing(20)
-        breadcrumb = QLabel("Library / " + self.franchise.get("display_title", "Series details"))
-        breadcrumb.setObjectName("subheading")
-        content_layout.addWidget(breadcrumb)
-        hero = QHBoxLayout()
-        hero.setSpacing(38)
-        content_layout.addLayout(hero)
+        from app.ui.navigation import set_navigation_title
+        set_navigation_title(self, self.franchise.get("display_title", "Series details"))
+        hero_panel=QFrame();hero_panel.setObjectName('detail_hero')
+        hero=QHBoxLayout(hero_panel);hero.setContentsMargins(24,24,24,24)
+        hero.setSpacing(24)
+        content_layout.addWidget(hero_panel)
 
         # Poster Container
         self.poster_label = QLabel()
-        self.poster_label.setFixedSize(220, 310)
+        self.poster_label.setFixedSize(240, 360)
+        self.poster_label.setAlignment(Qt.AlignCenter)
         self.poster_label.setPixmap(self._create_modal_poster())
         hero.addWidget(self.poster_label, 0, Qt.AlignTop)
 
         resume_path, resume_season = self._resume_candidate()
         numbers = extract_episode_numbers(resume_path.name) if resume_path else []
         label = f"Play episode {numbers[0]}" if numbers else "Play episode"
-        self.play_button = QPushButton("\u25b6  " + label)
+        if resume_path and numbers:
+            prefix=f"S{resume_season.get('season_number')} " if resume_season and resume_season.get('season_number') and not self.continuous_episodes else ''
+            label=f'Resume {prefix}Ep {numbers[0]}'
+        self.play_button = QPushButton(label)
+        from app.ui.icons import icon
+        from app.ui.home_style import colors
+        self.play_button.setIcon(icon('play',colors()['on_coral']))
         self.play_button.setObjectName("detail_play_main")
         self.play_button.setCursor(Qt.PointingHandCursor)
-        self.play_button.setFixedHeight(36)
+        self.play_button.setFixedHeight(48)
+        self.play_button.setMinimumWidth(160)
         self.play_button.clicked.connect(self._resume_or_play)
         split = QFrame()
         split.setObjectName("detail_play_split")
@@ -215,10 +230,12 @@ class DetailModal(QDialog):
         split_layout.setSpacing(0)
         split_layout.addWidget(self.play_button)
         choose_btn = QPushButton()
+        self.play_options_button=choose_btn
         choose_btn.setObjectName("detail_play_arrow")
         choose_btn.setAccessibleName("Playback options")
         choose_btn.setCursor(Qt.PointingHandCursor)
-        choose_btn.setFixedSize(36, 36)
+        choose_btn.setFixedSize(40, 48)
+        choose_btn.setIcon(icon('chevron-down',colors()['on_coral']))
         self.play_menu = QMenu(choose_btn)
         self.play_menu.setObjectName("detail_play_menu")
         resume_text = f"Resume episode {numbers[0]}" if numbers else "Resume last episode"
@@ -231,7 +248,7 @@ class DetailModal(QDialog):
         self.play_menu.addSeparator()
         player = {
             "default": "Windows default", "vlc": "VLC", "mpv": "MPV",
-            "mpc-hc": "MPC-HC", "custom": "Custom player",
+            "mpc-hc": "MPC-HC", "potplayer":"PotPlayer", "custom": "Custom player",
         }.get(get_media_player_type(), "Windows default")
         self.play_menu.addAction(f"Player: {player}\tChange in Settings", self._open_player_settings)
         choose_btn.setMenu(self.play_menu)
@@ -246,38 +263,11 @@ class DetailModal(QDialog):
         edit_btn = QPushButton("Edit title")
         edit_btn.setCursor(Qt.PointingHandCursor)
         edit_btn.setFixedHeight(34)
-        edit_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #1d1f29;
-                color: #f3f4f6;
-                border: 1px solid #383a44;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-            QPushButton:hover {
-                background-color: #303139;
-            }
-        """)
         edit_btn.clicked.connect(self._edit_entry)
 
         rematch_btn = QPushButton("Rematch")
         rematch_btn.setCursor(Qt.PointingHandCursor)
         rematch_btn.setFixedHeight(34)
-        rematch_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #1d1f29;
-                color: #8c6cff;
-                border: 1px solid #3b3558;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-            QPushButton:hover {
-                background-color: #242240;
-                border-color: #8c6cff;
-            }
-        """)
         rematch_btn.clicked.connect(self._on_rematch)
 
         # Row 2: Open Folder | Delete files...
@@ -285,47 +275,19 @@ class DetailModal(QDialog):
         folder_btn = QPushButton("Open folder")
         folder_btn.setCursor(Qt.PointingHandCursor)
         folder_btn.setFixedHeight(34)
-        folder_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #1d1f29;
-                color: #f3f4f6;
-                border: 1px solid #383a44;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-            QPushButton:hover {
-                background-color: #303139;
-            }
-        """)
         folder_btn.clicked.connect(self._open_folder)
 
         delete_btn = QPushButton("Delete files...")
         delete_btn.setCursor(Qt.PointingHandCursor)
         delete_btn.setFixedHeight(34)
-        delete_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #ef4444;
-                border: 1px solid rgba(239, 68, 68, 0.4);
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-            QPushButton:hover {
-                background-color: rgba(239, 68, 68, 0.15);
-                border-color: #ef4444;
-            }
-        """)
         delete_btn.clicked.connect(self._delete_all_files)
 
         # Disclaimer Notice
         notice = QLabel("Deleting keeps this entry, poster, rating and a Watched, removed status.")
-        notice.setStyleSheet("font-size: 11px; color: #898d9f; line-height: 1.4;")
         notice.setWordWrap(True)
         right_layout = QVBoxLayout()
         yield  # Let navigation/input run between independent layout sections.
-        right_layout.setSpacing(20)
+        right_layout.setSpacing(16)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_column = QWidget()
         right_column.setObjectName("detail_content")
@@ -339,7 +301,8 @@ class DetailModal(QDialog):
 
         # Main English Title
         title_lbl = QLabel(self.franchise.get("display_title", "Unknown Anime"))
-        title_lbl.setStyleSheet("font-size: 44px; font-weight: 800; color: #f3f4f6;")
+        title_lbl.setTextFormat(Qt.PlainText)
+        title_lbl.setObjectName('detail_title')
         title_lbl.setWordWrap(True)
         header_left.addWidget(title_lbl)
 
@@ -350,8 +313,9 @@ class DetailModal(QDialog):
         if self.franchise.get("title_native"):
             subtitles.append(self.franchise["title_native"])
         sub_lbl = QLabel(" · ".join(subtitles) if subtitles else "Anime details")
+        sub_lbl.setTextFormat(Qt.PlainText)
+        sub_lbl.setObjectName('detail_subtitle')
         sub_lbl.setWordWrap(True)
-        sub_lbl.setStyleSheet("font-size: 12px; color: #b0b3c2;")
         header_left.addWidget(sub_lbl)
         header_row.addLayout(header_left, 1)
 
@@ -360,7 +324,8 @@ class DetailModal(QDialog):
         header_row.addWidget(close_btn, 0, Qt.AlignTop)
         right_layout.addLayout(header_row)
 
-        badges_row = QHBoxLayout()
+        from app.ui.components.flow_layout import FlowLayout
+        badges_row = FlowLayout()
         badges_row.setSpacing(10)
         metadata = json.loads(self.franchise.get("metadata_json") or "{}") or {}
         badges = [(metadata.get("format") or "Anime", False)]
@@ -380,13 +345,15 @@ class DetailModal(QDialog):
         if isinstance(genres, str):
             genres = json.loads(genres)
         if genres:
-            badges.append((" \u00b7 ".join(genres[:2]), False))
+            badges.extend((genre,False) for genre in genres)
+        if metadata.get('episodes'):badges.append((f"{metadata['episodes']} episodes",False))
+        if self.franchise.get('total_size_bytes'):badges.append((f"{self.franchise['total_size_bytes']/1024**3:.1f} GB on disk",False))
+        if metadata.get('averageScore'):badges.append((f"AniList score {metadata['averageScore']/10:.1f} / 10",False))
         for text, airing in badges:
             pill = QLabel(text)
             pill.setObjectName("detail_badge")
             pill.setProperty("airing", airing)
             badges_row.addWidget(pill)
-        badges_row.addStretch()
         right_layout.addLayout(badges_row)
         actions = playback
         actions.takeAt(actions.count() - 1)
@@ -399,8 +366,18 @@ class DetailModal(QDialog):
         from app.ui.pages.release_search_page import open_release_search
         download_btn.clicked.connect(lambda:open_release_search(self,self.franchise_id))
         actions.addStretch()
-        right_layout.addLayout(actions)
-        right_layout.addWidget(download_btn,0,Qt.AlignLeft)
+        action_strip=FlowLayout();action_strip.setSpacing(10)
+        while actions.count():
+            item=actions.takeAt(0)
+            if item.widget():action_strip.addWidget(item.widget())
+        action_strip.addWidget(download_btn)
+        release_updates = QPushButton('Check release updates')
+        def show_release_updates():
+            from app.ui.pages.release_news_page import open_release_news
+            if self.franchise.get('anilist_id'):open_release_news(self,self.franchise['anilist_id'])
+            else:QMessageBox.information(self,'Release updates','Rematch this anime to AniList first.')
+        release_updates.clicked.connect(show_release_updates)
+        action_strip.addWidget(release_updates)
         release_notice = QFrame()
         release_notice.setObjectName("final_panel")
         notice_layout = QHBoxLayout(release_notice)
@@ -424,17 +401,20 @@ class DetailModal(QDialog):
         synopsis_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
         synopsis_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         synopsis_lbl.setWordWrap(True)
-        synopsis_lbl.setStyleSheet("font-size: 16px; color: #B4B9CA;")
         synopsis_lbl.setMinimumWidth(0)
         synopsis_scroll = QScrollArea()
         synopsis_scroll.setWidgetResizable(True)
         synopsis_scroll.setFrameShape(QFrame.NoFrame)
         synopsis_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        synopsis_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         synopsis_scroll.setMaximumHeight(100)
         synopsis_scroll.setMinimumHeight(88)
         synopsis_lbl.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         synopsis_scroll.setWidget(synopsis_lbl)
-        right_layout.addWidget(synopsis_scroll)
+        summary=QFrame();summary.setObjectName('detail_summary');summary_box=QVBoxLayout(summary)
+        summary_box.setContentsMargins(14,12,14,12);summary_box.addWidget(synopsis_scroll)
+        right_layout.addWidget(summary)
+        right_layout.addLayout(action_strip)
         api_btn = QPushButton("View API JSON")
         api_btn.setToolTip("Inspect the complete local API record and cached AniList response")
         api_btn.clicked.connect(self._show_api_json)
@@ -449,12 +429,12 @@ class DetailModal(QDialog):
 
         watch_label = QLabel("WATCH STATUS")
         watch_label.setObjectName("subheading")
-        right_layout.addWidget(watch_label)
+        watch_box=QVBoxLayout();watch_box.setSpacing(8);watch_box.addWidget(watch_label)
         status_track = QFrame()
         status_track.setObjectName("watch_status_track")
         statuses = QHBoxLayout(status_track)
         statuses.setContentsMargins(0, 0, 0, 0)
-        statuses.setSpacing(12)
+        statuses.setSpacing(4)
         self.watch_status_buttons = QButtonGroup(self)
         for text, value in (
             ("Watched", "WATCHED"), ("Watching", "WATCHING"),
@@ -462,13 +442,14 @@ class DetailModal(QDialog):
         ):
             button = QPushButton(text)
             button.setObjectName("watch_status_option")
-            button.setMinimumSize(116, 42)
+            button.setCursor(Qt.PointingHandCursor)
+            button.setMinimumSize(68, 34)
             button.setCheckable(True)
             button.setChecked(self.franchise.get("watch_status") == value)
             self.watch_status_buttons.addButton(button)
             button.clicked.connect(lambda checked=False, status=value: self._change_watch_status(status))
             statuses.addWidget(button)
-        right_layout.addWidget(status_track, 0, Qt.AlignLeft)
+        watch_box.addWidget(status_track,0,Qt.AlignLeft)
 
         # ===================================================================
         # Section: YOUR RATING (1 to 10 Buttons)
@@ -480,54 +461,26 @@ class DetailModal(QDialog):
         rating_box.addWidget(self.rating_title)
 
         rating_buttons_row = QHBoxLayout()
-        rating_buttons_row.setSpacing(10)
+        rating_buttons_row.setSpacing(4)
         self.rating_buttons = []
         current_rating = self.franchise.get("user_rating") or 0
         self._update_rating_title_text(current_rating)
 
         for num in range(1, 11):
             btn = QPushButton(str(num))
-            btn.setFixedSize(36, 32)
+            btn.setProperty('detailRating',True)
+            btn.setProperty('rated',num<=current_rating)
+            btn.setStyleSheet('padding: 0;')
+            btn.setFixedSize(24, 28)
+            btn.setAccessibleName(f'Rate {num} out of 10');btn.setToolTip(f'Rate {num} out of 10')
             btn.setCursor(Qt.PointingHandCursor)
-            is_active = (num == current_rating)
 
-            if is_active:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #d92468, stop:1 #8e2de2);
-                        color: #ffffff;
-                        border: none;
-                        border-radius: 7px;
-                        font-weight: 700;
-                        font-size: 13px;
-                        padding: 0;
-                    }
-                """)
-            else:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #1d1f29;
-                        color: #94a3b8;
-                        border: 1px solid #383a44;
-                        border-radius: 7px;
-                        font-weight: 600;
-                        font-size: 13px;
-                        padding: 0;
-                    }
-                    QPushButton:hover {
-                        background-color: #272d3d;
-                        color: #ffffff;
-                        border-color: #3b4256;
-                    }
-                """)
             btn.clicked.connect(lambda checked=False, n=num: self._set_rating(n))
             rating_buttons_row.addWidget(btn)
             self.rating_buttons.append(btn)
 
         rating_buttons_row.addStretch()
         rating_box.addLayout(rating_buttons_row)
-        right_layout.addLayout(rating_box)
 
 
         # ===================================================================
@@ -538,29 +491,21 @@ class DetailModal(QDialog):
         notes_box.setSpacing(12)
 
         notes_title = QLabel("NOTES")
-        notes_title.setStyleSheet("font-size: 11px; font-weight: 700; color: #b0b3c2; letter-spacing: 0.5px;")
         notes_box.addWidget(notes_title)
 
         self.notes_edit = QTextEdit()
-        self.notes_edit.setFixedHeight(40)
+        self.notes_edit.setFixedHeight(68)
         self.notes_edit.setPlaceholderText("Add personal notes...")
         self.notes_edit.setText(self.franchise.get("user_notes", ""))
-        self.notes_edit.setStyleSheet("""
-            QTextEdit {
-                background-color: #14151c;
-                color: #f3f4f6;
-                border: 1px solid #303139;
-                border-radius: 8px;
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-            QTextEdit:focus {
-                border-color: #df2545;
-            }
-        """)
         self.notes_edit.textChanged.connect(self._save_notes)
         notes_box.addWidget(self.notes_edit)
-        right_layout.addLayout(notes_box)
+        personal=FlowLayout();personal.setSpacing(20)
+        for box in (watch_box,rating_box,notes_box):
+            section=QWidget();section.setObjectName('detail_personal');section.setLayout(box)
+            box.setContentsMargins(0,0,0,0)
+            if box is notes_box:section.setFixedWidth(220)
+            personal.addWidget(section)
+        right_layout.addLayout(personal)
 
         # ===================================================================
         # Section: SEASONS, ARCS, MOVIES & SPECIALS
@@ -568,8 +513,8 @@ class DetailModal(QDialog):
         seasons_box = QVBoxLayout()
         seasons_box.setSpacing(12)
 
-        seasons_title = QLabel("EPISODES, MOVIES AND SPECIALS" if self.continuous_episodes else "SEASONS ON DISK")
-        seasons_title.setStyleSheet("font-size: 11px; font-weight: 700; color: #b0b3c2; letter-spacing: 0.5px;")
+        seasons_title = QLabel("Episodes, movies & specials" if self.continuous_episodes else "Seasons & releases")
+        seasons_title.setObjectName('detail_section_heading')
         seasons_box.addWidget(seasons_title)
         if not self.continuous_episodes and any(s.get('relation_type')=='SEASON' for s in self.seasons):
             numbering=QPushButton('Edit season numbers')
@@ -582,7 +527,7 @@ class DetailModal(QDialog):
             mode_btn = QPushButton("Use separate seasons" if self.continuous_episodes else "Combine episode folders")
             mode_btn.setToolTip("Change how episodes are grouped and counted. Files stay in their folders.")
             mode_btn.clicked.connect(self._toggle_continuous_episodes)
-            right_layout.addWidget(mode_btn, 0, Qt.AlignLeft)
+            tools_row.addWidget(mode_btn)
             mode_btn.setMinimumWidth(210)
         if self.continuous_episodes:
             total = self.episode_coverage["unique_episode_count"]
@@ -592,7 +537,6 @@ class DetailModal(QDialog):
 
         if not self.seasons:
             no_seasons = QLabel("No season or movie records found.")
-            no_seasons.setStyleSheet("color: #898d9f; font-size: 12px;")
             seasons_box.addWidget(no_seasons)
         else:
             ordered = self.seasons
@@ -604,8 +548,9 @@ class DetailModal(QDialog):
             seasons_box.addWidget(self._create_season_table(ordered))
 
         lower = QWidget()
+        lower.setObjectName('detail_lower')
         lower_layout = QVBoxLayout(lower)
-        lower_layout.setContentsMargins(258, 0, 0, 0)
+        lower_layout.setContentsMargins(0, 0, 0, 0)
         lower_layout.setSpacing(20)
         lower_layout.addLayout(seasons_box)
         content_layout.addWidget(lower)
@@ -615,10 +560,55 @@ class DetailModal(QDialog):
         delete_row.setContentsMargins(20, 16, 20, 16)
         delete_row.addWidget(notice, 1)
         delete_row.addWidget(delete_btn)
+        remove=QPushButton('Remove anime');remove.setProperty('role','destructive');remove.clicked.connect(lambda:self._remove_anime_entry());delete_row.addWidget(remove)
         lower_layout.addWidget(delete_panel)
         content_layout.addStretch()
         scroll.setWidget(content)
         main_layout.addWidget(scroll, 1)
+        from app.ui.components.detail_episodes import DetailEpisodes
+        self.episode_panel=DetailEpisodes(self.franchise_id,self.seasons,self)
+        lower_layout.insertWidget(lower_layout.count()-1,self.episode_panel)
+        # Keep auxiliary tools in the reference's overflow menu, without
+        # removing their handlers or crowding the main playback controls.
+        more=QPushButton('More');more.setAccessibleName('More anime details actions');more.setCursor(Qt.PointingHandCursor)
+        menu=QMenu(more)
+        while tools_row.count():
+            item=tools_row.takeAt(0)
+            if item.widget():
+                control=item.widget();control.setParent(self);control.hide()
+                menu.addAction(control.text(),control.click)
+        right_layout.removeItem(tools_row)
+        more.setMenu(menu);action_strip.addWidget(more)
+        for widget in self.findChildren(QWidget):
+            if widget is self.episode_panel or self.episode_panel.isAncestorOf(widget):continue
+            if isinstance(widget,QLabel):widget.setTextFormat(Qt.PlainText)
+            if type(widget) is QWidget and not widget.objectName():widget.setObjectName('detail_surface_clear')
+            # Retain cleanup for independently styled child components only.
+            # Most controls now inherit the final shared theme from birth.
+            if widget.styleSheet() and not widget.property('detailRating'):widget.setStyleSheet('')
+        self.refresh_home_style()
+
+    def refresh_home_style(self):
+        from app.ui.detail_style import qss
+        self.setProperty('animevaultOwnScaledStyle',True)
+        stylesheet=qss()
+        if self.styleSheet()!=stylesheet:self.setStyleSheet(stylesheet)
+        if hasattr(self,'episode_panel'):self.episode_panel.refresh_style()
+        if hasattr(self,'play_options_button'):
+            from app.ui.icons import icon
+            from app.ui.home_style import colors
+            self.play_button.setIcon(icon('play',colors()['on_coral']))
+            self.play_options_button.setIcon(icon('chevron-down',colors()['on_coral']))
+        if hasattr(self,'rating_title'):
+            from app.ui.home_style import colors,px
+            self.rating_title.setStyleSheet(f'color:{colors()["amber"]};font-family:"JetBrains Mono";font-size:{px(10)}px;')
+        for number,button in enumerate(getattr(self,'rating_buttons',[]),1):
+            from app.ui.home_style import px
+            button.setFixedSize(px(24),px(28))
+            if button.styleSheet()!='padding: 0;':button.setStyleSheet('padding: 0;')
+            button.setProperty('detailRating',True)
+            button.setProperty('rated',number<=int(self.franchise.get('user_rating') or 0))
+            button.style().unpolish(button);button.style().polish(button)
 
     def check_release_episode(self, release):
         if not self.franchise:return
@@ -725,9 +715,9 @@ class DetailModal(QDialog):
             host._on_nav_clicked(4)
 
     def _change_watch_status(self, status):
-        db.update_franchise_field(self.franchise_id, "watch_status", status)
+        from app.ui.user_edits import user_edits
         self.franchise["watch_status"] = status
-        self.data_changed.emit()
+        user_edits().save(self.franchise_id,{"watch_status":status})
 
     def _create_season_table(self, seasons):
         table = QFrame()
@@ -748,6 +738,7 @@ class DetailModal(QDialog):
             label.setFixedHeight(32)
             grid.addWidget(label, 0, column)
         for row, season in enumerate(seasons, 1):
+            row=row*2-1
             kind = season.get("relation_type")
             title = season.get("title_display") or "Episode folder"
             if self.continuous_episodes and kind == "SEASON":
@@ -761,9 +752,9 @@ class DetailModal(QDialog):
             info_layout = QVBoxLayout(info)
             info_layout.setContentsMargins(0, 8, 0, 8)
             heading = QLabel(title)
+            heading.setObjectName('detail_season_title')
             heading.setTextFormat(Qt.PlainText)
             heading.setWordWrap(True)
-            heading.setStyleSheet("font-weight: 700;")
             info_layout.addWidget(heading)
             announced=season.get("airing_status")=="NOT_YET_RELEASED"
             path = QLabel(season.get("season_folder_path") or ("Announced · Not released" if announced else "Not downloaded"))
@@ -822,6 +813,8 @@ class DetailModal(QDialog):
                 locate.clicked.connect(lambda checked=False, sid=season["id"]: self._locate_season(sid))
                 buttons.addWidget(locate)
             grid.addWidget(actions, row, 5)
+            rule=QFrame();rule.setObjectName('detail_row_rule');rule.setFixedHeight(1)
+            grid.addWidget(rule,row+1,0,1,6)
         scroller = QScrollArea()
         scroller.setWidgetResizable(True)
         scroller.setFrameShape(QFrame.NoFrame)
@@ -854,58 +847,11 @@ class DetailModal(QDialog):
         navigate(dialog)
 
     def _show_coverage(self):
-        from html import escape
-        from PyQt5.QtWidgets import QTextBrowser
-        current = db.get_franchise(self.franchise_id) or self.franchise
-        seasons = db.get_series_seasons(self.franchise_id)
-        coverage = episode_inventory(seasons, continuous=self.continuous_episodes)
-        media = json.loads(current.get("metadata_json") or "null")
-        movies = movie_inventory(seasons, media)
-        html = ["<h2>Episode coverage</h2>", f"<p>{coverage['unique_episode_count']} distinct main-series episode numbers found. Movies, specials and alternate editions are separate.</p>"]
-        html.append("<p>Unverified boundaries: only gaps between detected episodes are checked. Files elsewhere in this franchise can fill a gap in an arc.</p>")
-        if self.continuous_episodes and coverage["missing_episodes"]:
-            html.append("<p>Gaps across all episode folders: " + ", ".join(map(str, coverage["missing_episodes"])) + "</p>")
-        for season in (() if self.continuous_episodes else seasons):
-            result = coverage["seasons"].get(season["id"])
-            if not result:
-                continue
-            missing = result["missing_episodes"]
-            html.append("<h3>" + escape(season["title_display"]) + "</h3>")
-            html.append(f"<p>{result['found_count']} distinct episodes · {result['file_count']} files<br>" + escape(result["range_note"]) + "</p>")
-            if missing:
-                html.append("<p style='color:#f2b94b'>Gaps in checked interval: " + escape(", ".join(map(str, missing))) + "</p>")
-            if result["duplicate_episodes"]:
-                html.append("<p>Multiple files for episode numbers: " + escape(", ".join(map(str, result["duplicate_episodes"]))) + ". These may be alternate encodes.</p>")
-            if result["unrecognized_files"]:
-                html.append(f"<p>{len(result['unrecognized_files'])} filenames need review; they are not silently counted as numbered episodes.</p>")
-        html.append("<h2>Released movies</h2>")
-        if movies["catalog_available"]:
-            html.append(f"<p>{movies['matched_count']} matched out of {movies['released_count']} released movies in the cached provider catalog. This catalog may be incomplete.</p>")
-            if movies["not_matched"]:
-                html.append("<h3>Released titles not matched locally</h3><p>Review filenames before treating these as missing.</p><ul>")
-                html.extend("<li>" + escape(entry["title"]) + "</li>" for entry in movies["not_matched"])
-                html.append("</ul>")
-            html.append(f"<p>{len(movies['upcoming'])} unreleased movies excluded from missing counts. {len(movies['unknown_release'])} movies with unknown release status also excluded.</p>")
-        else:
-            html.append("<p>No provider movie catalog cached yet. Missing movie totals cannot be verified.</p>")
-        if movies["unmatched_local_files"]:
-            html.append("<h3>Local movie filenames needing a match</h3><ul>")
-            html.extend("<li>" + escape(filename) + "</li>" for filename in movies["unmatched_local_files"])
-            html.append("</ul>")
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Episode & movie check")
-        dialog.resize(760, 650)
-        layout = QVBoxLayout(dialog)
-        browser = QTextBrowser()
-        browser.setHtml("".join(html))
-        layout.addWidget(browser)
-        close = QPushButton("Close")
-        close.clicked.connect(dialog.accept)
-        layout.addWidget(close)
-        navigate(dialog)
+        from app.ui.pages.coverage_page import CoveragePage
+        navigate(CoveragePage(self.franchise_id,self))
 
     def _metadata_changed(self, fid):
-        if fid != self.franchise_id:
+        if fid not in self.franchise.get('series_member_ids',[self.franchise_id]):
             return
         self._reload_async()
 
@@ -913,6 +859,7 @@ class DetailModal(QDialog):
         from app.api.server import franchise_payload
         dialog = QDialog(self)
         dialog.setWindowTitle("API JSON · " + self.franchise.get("display_title", "Anime"))
+        dialog.setProperty('navigationTitle', 'View API JSON')
         dialog.resize(800, 650)
         layout = QVBoxLayout(dialog)
         source = QComboBox()
@@ -937,14 +884,16 @@ class DetailModal(QDialog):
 
     def _create_modal_poster(self) -> QPixmap:
         """Create left poster with top-left status pill."""
-        pixmap = QPixmap(220, 310)
+        width,height=240,360
+        ratio=self.devicePixelRatioF()
+        pixmap = QPixmap(round(width*ratio), round(height*ratio));pixmap.setDevicePixelRatio(ratio)
         pixmap.fill(Qt.transparent)
 
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
 
         path = QPainterPath()
-        path.addRoundedRect(0, 0, 220, 310, 14, 14)
+        path.addRoundedRect(0, 0, width, height, 12, 12)
         painter.setClipPath(path)
 
         # Load image or draw gradient fallback
@@ -955,32 +904,34 @@ class DetailModal(QDialog):
         if source is not None or cover_path and cover_path.is_file():
             img = QPixmap.fromImage(source) if source is not None else QPixmap(str(cover_path))
             if not img.isNull():
-                scaled = img.scaled(220, 310, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-                painter.drawPixmap((220 - scaled.width()) // 2, (310 - scaled.height()) // 2, scaled)
+                scaled = img.scaled(round(width*ratio), round(height*ratio), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+                scaled.setDevicePixelRatio(ratio)
+                painter.drawPixmap(round((width-scaled.width()/ratio)/2),round((height-scaled.height()/ratio)/2),scaled)
                 loaded = True
 
         if not loaded:
-            painter.fillRect(0, 0, 220, 310, QColor("#1e293b"))
+            from app.ui.home_style import colors
+            painter.fillRect(0, 0, width, height, QColor(colors()['raised']))
             painter.setPen(QColor(255, 255, 255, 40))
             painter.setFont(QFont("Yu Gothic", 80, QFont.Bold))
-            painter.drawText(QRectF(0, 100, 220, 120), Qt.AlignCenter, "葬")
+            painter.drawText(QRectF(0, 100, width, 120), Qt.AlignCenter, (self.franchise.get('display_title') or '?')[0])
 
         # Top-left badge
         storage_state = self.franchise.get("storage_state", "ON_DISK")
         dot_color = QColor("#22c55e") if storage_state == "ON_DISK" else QColor("#f59e0b")
-        text = "On disk" if storage_state == "ON_DISK" else "Partial"
+        text = {'ON_DISK':'On disk','PARTIALLY_ON_DISK':'Partial','WATCHED_REMOVED':'Removed'}.get(storage_state,'Not on disk')
 
         painter.setClipping(False)
         painter.setBrush(QColor(14, 16, 24, 210))
         painter.setPen(Qt.NoPen)
-        painter.drawRoundedRect(QRectF(12, 12, 74, 22), 11, 11)
+        painter.drawRoundedRect(QRectF(12, 12, 100, 22), 11, 11)
 
         painter.setBrush(dot_color)
         painter.drawEllipse(QRectF(20, 19, 7, 7))
 
         painter.setPen(QColor("#ffffff"))
         painter.setFont(QFont("Segoe UI", 8, QFont.Bold))
-        painter.drawText(QRectF(32, 12, 50, 22), Qt.AlignVCenter, text)
+        painter.drawText(QRectF(32, 12, 78, 22), Qt.AlignVCenter, text)
 
         painter.end()
         return pixmap
@@ -1045,6 +996,7 @@ class DetailModal(QDialog):
                 t_display = "Episode folder"
             eps_info = ""
         t_lbl = QLabel(f"{t_display}{eps_info}")
+        t_lbl.setTextFormat(Qt.PlainText)
         t_lbl.setWordWrap(True)
         t_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         t_lbl.setStyleSheet("font-size: 13px; font-weight: 600; color: #f3f4f6;")
@@ -1297,47 +1249,20 @@ class DetailModal(QDialog):
 
 
     def _set_rating(self, rating: int):
-        db.update_franchise_field(self.franchise_id, "user_rating", rating)
-        self.franchise["user_rating"] = rating
+        from app.ui.user_edits import user_edits
+        self.franchise['user_rating']=rating
         self._update_rating_title_text(rating)
-        for idx, btn in enumerate(self.rating_buttons):
-            if idx + 1 == rating:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #d92468, stop:1 #8e2de2);
-                        color: #ffffff;
-                        border: none;
-                        border-radius: 7px;
-                        font-weight: 700;
-                        font-size: 13px;
-                        padding: 0;
-                    }
-                """)
-            else:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #1d1f29;
-                        color: #94a3b8;
-                        border: 1px solid #383a44;
-                        border-radius: 7px;
-                        font-weight: 600;
-                        font-size: 13px;
-                        padding: 0;
-                    }
-                    QPushButton:hover {
-                        background-color: #272d3d;
-                        color: #ffffff;
-                        border-color: #3b4256;
-                    }
-                """)
-        self.data_changed.emit()
-
+        for number,button in enumerate(self.rating_buttons,1):
+            value=number<=rating
+            if button.property('rated')!=value:
+                button.setProperty('rated',value);button.style().unpolish(button);button.style().polish(button)
+        user_edits().save(self.franchise_id,{'user_rating':rating})
 
     def _save_notes(self):
-        notes = self.notes_edit.toPlainText().strip()
-        db.update_franchise_field(self.franchise_id, "user_notes", notes)
-        self.data_changed.emit()
+        from app.ui.user_edits import user_edits
+        notes=self.notes_edit.toPlainText()
+        self.franchise['user_notes']=notes
+        user_edits().save(self.franchise_id,{'user_notes':notes},450)
 
     def _open_folder(self):
         series = db.get_series(self.franchise_id) or self.franchise
@@ -1385,6 +1310,10 @@ class DetailModal(QDialog):
             self.data_changed.emit()
             self.accept()
         navigate(dialog, completed)
+
+    def _remove_anime_entry(self):
+        from app.ui.remove_anime import open_remove_anime
+        open_remove_anime(self,self.franchise_id,self.accept)
 
 
     def _delete_season(self, season: dict):

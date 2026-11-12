@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Group Seasons &amp; Arcs</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              950: '#09080e',
+              900: '#110f18',
+              850: '#15131f',
+              800: '#1c1a27',
+              750: '#232032',
+              700: '#2c293e',
+              600: '#3d3856',
+              border: '#2e2a42'
+            },
+            sakura: {
+              50: '#fff1f4',
+              100: '#ffe4e9',
+              200: '#fecdd6',
+              300: '#fea3b4',
+              400: '#fd6f8c',
+              500: '#ff6584',
+              600: '#e54569',
+              700: '#c02d4f',
+              glow: 'rgba(255, 101, 132, 0.35)'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            jp: ['"Noto Sans JP"', 'sans-serif']
+          },
+          boxShadow: {
+            'modal': '0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 35px 2px rgba(255, 101, 132, 0.12)',
+            'sakura-btn': '0 4px 18px 0 rgba(255, 101, 132, 0.45)'
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-scrollbars">
+    /* Custom refined dark scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(17, 15, 24, 0.7);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e2a42;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff6584;
+    }
+  </style>
+<style data-purpose="kanji-watermarks">
+    .watermark-kanji {
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+      user-select: none;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-vault-950 text-slate-200 font-sans min-h-screen relative antialiased selection:bg-sakura-500 selection:text-white">
+<!-- BEGIN: MainBackgroundApplicationView (IMAGE_17 Replica + Twilight Redesign) -->
+<div aria-hidden="true" class="min-h-screen flex flex-col p-4 md:p-8 filter blur-[2px] opacity-40 select-none pointer-events-none transition-all duration-300">
+<!-- Top Navigation Row -->
+<header class="max-w-7xl w-full mx-auto mb-6 flex items-center justify-between">
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-vault-800 border border-vault-border text-slate-300 text-sm font-medium">
+<svg class="w-4 h-4 text-sakura-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+        Back
+      </button>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-vault-800 border border-vault-700 text-sakura-300">
+          Twilight Sakura Core
+        </span>
+</div>
+</header>
+<!-- Main Content Container Frame -->
+<main class="max-w-7xl w-full mx-auto flex-1 flex flex-col bg-vault-900 border border-vault-border rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+<!-- Watermark behind page title -->
+<div class="watermark-kanji absolute top-2 right-12 text-9xl font-bold text-white/[0.02] tracking-widest">
+        統合
+      </div>
+<!-- Header Section -->
+<div class="mb-6 relative z-10">
+<div class="flex items-center gap-3 mb-2">
+<h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Group seasons and arcs</h1>
+<span class="text-xs px-2 py-0.5 rounded bg-sakura-500/20 text-sakura-400 border border-sakura-500/30 font-mono">v2.4</span>
+</div>
+<p class="text-sm text-slate-400 max-w-4xl leading-relaxed">
+          Click an anime to select and include it. Check additional season entries to include them; uncheck to remove them. The highlighted anime is the main series.
+        </p>
+</div>
+<!-- Search Toolbar -->
+<div class="flex gap-3 mb-6 relative z-10">
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<input class="w-full bg-vault-950/80 border border-vault-border text-slate-400 text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none" readonly="" type="text" value="Search English, Romaji or Japanese titles..."/>
+</div>
+<button class="px-6 py-2.5 rounded-xl bg-vault-800 border border-vault-border text-slate-300 font-medium text-sm hover:border-sakura-500/50">
+          Search
+        </button>
+</div>
+<!-- Scrollable List of Anime Entries -->
+<div class="border border-vault-border rounded-xl bg-vault-950/50 flex-1 overflow-hidden flex flex-col mb-6">
+<div class="divide-y divide-vault-border/60 overflow-y-auto max-h-[460px] p-2 space-y-1.5">
+<!-- Item 1: 86 Eighty-Six -->
+<div class="p-3 rounded-lg bg-vault-900/60 border border-vault-border/50 flex items-center gap-4">
+<input checked="" class="w-4 h-4 rounded bg-vault-800 border-vault-600 text-sakura-500 focus:ring-0" type="checkbox"/>
+<div class="w-10 h-14 bg-vault-800 rounded border border-vault-border overflow-hidden flex-shrink-0 flex items-center justify-center text-[10px] text-slate-500">
+              86
+            </div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-semibold text-slate-200">86 EIGHTY-SIX</div>
+<div class="text-xs text-slate-400 mt-0.5">5 library entries · Not Downloaded</div>
+</div>
+</div>
+<!-- Item 2: A Gatherer's Adventure -->
+<div class="p-3 rounded-lg bg-transparent flex items-center gap-4">
+<input class="w-4 h-4 rounded bg-vault-800 border-vault-600 text-sakura-500 focus:ring-0" type="checkbox"/>
+<div class="w-10 h-14 bg-vault-800 rounded border border-vault-border overflow-hidden flex-shrink-0 flex items-center justify-center text-[10px] text-slate-500">
+              AGA
+            </div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-semibold text-slate-400">A Gatherer's Adventure in Isekai</div>
+<div class="text-xs text-slate-500 mt-0.5">1 library entry · On Disk</div>
+</div>
+</div>
+<!-- Item 3: A Nobody's Way Up -->
+<div class="p-3 rounded-lg bg-vault-800/80 border border-sakura-500/40 flex items-center gap-4">
+<input checked="" class="w-4 h-4 rounded bg-vault-800 border-vault-600 text-sakura-500 focus:ring-0" type="checkbox"/>
+<div class="w-10 h-14 bg-vault-800 rounded border border-vault-border overflow-hidden flex-shrink-0 flex items-center justify-center text-[10px] text-slate-500">
+              NWU
+            </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-sm font-semibold text-white">A Nobody's Way Up to an Exploration Hero</span>
+<span class="text-[10px] font-medium bg-amber-400/10 text-amber-300 border border-amber-400/30 px-1.5 py-0.2 rounded">Main Series</span>
+</div>
+<div class="text-xs text-slate-300 mt-0.5">2 library entries · Not Downloaded</div>
+</div>
+</div>
+<!-- Item 4: VRMMO Life -->
+<div class="p-3 rounded-lg bg-vault-900/60 border border-vault-border/50 flex items-center gap-4">
+<input checked="" class="w-4 h-4 rounded bg-vault-800 border-vault-600 text-sakura-500 focus:ring-0" type="checkbox"/>
+<div class="w-10 h-14 bg-vault-800 rounded border border-vault-border overflow-hidden flex-shrink-0 flex items-center justify-center text-[10px] text-slate-500">
+              VRM
+            </div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-semibold text-slate-200">A Playthrough of a Certain Dude's VRMMO Life</div>
+<div class="text-xs text-slate-400 mt-0.5">1 library entry · On Disk</div>
+</div>
+</div>
+<!-- Item 5: BLUE LOCK -->
+<div class="p-3 rounded-lg bg-vault-900/60 border border-vault-border/50 flex items-center gap-4">
+<input checked="" class="w-4 h-4 rounded bg-vault-800 border-vault-600 text-sakura-500 focus:ring-0" type="checkbox"/>
+<div class="w-10 h-14 bg-vault-800 rounded border border-vault-border overflow-hidden flex-shrink-0 flex items-center justify-center text-[10px] text-slate-500">
+              BLK
+            </div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-semibold text-slate-200">BLUE LOCK</div>
+<div class="text-xs text-slate-400 mt-0.5">Season / arc entry · Finished</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Bar Summary -->
+<footer class="pt-4 border-t border-vault-border flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="text-xs text-slate-400 flex items-center gap-2">
+<span>229 series available.</span>
+<span class="text-sakura-400 font-medium">4 entries selected for grouping.</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 rounded-lg bg-vault-800 border border-vault-border text-xs text-slate-300 font-medium">
+            Reset manual grouping for this series
+          </button>
+<button class="px-5 py-2 rounded-lg bg-sakura-500 text-white font-medium text-xs shadow-sakura-btn">
+            Review grouping
+          </button>
+</div>
+</footer>
+</main>
+</div>
+<!-- END: MainBackgroundApplicationView -->
+<!-- BEGIN: ConfirmGroupingModal (IMAGE_16 Re-imagined in Twilight Sakura Design System) -->
+<div aria-labelledby="modal-title" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-black/75 backdrop-blur-md" role="dialog">
+<!-- Modal Card Container -->
+<div class="relative w-full max-w-[580px] bg-vault-800/95 border border-sakura-500/30 rounded-2xl shadow-modal overflow-hidden text-slate-200 transition-all transform animate-in fade-in zoom-in-95 duration-200" data-purpose="confirm-series-modal">
+<!-- Ambient Glow Accents -->
+<div class="absolute -top-24 -left-24 w-56 h-56 bg-sakura-500/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-24 -right-24 w-56 h-56 bg-violet-600/15 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Decorative Japanese Watermark '統合' (Unify / Integrate) -->
+<div class="watermark-kanji absolute top-1 right-12 text-7xl sm:text-8xl font-black text-rose-500/[0.08] select-none pointer-events-none leading-none z-0">
+        統合
+      </div>
+<!-- Modal Header -->
+<header class="relative z-10 px-6 sm:px-7 pt-6 pb-4 border-b border-vault-border/80 flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2" id="modal-title">
+              Confirm series grouping
+            </h2>
+</div>
+<p class="text-xs sm:text-sm text-slate-400">
+            Review the entries that will appear under one anime card.
+          </p>
+</div>
+<!-- Close Button -->
+<button aria-label="Close dialog" class="rounded-full p-1.5 text-slate-400 hover:text-white bg-vault-700/60 hover:bg-vault-700 border border-vault-border/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sakura-500/50" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</header>
+<!-- Modal Body Content -->
+<section class="relative z-10 px-6 sm:px-7 py-5 space-y-4 max-h-[calc(100vh-210px)] overflow-y-auto">
+<!-- Main Card Banner Indicator -->
+<div class="p-3 rounded-xl bg-vault-900/90 border border-amber-500/30 flex items-center justify-between gap-3 shadow-inner">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="flex-shrink-0 w-6 h-6 rounded-md bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs">
+              ★
+            </span>
+<div class="truncate text-xs sm:text-sm font-semibold text-slate-200">
+<span class="text-amber-300 font-normal">Main card: </span>
+              A Nobody's Way Up to an Exploration Hero
+            </div>
+</div>
+<span class="text-[10px] font-semibold text-amber-300 uppercase tracking-wider bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 rounded-full flex-shrink-0">
+            Parent Anchor
+          </span>
+</div>
+<!-- List of Grouped Anime Entries -->
+<div class="space-y-2.5" data-purpose="grouped-entries-list">
+<!-- Entry Card 1 -->
+<article class="group relative rounded-xl bg-vault-750/70 hover:bg-vault-750 border border-vault-border/90 hover:border-slate-600/60 p-3.5 transition-all">
+<div class="flex items-start justify-between gap-3">
+<div class="min-w-0 flex-1">
+<h3 class="text-sm font-semibold text-slate-100 group-hover:text-white truncate">
+                  A Playthrough of a Certain Dude's VRMMO Life
+                </h3>
+<div class="mt-1 flex items-center gap-2 text-xs text-slate-400">
+<span class="inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    Season / arc entry
+                  </span>
+<span class="text-slate-600">•</span>
+<span class="text-emerald-400/90 font-medium">Finished</span>
+</div>
+</div>
+<span class="text-[10px] font-medium text-sakura-300/90 bg-sakura-500/10 border border-sakura-500/20 rounded-md px-2 py-1 whitespace-nowrap">
+                Will merge under parent
+              </span>
+</div>
+</article>
+<!-- Entry Card 2 -->
+<article class="group relative rounded-xl bg-vault-750/70 hover:bg-vault-750 border border-vault-border/90 hover:border-slate-600/60 p-3.5 transition-all">
+<div class="flex items-start justify-between gap-3">
+<div class="min-w-0 flex-1">
+<h3 class="text-sm font-semibold text-slate-100 group-hover:text-white truncate">
+                  BLUE LOCK
+                </h3>
+<div class="mt-1 flex items-center gap-2 text-xs text-slate-400">
+<span class="inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    Season / arc entry
+                  </span>
+<span class="text-slate-600">•</span>
+<span class="text-emerald-400/90 font-medium">Finished</span>
+</div>
+</div>
+<span class="text-[10px] font-medium text-sakura-300/90 bg-sakura-500/10 border border-sakura-500/20 rounded-md px-2 py-1 whitespace-nowrap">
+                Will merge under parent
+              </span>
+</div>
+</article>
+<!-- Entry Card 3: The Primary Main Series (Prominently Highlighted) -->
+<article class="relative rounded-xl bg-sakura-500/10 border border-sakura-500/40 p-3.5 shadow-sm">
+<div class="flex items-start justify-between gap-3">
+<div class="min-w-0 flex-1">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-semibold text-white truncate">
+                    A Nobody's Way Up to an Exploration Hero
+                  </h3>
+</div>
+<div class="mt-1 flex items-center gap-2 text-xs text-sakura-200/80">
+<span class="inline-flex items-center gap-1 font-medium text-sakura-300">
+<span class="w-1.5 h-1.5 rounded-full bg-sakura-400"></span>
+                    Main series
+                  </span>
+<span class="text-sakura-400/40">•</span>
+<span class="text-emerald-300/90 font-medium">Finished</span>
+</div>
+</div>
+<span class="text-[10px] font-semibold text-white bg-sakura-500 shadow-sm rounded-md px-2 py-1 whitespace-nowrap flex items-center gap-1">
+<svg class="w-2.5 h-2.5 fill-current" viewbox="0 0 20 20">
+<path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"></path>
+</svg>
+                Primary Container
+              </span>
+</div>
+</article>
+<!-- Entry Card 4 -->
+<article class="group relative rounded-xl bg-vault-750/70 hover:bg-vault-750 border border-vault-border/90 hover:border-slate-600/60 p-3.5 transition-all">
+<div class="flex items-start justify-between gap-3">
+<div class="min-w-0 flex-1">
+<h3 class="text-sm font-semibold text-slate-100 group-hover:text-white truncate">
+                  A Story of Adventurers Who Started as Mobs
+                </h3>
+<div class="mt-1 flex items-center gap-2 text-xs text-slate-400">
+<span class="inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    Season / arc entry
+                  </span>
+</div>
+</div>
+<span class="text-[10px] font-medium text-sakura-300/90 bg-sakura-500/10 border border-sakura-500/20 rounded-md px-2 py-1 whitespace-nowrap">
+                Will merge under parent
+              </span>
+</div>
+</article>
+</div>
+<!-- System Safety Explanatory Note -->
+<div class="rounded-lg bg-vault-900/80 border border-vault-border/70 p-3 flex gap-3 items-start">
+<svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<p class="text-xs text-slate-400 leading-relaxed">
+            No files move or get deleted. Each record keeps its paths, notes, rating and watch history. Known announced releases appear as metadata-only season entries.
+          </p>
+</div>
+<!-- Mandatory User Confirmation Checkbox -->
+<label class="flex items-center gap-3 p-2.5 rounded-lg border border-sakura-500/40 bg-sakura-500/5 hover:bg-sakura-500/10 cursor-pointer transition-colors group">
+<input checked="" class="w-4 h-4 rounded bg-vault-900 border-sakura-400 text-sakura-500 focus:ring-sakura-400 focus:ring-offset-vault-900 cursor-pointer" id="confirm-same-anime" type="checkbox"/>
+<span class="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white select-none">
+            These entries belong to the same anime
+          </span>
+</label>
+</section>
+<!-- Modal Action Buttons Footer -->
+<footer class="relative z-10 px-6 sm:px-7 py-4 bg-vault-850 border-t border-vault-border/80 flex items-center justify-end gap-3">
+<!-- Cancel Action -->
+<button class="px-5 py-2.5 rounded-xl border border-vault-border bg-vault-750 hover:bg-vault-700 text-slate-300 hover:text-white text-xs sm:text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400" type="button">
+          Cancel
+        </button>
+<!-- Primary Confirm Action -->
+<button class="px-6 py-2.5 rounded-xl bg-sakura-500 hover:bg-sakura-600 active:bg-sakura-700 text-white text-xs sm:text-sm font-semibold shadow-sakura-btn transition-all duration-150 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-sakura-400" type="button">
+<span>Confirm grouping</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</footer>
+</div>
+</div>
+<!-- END: ConfirmGroupingModal -->
+</body></html>

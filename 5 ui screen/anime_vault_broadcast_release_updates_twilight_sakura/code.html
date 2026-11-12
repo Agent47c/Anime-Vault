@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault - Broadcast &amp; Release Updates</title>
+<!-- Tailwind CSS CDN with Forms and Container Queries Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration for Custom Theme Palette -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: {
+              950: '#0c0a13',
+              900: '#14121d',
+              850: '#181622',
+              800: '#1c1a27',
+              700: '#272437',
+              600: '#38344e',
+              500: '#524d70'
+            },
+            coral: {
+              400: '#ff829d',
+              500: '#ff6584',
+              600: '#e54d6e',
+              900: '#3e1a23'
+            },
+            emerald: {
+              400: '#34d399',
+              500: '#10b981',
+              950: '#062d1d'
+            },
+            amber: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              950: '#331d06'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+<!-- Embedded Custom Styles for Desktop Scrollbars and Accent Micro-details -->
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #272437;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38344e;
+    }
+  </style>
+</head>
+<body class="bg-obsidian-900 text-slate-200 font-sans antialiased min-h-screen flex flex-col selection:bg-coral-500 selection:text-white border-box">
+<!-- BEGIN: ApplicationTopBar -->
+<header class="bg-obsidian-950 border-b border-obsidian-700/70 select-none sticky top-0 z-50 px-3 py-1.5 flex items-center justify-between shadow-md" data-purpose="desktop-app-header">
+<!-- Brand Title & Window Handle -->
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-2.5">
+<!-- Logo Icon -->
+<div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-coral-600 to-coral-400 flex items-center justify-center shadow-lg shadow-coral-500/25">
+<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<span class="text-sm font-bold tracking-wide text-white uppercase flex items-center gap-1.5">
+          Anime<span class="text-coral-500">Vault</span>
+<span class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-obsidian-800 text-slate-400 border border-obsidian-700">v3.4.1</span>
+</span>
+</div>
+<!-- Main Navigation Menu -->
+<nav class="flex items-center space-x-1" data-purpose="app-navigation-links">
+<a class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-100 hover:bg-obsidian-800 transition" href="#">Library</a>
+<a class="px-3 py-1.5 text-xs font-semibold rounded-md bg-obsidian-800 text-coral-400 flex items-center gap-1.5 border border-coral-500/20 shadow-inner" href="#">
+<span>Updates</span>
+<span class="px-1.5 py-0.2 rounded-full text-[10px] bg-coral-500 text-white font-mono font-bold leading-tight">21</span>
+</a>
+<a class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-100 hover:bg-obsidian-800 transition" href="#">Downloads</a>
+<a class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-100 hover:bg-obsidian-800 transition" href="#">Organizer</a>
+<a class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-100 hover:bg-obsidian-800 transition" href="#">Storage</a>
+<a class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-100 hover:bg-obsidian-800 transition" href="#">Settings</a>
+</nav>
+</div>
+<!-- Quick Search & Hardware Diagnostics -->
+<div class="flex items-center space-x-4">
+<!-- Search Field -->
+<div class="relative w-56">
+<input class="w-full h-8 pl-8 pr-3 text-xs bg-obsidian-900 border border-obsidian-700/80 rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-coral-500 focus:border-coral-500 transition shadow-inner" placeholder="Search tracked titles..." type="text"/>
+<svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-500" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Drive Storage Indicator Widget -->
+<div class="flex items-center space-x-2 text-xs text-slate-400 border-l border-obsidian-700/70 pl-4 py-0.5">
+<div class="flex flex-col text-right leading-none">
+<span class="text-[10px] uppercase text-slate-500 font-mono tracking-tighter">RAID 1 Pool</span>
+<span class="font-mono text-[11px] font-medium text-slate-300">257.98 GB <span class="text-slate-500 text-[10px]">free</span></span>
+</div>
+<div class="w-12 h-2 bg-obsidian-800 rounded-full overflow-hidden border border-obsidian-700">
+<div class="bg-gradient-to-r from-coral-500 to-coral-400 h-full w-[78%]"></div>
+</div>
+</div>
+<!-- Window Action Controls (Minimize, Maximize, Close) -->
+<div class="flex items-center space-x-2 ml-2 pl-3 border-l border-obsidian-700/70">
+<button class="w-3 h-3 rounded-full bg-obsidian-700 hover:bg-amber-500/80 transition focus:outline-none" title="Minimize"></button>
+<button class="w-3 h-3 rounded-full bg-obsidian-700 hover:bg-emerald-500/80 transition focus:outline-none" title="Maximize"></button>
+<button class="w-3 h-3 rounded-full bg-obsidian-700 hover:bg-coral-500 transition focus:outline-none" title="Close"></button>
+</div>
+</div>
+</header>
+<!-- END: ApplicationTopBar -->
+<!-- BEGIN: MainContentArea -->
+<main class="flex-1 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col space-y-6">
+<!-- BEGIN: SubNavigationAndHeader -->
+<section class="space-y-4" data-purpose="sub-navigation-header">
+<!-- Back Navigation Breadcrumb -->
+<div class="flex items-center space-x-2 text-xs">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 font-medium border border-obsidian-700 transition active:scale-95">
+<svg class="w-3.5 h-3.5 text-coral-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Back to Dashboard
+        </button>
+<span class="text-obsidian-600">/</span>
+<span class="text-slate-400">Release Schedules</span>
+<span class="text-obsidian-600">/</span>
+<span class="text-coral-400 font-medium">Weekly Tracker</span>
+</div>
+<!-- Screen Title with Primary Action Row -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-obsidian-700/60 pb-5">
+<div>
+<h1 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            Broadcast &amp; Release Updates
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-coral-900/40 text-coral-400 border border-coral-500/30">
+              Live Feed
+            </span>
+</h1>
+<p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
+<span>Page 1 of 4</span>
+<span class="inline-block w-1 h-1 rounded-full bg-obsidian-600"></span>
+<span>Cached for 1 hour</span>
+<span class="inline-block w-1 h-1 rounded-full bg-obsidian-600"></span>
+<span class="text-slate-300">Times synchronized with local workstation timezone (UTC+05:00 / PKT)</span>
+</p>
+</div>
+<!-- Primary Action Trigger -->
+<div class="flex items-center gap-2.5">
+<button class="px-3.5 py-2 text-xs font-medium rounded-lg bg-obsidian-800 hover:bg-obsidian-700 border border-obsidian-700 text-slate-300 flex items-center gap-2 transition active:scale-95 shadow-sm">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            Filter Rules
+          </button>
+<button class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-coral-600 to-coral-500 hover:from-coral-500 hover:to-coral-400 text-white shadow-lg shadow-coral-500/20 flex items-center gap-2 transition active:scale-95">
+<svg class="w-4 h-4 animate-spin-hover" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            Check Updates Now
+          </button>
+</div>
+</div>
+</section>
+<!-- END: SubNavigationAndHeader -->
+<!-- BEGIN: MainSeriesOverview -->
+<article class="bg-obsidian-800 border border-obsidian-700/80 rounded-xl p-5 md:p-6 shadow-xl relative overflow-hidden" data-purpose="featured-series-card">
+<!-- Ambient Card Glow -->
+<div class="absolute -top-16 -right-16 w-64 h-64 bg-coral-500/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col lg:flex-row gap-6 justify-between">
+<!-- Series Metadata & Synopsis -->
+<div class="space-y-4 max-w-4xl">
+<div class="flex flex-wrap items-center gap-2">
+<h2 class="text-xl md:text-2xl font-bold text-white tracking-wide">
+              The Grand Pirate Voyage
+            </h2>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-950/70 border border-emerald-500/30 text-emerald-400">
+              ● RELEASING
+            </span>
+<span class="px-2 py-0.5 rounded text-[11px] font-mono bg-obsidian-700 text-slate-300">
+              Premiere: 1999-10-20
+            </span>
+<span class="px-2 py-0.5 rounded text-[11px] font-mono bg-obsidian-700 text-slate-300">
+              1,126+ Broadcast Episodes
+            </span>
+</div>
+<!-- Series Summary -->
+<p class="text-slate-300 text-xs md:text-sm leading-relaxed text-justify">
+            Gold Roger was known as the Pirate King, the strongest and most infamous being to have sailed the Grand Line. The capture and death of Roger by the World Government brought a monumental change throughout the world. His last words before his execution revealed the location of the greatest treasure in existence, One Piece. It was this revelation that sparked the Grand Age of Pirates, men who dreamed of finding unlimited riches and fame. Enter Monkey D. Luffy, a seventeen-year-old boy who defies your standard definition of a rogue mariner. Following in the footsteps of his childhood hero Shanks, Luffy and his loyal crew sail perilous seas, confronting formidable warlords, unraveling dark void histories, and challenging empires.
+          </p>
+<!-- Broadcast Schedule Specs / Specials Tag -->
+<div class="p-3 bg-obsidian-850/80 rounded-lg border border-obsidian-700/60 text-xs text-slate-300 space-y-1.5 font-mono">
+<span class="text-coral-400 font-semibold uppercase tracking-wider block text-[11px]">Special Episodes Included in Scan Index:</span>
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-1 text-[11px] text-slate-400">
+<li>• Chopperman to the Rescue! Protect TV Station (Ep 336)</li>
+<li>• The Strongest Tag-Team! Luffy &amp; Toriko (Ep 492)</li>
+<li>• Team Formation! Save Chopper (Ep 542)</li>
+<li>• 20th Anniversary! Romance Dawn Special (Ep 907)</li>
+</ul>
+</div>
+</div>
+<!-- Series Quick Control Sidebar -->
+<div class="flex lg:flex-col justify-start lg:justify-center items-stretch gap-2.5 min-w-[210px] border-t lg:border-t-0 lg:border-l border-obsidian-700/70 pt-4 lg:pt-0 lg:pl-6">
+<button class="flex-1 lg:flex-initial px-4 py-2 rounded-lg bg-coral-500/10 hover:bg-coral-500/20 text-coral-400 border border-coral-500/30 text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            View in Library
+          </button>
+<button class="flex-1 lg:flex-initial px-4 py-2 rounded-lg bg-obsidian-700 hover:bg-obsidian-600 text-slate-200 border border-obsidian-600 text-xs font-medium flex items-center justify-center gap-2 transition active:scale-95">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            Episode Coverage
+          </button>
+<button class="flex-1 lg:flex-initial px-4 py-2 rounded-lg bg-obsidian-700/60 hover:bg-obsidian-600/70 text-slate-300 border border-obsidian-700 text-xs font-medium flex items-center justify-center gap-2 transition active:scale-95">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            Edit Metadata
+          </button>
+</div>
+</div>
+</article>
+<!-- END: MainSeriesOverview -->
+<!-- BEGIN: CompanionSeriesCard -->
+<article class="bg-obsidian-800/80 border border-obsidian-700/70 rounded-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-obsidian-600 transition" data-purpose="secondary-spin-off-card">
+<div class="space-y-1.5">
+<div class="flex items-center space-x-2">
+<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-obsidian-700 text-coral-400 uppercase tracking-wider">Prequel ONA</span>
+<span class="text-xs text-slate-400 font-mono">• Finished Airing • Premiere 2024-01-21</span>
+</div>
+<h3 class="text-base font-bold text-white tracking-wide">
+          MONSTERS: 103 Mercies Dragon Damnation
+        </h3>
+<p class="text-xs text-slate-400 max-w-2xl">
+          Shimotsuki Ryuma's legendary past in Wano: an extraordinary wandering samurai crosses paths with a catastrophic rampaging dragon and a corrupted knight.
+        </p>
+</div>
+<!-- Action Button for Spin-off -->
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-mono bg-emerald-950/40 px-2.5 py-1 rounded border border-emerald-500/20">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Complete (1/1)
+        </span>
+<button class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-obsidian-700 hover:bg-obsidian-600 text-slate-200 border border-obsidian-600 transition active:scale-95">
+          Release Details
+        </button>
+</div>
+</article>
+<!-- END: CompanionSeriesCard -->
+<!-- BEGIN: BroadcastEpisodesTableSection -->
+<section class="space-y-3" data-purpose="episode-schedule-table-section">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+<svg class="w-4 h-4 text-coral-500" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Recent &amp; Upcoming Episode Broadcasts
+        </h3>
+<span class="text-xs font-mono text-slate-500">Showing 5 chronological releases</span>
+</div>
+<!-- Episode Table Container -->
+<div class="bg-obsidian-800 border border-obsidian-700/80 rounded-xl overflow-hidden shadow-lg">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-xs" id="broadcast-schedule-table">
+<!-- Table Header -->
+<thead class="bg-obsidian-850 text-slate-400 uppercase font-mono text-[11px] tracking-wider border-b border-obsidian-700">
+<tr>
+<th class="py-3 px-4 font-semibold" scope="col">Episode #</th>
+<th class="py-3 px-4 font-semibold" scope="col">Scheduled Broadcast (Local Time)</th>
+<th class="py-3 px-4 font-semibold" scope="col">Network State</th>
+<th class="py-3 px-4 font-semibold" scope="col">Vault Library Status</th>
+<th class="py-3 px-4 font-semibold text-right" scope="col">Actions</th>
+</tr>
+</thead>
+<!-- Table Body Rows -->
+<tbody class="divide-y divide-obsidian-700/50">
+<!-- Row: Episode 1123 -->
+<tr class="hover:bg-obsidian-700/40 transition">
+<td class="py-3.5 px-4 font-mono font-bold text-white text-sm">
+                  Episode 1123
+                </td>
+<td class="py-3.5 px-4 text-slate-300">
+<div class="font-medium">Saturday, 05 April 2025</div>
+<div class="text-[11px] text-slate-500 font-mono">17:00 PKT (Pakistan Standard Time)</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-obsidian-700 text-slate-300">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    Aired
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-semibold bg-emerald-950/60 border border-emerald-500/30 text-emerald-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                    In Library (1080p HEVC)
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="inline-flex items-center space-x-1.5">
+<button class="px-2.5 py-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-200 border border-obsidian-600 transition" title="Play Episode">
+                      Play
+                    </button>
+<button class="p-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-400 hover:text-slate-200 transition" title="More Options">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row: Episode 1124 -->
+<tr class="hover:bg-obsidian-700/40 transition">
+<td class="py-3.5 px-4 font-mono font-bold text-white text-sm">
+                  Episode 1124
+                </td>
+<td class="py-3.5 px-4 text-slate-300">
+<div class="font-medium">Sunday, 06 April 2025</div>
+<div class="text-[11px] text-slate-500 font-mono">19:16 PKT (Pakistan Standard Time)</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-obsidian-700 text-slate-300">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    Aired
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-semibold bg-emerald-950/60 border border-emerald-500/30 text-emerald-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                    In Library (1080p HEVC)
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="inline-flex items-center space-x-1.5">
+<button class="px-2.5 py-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-200 border border-obsidian-600 transition" title="Play Episode">
+                      Play
+                    </button>
+<button class="p-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-400 hover:text-slate-200 transition" title="More Options">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row: Episode 1125 -->
+<tr class="hover:bg-obsidian-700/40 transition bg-obsidian-850/40">
+<td class="py-3.5 px-4 font-mono font-bold text-coral-400 text-sm">
+                  Episode 1125
+                </td>
+<td class="py-3.5 px-4 text-slate-300">
+<div class="font-medium">Sunday, 13 April 2025</div>
+<div class="text-[11px] text-slate-500 font-mono">19:16 PKT (Pakistan Standard Time)</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-obsidian-700 text-coral-400">
+<span class="w-1.5 h-1.5 rounded-full bg-coral-500 animate-pulse"></span>
+                    Aired (Recent)
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-semibold bg-amber-950/70 border border-amber-500/30 text-amber-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                    Aired - Missing from Disk
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="inline-flex items-center space-x-1.5">
+<button class="px-2.5 py-1 rounded bg-coral-600 hover:bg-coral-500 text-white font-medium shadow-sm transition" title="Fetch Release">
+                      Auto-Grab
+                    </button>
+<button class="p-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-400 hover:text-slate-200 transition" title="More Options">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row: Episode 1126 -->
+<tr class="hover:bg-obsidian-700/40 transition">
+<td class="py-3.5 px-4 font-mono font-bold text-white text-sm">
+                  Episode 1126
+                </td>
+<td class="py-3.5 px-4 text-slate-300">
+<div class="font-medium">Sunday, 20 April 2025</div>
+<div class="text-[11px] text-slate-500 font-mono">19:16 PKT (Pakistan Standard Time)</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-obsidian-700/60 text-slate-400">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    Scheduled
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium bg-obsidian-700/50 text-slate-400 border border-obsidian-700">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                    Upcoming Broadcast
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="inline-flex items-center space-x-1.5">
+<button class="px-2.5 py-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-300 border border-obsidian-600 transition" title="Set Notification Alert">
+                      Notify Me
+                    </button>
+<button class="p-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-400 hover:text-slate-200 transition" title="More Options">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row: Episode 1127 -->
+<tr class="hover:bg-obsidian-700/40 transition">
+<td class="py-3.5 px-4 font-mono font-bold text-white text-sm">
+                  Episode 1127
+                </td>
+<td class="py-3.5 px-4 text-slate-300">
+<div class="font-medium">Sunday, 27 April 2025</div>
+<div class="text-[11px] text-slate-500 font-mono">19:16 PKT (Pakistan Standard Time)</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-obsidian-700/60 text-slate-400">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    Scheduled
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium bg-obsidian-700/50 text-slate-400 border border-obsidian-700">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                    Upcoming Broadcast
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="inline-flex items-center space-x-1.5">
+<button class="px-2.5 py-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-300 border border-obsidian-600 transition" title="Set Notification Alert">
+                      Notify Me
+                    </button>
+<button class="p-1 rounded bg-obsidian-700 hover:bg-obsidian-600 text-slate-400 hover:text-slate-200 transition" title="More Options">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- END: BroadcastEpisodesTableSection -->
+<!-- BEGIN: PaginationAndFooterNavigation -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 select-none" data-purpose="pagination-controls">
+<!-- Navigation Buttons -->
+<div class="inline-flex items-center space-x-2">
+<button class="px-3.5 py-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-400 hover:text-slate-200 border border-obsidian-700 text-xs font-semibold flex items-center gap-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Previous
+        </button>
+<button class="px-3.5 py-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-200 border border-obsidian-700 text-xs font-semibold flex items-center gap-1.5 transition">
+          Next
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<span class="text-xs text-slate-500 font-mono pl-2">Jump to: Page 1 of 4</span>
+</div>
+<!-- Quick Back to Main View Trigger -->
+<div>
+<button class="px-4 py-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 hover:text-white border border-obsidian-700 text-xs font-medium transition active:scale-95">
+          Return to Overview
+        </button>
+</div>
+</div>
+<!-- END: PaginationAndFooterNavigation -->
+</main>
+<!-- END: MainContentArea -->
+<!-- BEGIN: SystemTelemetryFooter -->
+<footer class="bg-obsidian-950 border-t border-obsidian-700/60 px-4 py-2 text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2" data-purpose="app-telemetry-status">
+<div class="flex items-center space-x-4">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Indexer Service: <strong class="text-slate-400 font-normal">Active</strong></span>
+</span>
+<span>•</span>
+<span>Sync Frequency: <strong class="text-slate-400 font-normal">Every 60 min</strong></span>
+<span>•</span>
+<span>Metadata Provider: <strong class="text-slate-400 font-normal">AniList GraphQL API v2</strong></span>
+</div>
+<div class="flex items-center space-x-3 font-mono">
+<span>Auto-scan in: 48m 12s</span>
+<span class="text-obsidian-700">|</span>
+<span class="text-slate-400">AnimeVault Desktop Edition</span>
+</div>
+</footer>
+<!-- END: SystemTelemetryFooter -->
+</body></html>

@@ -39,6 +39,10 @@ def export_json() -> str:
     return str(filepath)
 
 
+def _csv_safe(value):
+    if isinstance(value,str) and (value.startswith(('\t','\r','\n')) or value.lstrip().startswith(('=','+','-','@'))):return "'"+value
+    return value
+
 def export_csv() -> str:
     """Export franchise list to a timestamped CSV file. Returns filepath."""
     EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -64,7 +68,7 @@ def export_csv() -> str:
                     genres = ", ".join(json.loads(genres))
                 except (json.JSONDecodeError, TypeError):
                     pass
-            writer.writerow([
+            writer.writerow([_csv_safe(value) for value in [
                 fr["id"],
                 fr.get("anilist_id", ""),
                 fr["display_title"],
@@ -79,6 +83,6 @@ def export_csv() -> str:
                 fr.get("user_notes", ""),
                 fr.get("root_folder_path", ""),
                 fr.get("created_at", ""),
-            ])
+            ]])
 
     return str(filepath)

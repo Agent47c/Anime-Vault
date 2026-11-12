@@ -62,14 +62,31 @@ def repair_jpeg_profile(data):
     return bytes(output)
 
 
-def load_cached_image(path):
-    """Decode and opportunistically repair an artwork cache in its worker."""
+def load_cached_image(path, max_size=None):
+    """Decode artwork, optionally bounding it without Qt's global scaling pool.
+
+    QImage smooth scaling can wait for native pool jobs while retaining the GIL.
+    Pillow performs this worker-side resize without dispatching Qt pool work.
+    The returned QImage owns a copy of its pixels; cached source bytes stay full size.
+    """
     from PyQt5.QtGui import QImage
     path=Path(path)
     try:original=path.read_bytes()
     except OSError:return QImage()
     cleaned=repair_jpeg_profile(original)
-    image=QImage.fromData(cleaned)
+    if max_size is None:
+        image=QImage.fromData(cleaned)
+    else:
+        from io import BytesIO
+        from PIL import Image, UnidentifiedImageError
+        try:
+            with Image.open(BytesIO(cleaned)) as source:
+                source.thumbnail(max_size,Image.Resampling.LANCZOS)
+                rgba=source.convert('RGBA')
+                pixels=rgba.tobytes()
+                image=QImage(pixels,rgba.width,rgba.height,rgba.width*4,QImage.Format_RGBA8888).copy()
+        except (OSError,ValueError,UnidentifiedImageError,Image.DecompressionBombError):
+            return QImage()
     if cleaned!=original and not image.isNull():
         temporary=None
         try:

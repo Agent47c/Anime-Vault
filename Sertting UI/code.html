@@ -1,0 +1,651 @@
+<!DOCTYPE html><html class="dark" lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><title>Anime Vault</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#ffb2bc", "on-secondary": "#492900", "inverse-surface": "#e6e0f0", "outline": "#a78a8c", "surface-tint": "#ffb2bc", "on-secondary-fixed": "#2c1600", "on-tertiary": "#312d44", "inverse-primary": "#b0284b", "surface-dim": "#14121d", "on-tertiary-fixed-variant": "#48445b", "secondary-fixed-dim": "#ffb86c", "tertiary-fixed": "#e6defc", "on-primary-container": "#6a0024", "background": "#14121d", "on-secondary-container": "#ffb86c", "tertiary-container": "#9c96b1", "surface-container-high": "#2b2834", "on-tertiary-container": "#332f45", "on-surface": "#e6e0f0", "on-primary-fixed": "#400012", "secondary-fixed": "#ffdcbc", "surface-container-low": "#1c1a25", "outline-variant": "#584143", "on-error-container": "#ffdad6", "inverse-on-surface": "#312f3b", "error": "#ffb4ab", "surface-variant": "#36333f", "tertiary-fixed-dim": "#c9c3df", "surface": "#14121d", "primary-fixed": "#ffd9dd", "on-background": "#e6e0f0", "surface-container-lowest": "#0f0d17", "tertiary": "#c9c3df", "secondary": "#ffb86c", "surface-container-highest": "#36333f", "primary": "#ffb2bc", "on-secondary-fixed-variant": "#683c00", "error-container": "#93000a", "surface-container": "#201e2a", "on-surface-variant": "#dfbfc2", "surface-bright": "#3a3744", "on-primary-fixed-variant": "#8f0935", "on-primary": "#670023", "primary-container": "#ff6584", "on-tertiary-fixed": "#1c192e", "on-error": "#690005", "secondary-container": "#794700" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1.25rem", "space-xs": "0.25rem", "space-lg": "1.5rem", "margin": "2rem", "gutter-compact": "0.75rem", "margin-compact": "1.25rem", "space-md": "1rem", "space-sm": "0.5rem", "space-xl": "2.5rem" }, "fontFamily": { "body-sm": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "label-code-md": ["JetBrains Mono"], "display": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-code-sm": ["JetBrains Mono"], "label-code-lg": ["JetBrains Mono"], "body-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"] }, "fontSize": { "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "label-code-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }], "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-code-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }], "label-code-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container antialiased"><header class="fixed top-0 left-0 right-0 z-50 pointer-events-none"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter pt-[18px] flex items-center justify-between pointer-events-auto"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-primary-container shadow-[0_4px_12px_rgba(0,0,0,0.4)]"><span class="material-symbols-outlined text-[20px]">filter_vintage</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Anime Vault</span><span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim leading-tight">Twilight Sanctuary</span></div></div><div class="h-12 px-space-xs bg-[#1E1B29]/95 backdrop-blur-xl rounded-full flex items-center shadow-[0_12px_32px_-4px_rgba(10,8,16,0.65)]"><nav class="flex items-center gap-1" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-full shadow-[0_0_12px_rgba(255,101,132,0.35)]"><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="library" href="#">Library</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="updates" href="#"><span>Updates</span><span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container leading-none">3</span></a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="downloads" href="#"><span>Downloads</span><span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant leading-none">2</span></a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="organizer" href="#">Organizer</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="storage" href="#">Storage</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="settings" href="#">Settings</a></nav></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-1.5 rounded-full text-on-surface-variant shadow-[0_4px_16px_rgba(0,0,0,0.2)]"><span class="material-symbols-outlined text-[16px]">search</span><span class="font-body-sm text-body-sm text-tertiary-fixed-dim pr-space-xs">Quick Find</span></div><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-full"><span class="material-symbols-outlined text-secondary text-[16px]">hard_drive</span><div class="flex flex-col"><div class="flex justify-between items-center gap-2"><span class="font-label-code-sm text-label-code-sm text-secondary">1.8 / 4.0 TB</span></div><div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: 45%"></div></div></div></div><button aria-label="Settings" class="w-9 h-9 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"></div></div></div></header><main class="w-full pt-[78px] min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- Subtle Atmospheric Accent Layer -->
+<div class="relative w-full">
+<div class="absolute -top-12 left-1/4 w-96 h-64 bg-primary-container/10 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="absolute top-24 right-10 w-80 h-72 bg-secondary-container/15 blur-[100px] rounded-full pointer-events-none"></div>
+</div>
+<div class="max-w-[1440px] w-full mx-auto px-gutter-compact lg:px-gutter py-space-md">
+<!-- Top Configuration Header Banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+
+
+</div>
+<div class="flex items-baseline gap-space-md">
+<h1 class="font-display text-display text-on-surface tracking-tight">Settings &amp; Preferences</h1>
+<span class="font-label-code-md text-label-code-md text-tertiary-fixed-dim hidden sm:inline-block">Anime Vault OS v2.5.0 • Desktop Client</span>
+</div>
+</div>
+<!-- Action Cluster -->
+<div class="flex items-center gap-space-sm self-start lg:self-auto">
+<button class="flex items-center gap-2 px-space-md py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm transition-all active:scale-[0.98]" id="export-cfg-btn" type="button">
+<span class="material-symbols-outlined text-[18px] text-tertiary">tune</span>
+<span>Export Config</span>
+</button>
+<button class="flex items-center gap-2 px-space-lg py-2 rounded-full bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-headline-sm text-body-md shadow-[0_0_16px_rgba(255,101,132,0.35)] transition-all active:scale-[0.98]" id="save-all-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Save All Changes</span>
+</button>
+</div>
+</div>
+<!-- Main Workspace Layout: Fixed Rail + Dynamic Scroll Pane -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Category Navigation Rail (4 cols on lg, 3 on xl) -->
+<aside class="lg:col-span-4 xl:col-span-3 flex flex-col gap-space-md sticky top-[98px]">
+<div class="bg-surface-container-low rounded-xl p-space-sm shadow-sm flex flex-col gap-1">
+<!-- Category 1: Active -->
+<button class="w-full flex items-center justify-between px-space-md py-2.5 rounded-lg transition-all group text-left text-tertiary" data-nav-target="appearance" type="button">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-primary" style="font-variation-settings: 'FILL' 1;">palette</span>
+<span class="font-headline-sm text-body-md truncate">Appearance &amp; UX</span>
+</div>
+<span class="w-1.5 h-4 rounded-full bg-primary-container"></span>
+</button>
+<!-- Category 2 -->
+<button class="w-full flex items-center justify-between px-space-md py-2.5 rounded-lg text-tertiary hover:text-on-surface hover:bg-surface-container/60 transition-all group text-left" data-nav-target="scanning" type="button">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary-container group-hover:text-primary transition-colors">folder_managed</span>
+<span class="font-body-md text-body-md truncate">Scanning &amp; Folders</span>
+</div>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-high text-tertiary">3 Roots</span>
+</button>
+<!-- Category 3 -->
+<button class="w-full flex items-center justify-between px-space-md py-2.5 rounded-lg hover:text-on-surface hover:bg-surface-container/60 transition-all group text-left text-tertiary" data-nav-target="watchers" type="button">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary-container group-hover:text-primary transition-colors">input</span>
+<span class="font-body-md text-body-md truncate">Watchers &amp; Import</span>
+</div>
+
+</button>
+<!-- Category 4 -->
+<button class="w-full flex items-center justify-between px-space-md py-2.5 rounded-lg hover:text-on-surface hover:bg-surface-container/60 transition-all group text-left text-tertiary" data-nav-target="player" type="button">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary-container group-hover:text-primary transition-colors">smart_display</span>
+<span class="font-body-md text-body-md truncate">Media Player Engine</span>
+</div>
+
+</button>
+<!-- Category 5 -->
+<button class="w-full flex items-center justify-between px-space-md py-2.5 rounded-lg hover:text-on-surface hover:bg-surface-container/60 transition-all group text-left text-tertiary" data-nav-target="downloads" type="button">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary-container group-hover:text-primary transition-colors">cloud_download</span>
+<span class="font-body-md text-body-md truncate">Downloads &amp; Trackers</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</button>
+<!-- Category 6 -->
+<button class="w-full flex items-center justify-between px-space-md py-2.5 rounded-lg hover:text-on-surface hover:bg-surface-container/60 transition-all group text-left bg-surface-container text-on-surface" data-nav-target="database" type="button">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary-container group-hover:text-primary transition-colors">database</span>
+<span class="font-body-md text-body-md truncate">Database &amp; Maintenance</span>
+</div>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">42 MB</span>
+</button>
+</div>
+<!-- Telemetry & Diagnostic Widget in Sidebar -->
+
+<!-- Quick Hotkey Cheatsheet -->
+<div class="p-space-md rounded-xl bg-surface-container-low/50 flex flex-col gap-2">
+<span class="font-label-code-sm text-label-code-sm text-tertiary uppercase tracking-wider">Fast Navigation</span>
+<div class="grid grid-cols-2 gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-1.5">
+<kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1 py-0.5 rounded text-on-surface">Ctrl+S</kbd>
+<span>Save</span>
+</div>
+<div class="flex items-center gap-1.5">
+<kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1 py-0.5 rounded text-on-surface">Ctrl+R</kbd>
+<span>Rescan</span>
+</div>
+<div class="flex items-center gap-1.5">
+<kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1 py-0.5 rounded text-on-surface">Ctrl+I</kbd>
+<span>Import</span>
+</div>
+<div class="flex items-center gap-1.5">
+<kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1 py-0.5 rounded text-on-surface">Alt+D</kbd>
+<span>DB Sync</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Right Scrollable Content Pane (8 cols on lg, 9 on xl) -->
+<main class="lg:col-span-8 xl:col-span-9 flex flex-col gap-space-xl">
+<!-- ============================================== -->
+<!-- SECTION 1: APPEARANCE & ACCESSIBILITY          -->
+<!-- ============================================== -->
+<section class="bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg relative overflow-hidden" id="appearance">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">palette</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Appearance &amp; Accessibility</h2>
+</div>
+<p class="font-body-md text-body-md text-tertiary">Configure the sensory environment, visual density, and window containment.</p>
+</div>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim px-2 py-1 rounded bg-surface-container">SECTION 01</span>
+</div>
+<!-- 1.1 Theme Mode Selector -->
+<div class="flex flex-col gap-space-sm">
+<label class="font-headline-sm text-body-md text-on-surface">Interface Visual Theme</label>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Option 1 -->
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="theme_mode" type="radio" value="windows">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col gap-space-sm transition-all peer-checked:bg-surface-container-high peer-checked:shadow-sm">
+<div class="w-full h-16 rounded-lg bg-surface-container-lowest p-2 flex flex-col justify-between">
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-surface-bright"></div>
+<div class="w-2 h-2 rounded-full bg-surface-bright"></div>
+</div>
+<div class="h-2 w-12 bg-surface-bright rounded"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface">Match Windows</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary-container group-hover:text-on-surface">sync_desktop</span>
+</div>
+<span class="font-body-sm text-body-sm text-tertiary">Syncs with system dark/light accent toggles.</span>
+</div>
+</label>
+<!-- Option 2: Active / Selected -->
+<label class="cursor-pointer group">
+<input checked="" class="sr-only peer" name="theme_mode" type="radio" value="twilight">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col gap-space-sm transition-all peer-checked:bg-surface-container-high peer-checked:shadow-[0_0_12px_rgba(255,101,132,0.2)]">
+<div class="w-full h-16 rounded-lg bg-surface p-2 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 w-12 h-12 bg-primary-container/20 rounded-full blur-md"></div>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+</div>
+<div class="h-2 w-16 bg-primary-container rounded"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-body-md text-primary">Twilight Sakura</span>
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Intimate velvet midnight tones with coral accents.</span>
+</div>
+</label>
+<!-- Option 3 -->
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="theme_mode" type="radio" value="paper">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col gap-space-sm transition-all peer-checked:bg-surface-container-high">
+<div class="w-full h-16 rounded-lg bg-tertiary-fixed p-2 flex flex-col justify-between">
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-on-tertiary-fixed-variant"></div>
+<div class="w-2 h-2 rounded-full bg-on-tertiary-fixed-variant"></div>
+</div>
+<div class="h-2 w-14 bg-on-tertiary-fixed rounded"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface">Sakura Paper</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary-container">light_mode</span>
+</div>
+<span class="font-body-sm text-body-sm text-tertiary">Warm high-contrast daylight cream canvas.</span>
+</div>
+</label>
+</div>
+</div>
+<!-- 1.2 Layout Density, Scaling & Toggles -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg pt-space-sm">
+<!-- Scaling Slider / Selector -->
+<div class="flex flex-col gap-space-sm">
+<label class="font-headline-sm text-body-md text-on-surface">Display Scale &amp; Text Proportions</label>
+<div class="flex items-center justify-between bg-surface-container rounded-lg p-1.5">
+<button class="flex-1 py-1.5 rounded-md font-label-code-md text-label-code-md text-tertiary hover:text-on-surface transition-colors" type="button">100% (Dense)</button>
+<button class="flex-1 py-1.5 rounded-md bg-surface-container-high text-primary font-label-code-md text-label-code-md shadow-sm" type="button">115% (Studio)</button>
+<button class="flex-1 py-1.5 rounded-md font-label-code-md text-label-code-md text-tertiary hover:text-on-surface transition-colors" type="button">130% (Couch)</button>
+</div>
+<span class="font-body-sm text-body-sm text-tertiary">Adjusts relative typographic scaling without altering window viewport dimensions.</span>
+</div>
+<!-- Close Action Behavior -->
+<div class="flex flex-col gap-space-sm">
+<label class="font-headline-sm text-body-md text-on-surface">Window Close Button [X] Action</label>
+<div class="flex items-center justify-between bg-surface-container rounded-lg p-1.5">
+<button class="flex-1 py-1.5 rounded-md font-body-sm text-body-sm text-tertiary hover:text-on-surface" type="button">Always Ask</button>
+<button class="flex-1 py-1.5 rounded-md bg-surface-container-high text-secondary font-body-sm text-body-sm shadow-sm" type="button">Minimize to Tray</button>
+<button class="flex-1 py-1.5 rounded-md font-body-sm text-body-sm text-tertiary hover:text-on-surface" type="button">Exit Process</button>
+</div>
+<span class="font-body-sm text-body-sm text-tertiary">Background torrent downloads &amp; watch daemons continue running in system tray.</span>
+</div>
+</div>
+<!-- 1.3 Interactive Micro Toggles -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md pt-space-xs">
+<!-- Toggle 1: Reduce Motion -->
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col justify-between gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-body-md text-on-surface">Reduce Motion</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary">Disables smooth poster zooms and animated marquee titles.</p>
+</div>
+<!-- Toggle 2: High Contrast Accent -->
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col justify-between gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-body-md text-on-surface">High Contrast Badges</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary-container after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary">Emphasizes 1080p, HEVC, and audio codec markers.</p>
+</div>
+<!-- Toggle 3: Decorative Kanji Watermarks -->
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col justify-between gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-body-md text-on-surface">Kanji Watermarks</span>
+<span class="font-label-code-sm text-label-code-sm text-primary">桜</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary-container after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary">Shows aesthetic background calligraphy on title headers.</p>
+</div>
+</div>
+</section>
+<!-- ============================================== -->
+<!-- SECTION 2: SCANNING & ORGANIZATION             -->
+<!-- ============================================== -->
+<section class="bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg" id="scanning">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">folder_managed</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Scanning &amp; Library Roots</h2>
+</div>
+<p class="font-body-md text-body-md text-tertiary">Indexed local directories, regex season matching, and AniList auto-indexing.</p>
+</div>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim px-2 py-1 rounded bg-surface-container">SECTION 02</span>
+</div>
+<!-- Root Paths Manager List -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-body-md text-on-surface">Registered Storage Volumes (3 Mounted)</span>
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">add</span>
+<span>Add Folder</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container hover:bg-secondary-container/90 text-on-secondary-container font-body-sm text-body-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">autorenew</span>
+<span>Scan All Now</span>
+</button>
+</div>
+</div>
+<!-- Directory Stack -->
+<div class="flex flex-col gap-2">
+<!-- Item 1 -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[22px]">hard_drive</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-code-md text-label-code-md text-on-surface truncate">D:\AnimeVault\Current Season (2025)</span>
+<span class="font-body-sm text-body-sm text-tertiary">142 Series • 1,280 Video files • Read-Write • Auto-watch enabled</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end md:self-auto">
+<span class="font-label-code-sm text-label-code-sm px-2 py-0.5 rounded bg-primary-container/20 text-primary">PRIMARY WATCH</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-tertiary hover:text-on-surface transition-colors" title="Folder Settings" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary shrink-0">
+<span class="material-symbols-outlined text-[22px]">dns</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-code-md text-label-code-md text-on-surface truncate">\\NAS-VAULT-01\Storage\Master Archive</span>
+<span class="font-body-sm text-body-sm text-tertiary">2,890 Series • 32,400 Video files • SMB Share (10 GbE)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end md:self-auto">
+<span class="font-label-code-sm text-label-code-sm px-2 py-0.5 rounded bg-surface-container-highest text-tertiary-fixed-dim">ARCHIVE (RO)</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-tertiary hover:text-on-surface transition-colors" title="Folder Settings" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[22px]">download_for_offline</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-code-md text-label-code-md text-on-surface truncate">E:\Torrents\Staging_Unsorted</span>
+<span class="font-body-sm text-body-sm text-tertiary">14 Downloads in flight • Auto-rename via AniDB regex active</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end md:self-auto">
+<span class="font-label-code-sm text-label-code-sm px-2 py-0.5 rounded bg-secondary-container/40 text-secondary">HOT INBOX</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-tertiary hover:text-on-surface transition-colors" title="Folder Settings" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Schedule & AniList Matching Parameters -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg pt-space-xs">
+<!-- Scan Trigger Frequencies -->
+<div class="flex flex-col gap-space-sm">
+<label class="font-headline-sm text-body-md text-on-surface">Automated Scanning Cadence</label>
+<div class="grid grid-cols-2 gap-2 bg-surface-container rounded-lg p-1.5">
+<button class="py-2 px-3 rounded-md font-body-sm text-body-sm text-tertiary hover:text-on-surface transition-colors text-center" type="button">Manual Only</button>
+<button class="py-2 px-3 rounded-md bg-surface-container-high text-primary font-headline-sm text-body-sm shadow-sm text-center" type="button">On Startup</button>
+<button class="py-2 px-3 rounded-md font-body-sm text-body-sm text-tertiary hover:text-on-surface transition-colors text-center" type="button">Hourly Poll</button>
+<button class="py-2 px-3 rounded-md font-body-sm text-body-sm text-tertiary hover:text-on-surface transition-colors text-center" type="button">Every Midnight</button>
+</div>
+</div>
+<!-- Metadata Rules Stack -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-headline-sm text-body-md text-on-surface">Metadata Matching Directives</label>
+<div class="bg-surface-container rounded-lg p-space-sm flex flex-col gap-2">
+<label class="flex items-center justify-between p-2 rounded hover:bg-surface-container-high/50 cursor-pointer">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Prefer Official English Romanized</span>
+<span class="font-body-sm text-body-sm text-tertiary">Uses English localized title over romaji tags</span>
+</div>
+<input checked="" class="w-4 h-4 rounded text-primary-container bg-surface-container-high focus:ring-primary" type="checkbox">
+</label>
+<label class="flex items-center justify-between p-2 rounded hover:bg-surface-container-high/50 cursor-pointer">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Allow 18+ / Mature Anime Metadata</span>
+<span class="font-body-sm text-body-sm text-tertiary">Requires system PIN confirmation for card rendering</span>
+</div>
+<input class="w-4 h-4 rounded text-primary-container bg-surface-container-high focus:ring-primary" type="checkbox">
+</label>
+<label class="flex items-center justify-between p-2 rounded hover:bg-surface-container-high/50 cursor-pointer">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Bidirectional AniList Cloud Sync</span>
+<span class="font-body-sm text-body-sm text-tertiary">Pushes episode count on video completion (&gt;85%)</span>
+</div>
+<input checked="" class="w-4 h-4 rounded text-primary-container bg-surface-container-high focus:ring-primary" type="checkbox">
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- ============================================== -->
+<!-- SECTION 3: MEDIA PLAYER CONFIGURATION          -->
+<!-- ============================================== -->
+<section class="bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg" id="player">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">smart_display</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Playback Engine &amp; Codecs</h2>
+</div>
+<p class="font-body-md text-body-md text-tertiary">Hardware decoding profile, embedded subtitle styling, and rendering backend.</p>
+</div>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim px-2 py-1 rounded bg-surface-container">SECTION 03</span>
+</div>
+<!-- Video Engine Chooser -->
+<div class="flex flex-col gap-space-sm">
+<label class="font-headline-sm text-body-md text-on-surface">Default Playback Backend</label>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-space-sm">
+<!-- Player 1 -->
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="player_engine" type="radio" value="default">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col justify-between gap-space-md peer-checked:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[28px] text-tertiary-container">desktop_windows</span>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface block">Windows Default</span>
+<span class="font-body-sm text-body-sm text-tertiary">System association</span>
+</div>
+</div>
+</label>
+<!-- Player 2: MPV Selected -->
+<label class="cursor-pointer group">
+<input checked="" class="sr-only peer" name="player_engine" type="radio" value="mpv">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col justify-between gap-space-md peer-checked:bg-surface-container-high peer-checked:shadow-[0_0_12px_rgba(255,101,132,0.25)] transition-all">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-[28px] text-primary">terminal</span>
+<span class="font-label-code-sm text-label-code-sm bg-primary-container text-on-primary-container px-1.5 py-0.5 rounded">RECOMMENDED</span>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-primary block">MPV Engine</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">D3D11VA • ASS Shaders</span>
+</div>
+</div>
+</label>
+<!-- Player 3: VLC -->
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="player_engine" type="radio" value="vlc">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col justify-between gap-space-md peer-checked:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[28px] text-secondary">videocam</span>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface block">VLC Media</span>
+<span class="font-body-sm text-body-sm text-tertiary">LibVLC bridge</span>
+</div>
+</div>
+</label>
+<!-- Player 4: Custom Executable -->
+<label class="cursor-pointer group">
+<input class="sr-only peer" name="player_engine" type="radio" value="custom">
+<div class="h-full rounded-xl bg-surface-container p-space-md flex flex-col justify-between gap-space-md peer-checked:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[28px] text-tertiary-fixed-dim">extension</span>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface block">Custom Executable</span>
+<span class="font-body-sm text-body-sm text-tertiary">PotPlayer / MPC-HC</span>
+</div>
+</div>
+</label>
+</div>
+</div>
+<!-- Executable Path Selector Input -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">EXECUTABLE BINARY PATH</label>
+<div class="flex items-center gap-space-sm">
+<div class="relative flex-1">
+<input class="w-full bg-surface-container px-space-md py-2.5 rounded-lg text-on-surface font-label-code-md text-label-code-md focus:outline-none focus:bg-surface-container-high transition-colors" type="text" value="C:\Program Files\mpv\mpv.exe">
+<span class="absolute right-3 top-2.5 font-label-code-sm text-label-code-sm text-primary">IPC Socket Ready</span>
+</div>
+<button class="px-space-md py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+<span>Browse...</span>
+</button>
+</div>
+</div>
+<!-- Subtitle and Audio Priority Fields -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md pt-space-xs">
+<div class="flex flex-col gap-space-xs">
+<label class="font-headline-sm text-body-md text-on-surface">Preferred Audio Track</label>
+<div class="flex items-center gap-2 bg-surface-container rounded-lg p-2.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">graphic_eq</span>
+<select class="bg-transparent text-on-surface font-body-md text-body-md w-full focus:outline-none">
+<option class="bg-surface-container-high" selected="">Japanese (FLAC 24-bit / Opus 5.1 priority)</option>
+<option class="bg-surface-container-high">English Dubbed (Master Audio)</option>
+<option class="bg-surface-container-high">First Available Non-Commentary Stream</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-headline-sm text-body-md text-on-surface">Preferred Subtitle Track</label>
+<div class="flex items-center gap-2 bg-surface-container rounded-lg p-2.5">
+<span class="material-symbols-outlined text-[18px] text-primary">subtitles</span>
+<select class="bg-transparent text-on-surface font-body-md text-body-md w-full focus:outline-none">
+<option class="bg-surface-container-high" selected="">English (Full Dialogue • Styled ASS/SSA)</option>
+<option class="bg-surface-container-high">English (Signs &amp; Songs Only)</option>
+<option class="bg-surface-container-high">Romaji Styled Karaoke Track</option>
+<option class="bg-surface-container-high">Disable by default</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Boolean Playback Options -->
+<div class="flex flex-wrap items-center gap-space-lg pt-space-xs text-on-surface">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="w-4 h-4 rounded text-primary-container bg-surface-container-high focus:ring-primary" type="checkbox">
+<span class="font-body-md text-body-md">Auto-launch video in Exclusive Fullscreen</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="w-4 h-4 rounded text-primary-container bg-surface-container-high focus:ring-primary" type="checkbox">
+<span class="font-body-md text-body-md">Auto-load external .ASS subtitle sidecars</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="w-4 h-4 rounded text-primary-container bg-surface-container-high focus:ring-primary" type="checkbox">
+
+</label>
+</div>
+</section>
+<!-- ============================================== -->
+<!-- SECTION 4: DATABASE & MAINTENANCE              -->
+<!-- ============================================== -->
+<section class="bg-surface-container-low rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg" id="database">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">database</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Database &amp; Disaster Recovery</h2>
+</div>
+<p class="font-body-md text-body-md text-tertiary">SQLite storage engine, WAL write buffers, integrity testing, and data portability.</p>
+</div>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim px-2 py-1 rounded bg-surface-container">SECTION 06</span>
+</div>
+<!-- Database Status Metrics Bento -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col gap-1">
+<span class="font-label-code-sm text-label-code-sm text-tertiary">STORAGE FOOTPRINT</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">42.4</span>
+<span class="font-label-code-md text-label-code-md text-secondary">MB</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">anime_vault.db (WAL Mode active)</span>
+</div>
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col gap-1">
+<span class="font-label-code-sm text-label-code-sm text-tertiary">ENGINE COMPATIBILITY</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">v3.45.1</span>
+<span class="font-label-code-sm text-label-code-sm text-primary px-1.5 py-0.5 rounded bg-primary-container/20">64-BIT</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Foreign keys enabled • 0 corrupt pages</span>
+</div>
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col gap-1">
+<span class="font-label-code-sm text-label-code-sm text-tertiary">LAST SAFE BACKUP</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">14h ago</span>
+<span class="material-symbols-outlined text-[18px] text-primary">verified</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">vault_auto_backup_20250512.bak</span>
+</div>
+</div>
+<!-- Database Operations Button Matrix -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm pt-space-xs">
+<button class="flex flex-col items-center justify-center p-space-md rounded-xl bg-surface-container hover:bg-surface-container-high transition-all group text-center gap-2" type="button">
+<span class="w-10 h-10 rounded-full bg-surface-container-high group-hover:bg-primary-container flex items-center justify-center text-primary group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">backup</span>
+</span>
+<span class="font-headline-sm text-body-md text-on-surface">Create Backup</span>
+<span class="font-body-sm text-body-sm text-tertiary">Snapshot SQLite to compressed .gz</span>
+</button>
+<button class="flex flex-col items-center justify-center p-space-md rounded-xl bg-surface-container hover:bg-surface-container-high transition-all group text-center gap-2" type="button">
+<span class="w-10 h-10 rounded-full bg-surface-container-high group-hover:bg-secondary-container flex items-center justify-center text-secondary group-hover:text-on-secondary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings_backup_restore</span>
+</span>
+<span class="font-headline-sm text-body-md text-on-surface">Restore Snapshot</span>
+<span class="font-body-sm text-body-sm text-tertiary">Revert from previous timestamp</span>
+</button>
+<button class="flex flex-col items-center justify-center p-space-md rounded-xl bg-surface-container hover:bg-surface-container-high transition-all group text-center gap-2" type="button">
+<span class="w-10 h-10 rounded-full bg-surface-container-high group-hover:bg-surface-bright flex items-center justify-center text-tertiary group-hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">file_download</span>
+</span>
+<span class="font-headline-sm text-body-md text-on-surface">Export CSV / JSON</span>
+<span class="font-body-sm text-body-sm text-tertiary">Readable metadata &amp; watch states</span>
+</button>
+<button class="flex flex-col items-center justify-center p-space-md rounded-xl bg-surface-container hover:bg-surface-container-high transition-all group text-center gap-2" type="button">
+<span class="w-10 h-10 rounded-full bg-surface-container-high group-hover:bg-primary-container flex items-center justify-center text-primary group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">health_and_safety</span>
+</span>
+<span class="font-headline-sm text-body-md text-on-surface">Integrity Check</span>
+<span class="font-body-sm text-body-sm text-tertiary">Run PRAGMA &amp; Checkpoint WAL</span>
+</button>
+</div>
+<!-- Advanced SQL Query Terminal Drawer (Collapsible appearance) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary">code</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">EMBEDDED SQLite QUERY DIAGNOSTICS</span>
+</div>
+<span class="font-label-code-sm text-label-code-sm text-secondary">READ-ONLY MODE</span>
+</div>
+<div class="bg-surface-container p-2.5 rounded-lg font-label-code-sm text-label-code-sm text-tertiary-fixed-dim overflow-x-auto whitespace-nowrap">
+<code>SELECT series_id, romaji_title, total_episodes, file_size_mb FROM library_nodes WHERE is_watched = 1 ORDER BY last_played DESC LIMIT 3;</code>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Notification Toast Floating Indicator (Hidden by default, triggered on save) -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-space-sm bg-surface-container-high px-space-md py-3 rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.6)]" id="save-toast">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface">Configuration Saved</span>
+<span class="font-body-sm text-body-sm text-tertiary">Changes committed to anime_vault.db</span>
+</div>
+</div>
+</div>
+<script>
+    // Smooth Anchor Navigation between Settings Sections
+    document.querySelectorAll('[data-nav-target]').forEach(button => {
+      button.addEventListener('click', () => {
+        const targetId = button.getAttribute('data-nav-target');
+        const targetEl = document.getElementById(targetId);
+
+        // Update active classes
+        document.querySelectorAll('[data-nav-target]').forEach(btn => {
+          btn.classList.remove('bg-surface-container', 'text-on-surface');
+          btn.classList.add('text-tertiary');
+        });
+        button.classList.add('bg-surface-container', 'text-on-surface');
+        button.classList.remove('text-tertiary');
+
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Save Toast Interaction
+    const saveBtn = document.getElementById('save-all-btn');
+    const toast = document.getElementById('save-toast');
+    if (saveBtn && toast) {
+      saveBtn.addEventListener('click', () => {
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+          toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3000);
+      });
+    }
+
+    // Ctrl+S / Ctrl+I Hotkey listeners
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveBtn?.click();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        const watchersBtn = document.querySelector('[data-nav-target="watchers"]');
+        watchersBtn?.click();
+      }
+    });
+  </script>
+</div></main><footer class="w-full bg-surface-container-lowest/80 backdrop-blur-md"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter py-space-md flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg text-on-surface-variant"><div class="flex items-center gap-space-xs"><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">Space</kbd><span class="font-body-sm text-body-sm">Play/Pause</span></div><div class="flex items-center gap-space-xs"></div><div class="flex items-center gap-space-xs"><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">F</kbd><span class="font-body-sm text-body-sm">Fullscreen</span></div></div><div class="flex items-center gap-space-sm"><span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Anime Vault OS</span><span class="font-label-code-sm text-label-code-sm text-primary">Sakura 1.0</span></div></div></footer>
+
+</body></html>

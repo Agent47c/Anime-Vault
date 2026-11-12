@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Watched List Importer &amp; AniList Match Review</title>
+<!-- Tailwind CSS v3 CDN with forms and container queries plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              bg: '#0f0d17',
+              surface: '#14121d',
+              elevated: '#1c1a27',
+              card: '#221f30',
+              cardHover: '#28253a',
+              border: '#2d293f',
+              borderLight: '#3c3754',
+            },
+            sakura: {
+              400: '#ff7e98',
+              500: '#ff6584',
+              600: '#ff5376',
+              glow: 'rgba(255, 101, 132, 0.25)',
+              faint: 'rgba(255, 101, 132, 0.08)',
+            },
+            emerald: {
+              brand: '#10b981',
+              brandGlow: 'rgba(16, 185, 129, 0.15)',
+            },
+            lavender: {
+              brand: '#818cf8',
+              brandGlow: 'rgba(129, 140, 248, 0.15)',
+            },
+            amber: {
+              brand: '#f59e0b',
+              brandGlow: 'rgba(245, 158, 11, 0.15)',
+            },
+            rose: {
+              brand: '#f43f5e',
+              brandGlow: 'rgba(244, 63, 94, 0.15)',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace'],
+          },
+          boxShadow: {
+            'sakura-btn': '0 0 20px -2px rgba(255, 101, 132, 0.45)',
+            'modal': '0 25px 60px -15px rgba(5, 4, 10, 0.95)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Scrollbars, Kanij Background Watermark and Overlays -->
+<style data-purpose="custom-scrollbars">
+    /* Custom sleek dark scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d293f;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3c3754;
+    }
+  </style>
+<style data-purpose="decorative-effects">
+    /* Subtle dot grid pattern backdrop */
+    .bg-vault-grid {
+      background-size: 24px 24px;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    }
+    /* Glow text effect */
+    .sakura-text-glow {
+      text-shadow: 0 0 12px rgba(255, 101, 132, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-vault-bg text-slate-200 font-sans min-h-screen antialiased bg-vault-grid flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8">
+<!-- BEGIN: MainImporterModal -->
+<div class="w-full max-w-4xl bg-vault-surface border border-vault-border rounded-2xl shadow-modal overflow-hidden flex flex-col relative transition-all duration-300" data-purpose="import-modal-wrapper">
+<!-- BEGIN: HeaderSection -->
+<header class="relative px-6 pt-6 pb-5 border-b border-vault-border/80 overflow-hidden bg-vault-elevated/40">
+<!-- Japanese Watermark Symbol "取込" (Import) -->
+<div aria-hidden="true" class="pointer-events-none select-none absolute right-16 -top-4 font-bold text-8xl md:text-9xl text-sakura-500 opacity-[0.09] tracking-tighter" style="font-family: 'Space Grotesk', serif;">
+        取込
+      </div>
+<div class="flex items-start justify-between relative z-10">
+<div class="space-y-1">
+<div class="flex items-center gap-2.5">
+<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-sakura-500/10 border border-sakura-500/25 text-sakura-500">
+<!-- Sync / Import Arrow Icon -->
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</span>
+<h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              Import watched list
+              <span class="text-xs font-mono font-medium px-2 py-0.5 rounded border border-vault-borderLight bg-vault-card text-slate-400">Ctrl + I</span>
+</h1>
+</div>
+<p class="text-xs sm:text-sm text-slate-400">
+            Import a TXT file and review AniList matches against your local media library.
+          </p>
+</div>
+<!-- Window Close Button -->
+<button aria-label="Close modal" class="text-slate-400 hover:text-white p-2 rounded-xl bg-vault-card/70 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-colors" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</header>
+<!-- END: HeaderSection -->
+<!-- BEGIN: ModalContentBody -->
+<main class="flex-1 overflow-y-auto max-h-[calc(90vh-140px)] px-6 py-6 space-y-6">
+<!-- BEGIN: FileUploadZone -->
+<section class="relative group" data-purpose="active-uploaded-file-state">
+<div class="border-2 border-dashed border-sakura-500/35 hover:border-sakura-500/70 bg-vault-elevated/50 hover:bg-vault-elevated/70 rounded-xl p-4 sm:p-5 transition-all duration-200">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<!-- File info details -->
+<div class="flex items-center gap-3.5">
+<div class="w-12 h-12 rounded-xl bg-sakura-500/15 border border-sakura-500/30 flex items-center justify-center text-sakura-400 shrink-0">
+<!-- Text File Icon -->
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-semibold text-sm sm:text-base text-slate-100 font-mono tracking-tight">my_watched_anime_2025.txt</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+<svg class="w-2.5 h-2.5 mr-1" fill="currentColor" viewbox="0 0 8 8">
+<circle cx="4" cy="4" r="3"></circle>
+</svg>
+                    Parsed
+                  </span>
+</div>
+<div class="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
+<span>14.2 KB</span>
+<span class="text-slate-600">•</span>
+<span class="text-emerald-400 font-medium">128 titles detected</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">Encoding: UTF-8</span>
+</div>
+</div>
+</div>
+<!-- Replace Button -->
+<div class="flex items-center gap-2 self-start sm:self-center">
+<button class="px-3.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-vault-card hover:bg-vault-cardHover border border-vault-border hover:border-vault-borderLight rounded-lg transition-colors flex items-center gap-1.5 shadow-sm" type="button">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                Replace TXT file
+              </button>
+</div>
+</div>
+<!-- Format guideline tip -->
+<div class="mt-3 pt-3 border-t border-vault-border/50 flex items-center justify-between text-[11px] text-slate-400">
+<div class="flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-sakura-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Format supported: One anime per line. Numbered patterns like <code class="text-slate-300 bg-vault-card px-1 rounded">1) Title</code> or <code class="text-slate-300 bg-vault-card px-1 rounded">- Title</code> are automatically recognized.</span>
+</div>
+<span class="text-slate-500 font-mono hidden md:inline">AniList v2 API Sync</span>
+</div>
+</div>
+</section>
+<!-- END: FileUploadZone -->
+<!-- BEGIN: ImportConfigurationControls -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-vault-elevated/40 p-4 rounded-xl border border-vault-border" data-purpose="import-settings-and-filters">
+<!-- Status Dropdown -->
+<div class="md:col-span-4 space-y-1.5">
+<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider" for="status-select">
+            Status for imported titles
+          </label>
+<div class="relative">
+<select class="w-full bg-vault-card border border-vault-border rounded-lg text-sm text-slate-200 px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-sakura-500 focus:border-sakura-500" id="status-select">
+<option selected="" value="watched">Watched</option>
+<option value="watching">Currently Watching</option>
+<option value="plan_to_watch">Plan to Watch</option>
+<option value="dropped">Dropped</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Toggle Checkbox Option -->
+<div class="md:col-span-4 flex items-center md:pt-5">
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input checked="" class="sr-only peer" id="auto-metadata-toggle" type="checkbox"/>
+<!-- Toggle switch container -->
+<div class="w-10 h-5 bg-vault-card border border-vault-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sakura-500 peer-checked:border-sakura-500"></div>
+<span class="ml-2.5 text-xs text-slate-300 font-medium">Find metadata for existing unmatched titles</span>
+</label>
+</div>
+<!-- Filter Dropdown -->
+<div class="md:col-span-4 space-y-1.5">
+<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider" for="filter-select">
+            Show imported titles
+          </label>
+<div class="relative">
+<select class="w-full bg-vault-card border border-vault-border rounded-lg text-sm text-slate-200 px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-sakura-500 focus:border-sakura-500" id="filter-select">
+<option value="all">All titles (128)</option>
+<option value="review">Needs review (14)</option>
+<option value="matched">Metadata matched (68)</option>
+<option value="library">Already in library (42)</option>
+<option value="not_found">Not found (4)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<!-- END: ImportConfigurationControls -->
+<!-- BEGIN: MetricsSummaryKPICards -->
+<section class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4" data-purpose="metrics-summary-grid">
+<!-- KPI Card 1: Already in Library -->
+<div class="bg-vault-card/70 border border-vault-border hover:border-emerald-500/40 rounded-xl p-3.5 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-2xl font-extrabold text-white font-mono">42</span>
+<span class="h-2.5 w-2.5 rounded-full bg-emerald-brand ring-4 ring-emerald-brand/20"></span>
+</div>
+<div class="text-xs text-slate-400 mt-1 font-medium">Already in library</div>
+</div>
+<!-- KPI Card 2: Metadata Matched -->
+<div class="bg-vault-card/70 border border-vault-border hover:border-lavender-brand/40 rounded-xl p-3.5 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-2xl font-extrabold text-white font-mono">68</span>
+<span class="h-2.5 w-2.5 rounded-full bg-lavender-brand ring-4 ring-lavender-brand/20"></span>
+</div>
+<div class="text-xs text-slate-400 mt-1 font-medium">Metadata matched</div>
+</div>
+<!-- KPI Card 3: Need Review -->
+<div class="bg-vault-card/70 border border-vault-border hover:border-amber-brand/40 rounded-xl p-3.5 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-2xl font-extrabold text-amber-400 font-mono">14</span>
+<span class="h-2.5 w-2.5 rounded-full bg-amber-brand ring-4 ring-amber-brand/20"></span>
+</div>
+<div class="text-xs text-slate-400 mt-1 font-medium">Need review</div>
+</div>
+<!-- KPI Card 4: Not Found -->
+<div class="bg-vault-card/70 border border-vault-border hover:border-rose-brand/40 rounded-xl p-3.5 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-2xl font-extrabold text-rose-400 font-mono">4</span>
+<span class="h-2.5 w-2.5 rounded-full bg-rose-brand ring-4 ring-rose-brand/20"></span>
+</div>
+<div class="text-xs text-slate-400 mt-1 font-medium">Not found</div>
+</div>
+</section>
+<!-- END: MetricsSummaryKPICards -->
+<!-- BEGIN: InteractiveImportListSection -->
+<section class="space-y-3" data-purpose="anime-match-table">
+<!-- Batch Action Bar & Search Filter -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs bg-vault-elevated px-3.5 py-2.5 rounded-lg border border-vault-border">
+<div class="flex items-center gap-3">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded border-vault-border bg-vault-card text-sakura-500 focus:ring-sakura-500 h-4 w-4" type="checkbox"/>
+<span class="font-semibold text-slate-200">Select all (128)</span>
+</label>
+<span class="text-slate-500">•</span>
+<span class="text-sakura-400 font-medium">122 selected for import</span>
+</div>
+<!-- Quick Search Filter Input -->
+<div class="relative w-full sm:w-60">
+<span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</span>
+<input class="w-full pl-8 pr-3 py-1 bg-vault-card border border-vault-border rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sakura-500" placeholder="Filter imported list..." type="text"/>
+</div>
+</div>
+<!-- Matched List Items -->
+<div class="space-y-2">
+<!-- Row 1: Akashic Records -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/60 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-all group">
+<div class="flex items-center gap-3 min-w-0">
+<input checked="" class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<!-- Gradient Placeholder Poster -->
+<div class="w-10 h-14 rounded-md bg-gradient-to-br from-indigo-500/80 via-purple-700/80 to-slate-900 border border-white/10 shrink-0 shadow-sm flex items-center justify-center">
+<span class="text-[9px] font-mono text-white/50">Poster</span>
+</div>
+<div class="min-w-0 pr-2">
+<div class="font-semibold text-sm text-slate-100 truncate group-hover:text-white">
+                  Rokudenashi Majutsu Kous...
+                </div>
+<div class="text-xs text-slate-400 flex items-center gap-1.5 truncate mt-0.5 font-sans">
+<span class="text-slate-500 font-mono">→</span>
+<span class="text-slate-300">Akashic Records of Bastard Magic Instructor</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                Already in library
+              </span>
+<button class="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-lg bg-vault-elevated text-slate-400 border border-vault-border hover:text-slate-200 hover:border-vault-borderLight transition-colors" type="button">
+                Matched
+              </button>
+</div>
+</article>
+<!-- Row 2: Shikkakumon (With provided IMAGE_11 thumbnail reference) -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/60 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-all group">
+<div class="flex items-center gap-3 min-w-0">
+<input checked="" class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<!-- Cover Image from DataStore Image 11 thumbnail -->
+<div class="w-10 h-14 rounded-md overflow-hidden border border-white/10 shrink-0 shadow-sm relative bg-slate-800">
+<img alt="The Strongest Sage with the Weakest Crest Poster" class="w-full h-full object-cover object-top" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyWqdJyTTy-fxg2gtklmzO_Y8bbvTy6pNpNNJni3drk8hFtI5ay4yI-Z8uyT2wsmixw0MNWy-5hgLr34pSg1YeKEbjVZOvWQnJ6E5_KwPJn8DrtUsiUjSXFy0XWQU9qWZIazlMi3S3ng6a172SKyf1IiZ6Jj1wUNehvyTWVwMjayCwg-zdfK7LTVulzF3JqSEU6yw0QMTuODdeZg_TXQeawt26huPeWtCBC9oVu8OKrmE2jCwXuZQM"/>
+</div>
+<div class="min-w-0 pr-2">
+<div class="font-semibold text-sm text-slate-100 truncate group-hover:text-white">
+                  Shikkak...
+                </div>
+<div class="text-xs text-slate-400 flex items-center gap-1.5 truncate mt-0.5">
+<span class="text-slate-500 font-mono">→</span>
+<span class="text-slate-300">The Strongest Sage with the Weakest Crest</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                Existing • Match found
+              </span>
+<button class="text-xs px-3 py-1 font-medium rounded-lg bg-vault-elevated text-slate-200 border border-vault-border hover:border-sakura-500/50 hover:text-sakura-400 transition-colors shadow-sm" type="button">
+                Choose match
+              </button>
+</div>
+</article>
+<!-- Row 3: Banished from Hero's Party (with Tooltip Demonstration) -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/60 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-all group relative">
+<div class="flex items-center gap-3 min-w-0">
+<input checked="" class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<div class="w-10 h-14 rounded-md bg-gradient-to-br from-indigo-600 via-indigo-900 to-slate-900 border border-white/10 shrink-0 shadow-sm flex items-center justify-center">
+<span class="text-[9px] font-mono text-white/50">Poster</span>
+</div>
+<div class="min-w-0 pr-2 relative">
+<div class="font-semibold text-sm text-slate-100 truncate group-hover:text-white">
+                  Banished from the Hero's P...
+                </div>
+<div class="text-xs text-slate-400 flex items-center gap-1.5 truncate mt-0.5">
+<span class="text-slate-500 font-mono">→</span>
+<span class="text-slate-300">Banished from the Hero's Party, I ...</span>
+</div>
+<!-- Hover Tooltip Element as shown in Image 11 -->
+<div class="absolute -bottom-8 left-8 z-30 hidden group-hover:flex items-center px-2.5 py-1 bg-vault-surface/95 border border-vault-borderLight text-slate-200 text-[11px] rounded-md shadow-lg pointer-events-none whitespace-nowrap backdrop-blur-sm">
+                  Banished from the Hero's Party, I Decided to Live a Quiet Life in the Countryside
+                </div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                Already in library
+              </span>
+<button class="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-lg bg-vault-elevated text-slate-400 border border-vault-border hover:text-slate-200 hover:border-vault-borderLight transition-colors" type="button">
+                Matched
+              </button>
+</div>
+</article>
+<!-- Row 4: Spare Me, Great Lord (Review Needed) -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/60 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-all group">
+<div class="flex items-center gap-3 min-w-0">
+<input checked="" class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<div class="w-10 h-14 rounded-md bg-gradient-to-br from-indigo-700 via-purple-900 to-slate-900 border border-white/10 shrink-0 shadow-sm flex items-center justify-center">
+<span class="text-[9px] font-mono text-white/50">Poster</span>
+</div>
+<div class="min-w-0 pr-2">
+<div class="font-semibold text-sm text-slate-100 truncate group-hover:text-white">
+                  Spare Me, Great Lord Season 1
+                </div>
+<div class="text-xs text-slate-400 flex items-center gap-1.5 truncate mt-0.5">
+<span class="text-slate-500 font-mono">→</span>
+<span class="text-slate-300">Dawang Raoming</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                Need review (84%)
+              </span>
+<button class="text-xs px-3 py-1 font-medium rounded-lg bg-vault-elevated text-amber-200 border border-amber-500/30 hover:bg-amber-500/20 transition-colors shadow-sm" type="button">
+                Choose match
+              </button>
+</div>
+</article>
+<!-- Row 5: Suppose a Kid... -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/60 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-all group">
+<div class="flex items-center gap-3 min-w-0">
+<input checked="" class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<div class="w-10 h-14 rounded-md bg-gradient-to-br from-blue-700 via-indigo-900 to-slate-900 border border-white/10 shrink-0 shadow-sm flex items-center justify-center">
+<span class="text-[9px] font-mono text-white/50">Poster</span>
+</div>
+<div class="min-w-0 pr-2">
+<div class="font-semibold text-sm text-slate-100 truncate group-hover:text-white">
+                  Suppose a Kid from the Last...
+                </div>
+<div class="text-xs text-slate-400 flex items-center gap-1.5 truncate mt-0.5">
+<span class="text-slate-500 font-mono">→</span>
+<span class="text-slate-300">Suppose a Kid from the Last Dungeon Boonies...</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                Already in library
+              </span>
+<button class="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-lg bg-vault-elevated text-slate-400 border border-vault-border hover:text-slate-200 hover:border-vault-borderLight transition-colors" type="button">
+                Matched
+              </button>
+</div>
+</article>
+<!-- Row 6: Spirit Chronicles -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/60 hover:bg-vault-card border border-vault-border hover:border-vault-borderLight transition-all group">
+<div class="flex items-center gap-3 min-w-0">
+<input checked="" class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<div class="w-10 h-14 rounded-md bg-gradient-to-br from-purple-800 via-indigo-950 to-slate-900 border border-white/10 shrink-0 shadow-sm flex items-center justify-center">
+<span class="text-[9px] font-mono text-white/50">Poster</span>
+</div>
+<div class="min-w-0 pr-2">
+<div class="font-semibold text-sm text-slate-100 truncate group-hover:text-white">
+                  Spirit Chronicles
+                </div>
+<div class="text-xs text-slate-400 flex items-center gap-1.5 truncate mt-0.5">
+<span class="text-slate-500 font-mono">→</span>
+<span class="text-slate-300">Seirei Gensouki: Spirit Chronicles</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-lavender-brand/15 text-indigo-300 border border-lavender-brand/30">
+                Metadata matched
+              </span>
+<button class="text-xs px-3 py-1 font-medium rounded-lg bg-vault-elevated text-slate-200 border border-vault-border hover:border-sakura-500/50 hover:text-sakura-400 transition-colors shadow-sm" type="button">
+                Choose match
+              </button>
+</div>
+</article>
+<!-- Row 7: Unknown entry (Not found state) -->
+<article class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-vault-card/40 hover:bg-vault-card/70 border border-rose-500/20 transition-all group opacity-85 hover:opacity-100">
+<div class="flex items-center gap-3 min-w-0">
+<input class="rounded border-vault-border bg-vault-elevated text-sakura-500 focus:ring-sakura-500 h-4 w-4 shrink-0" type="checkbox"/>
+<!-- Unknown art placeholder -->
+<div class="w-10 h-14 rounded-md bg-vault-elevated border border-rose-500/30 shrink-0 flex items-center justify-center text-rose-400/80">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="min-w-0 pr-2">
+<div class="font-semibold text-sm text-slate-300 truncate">
+                  Unknown Isekai Web Novel 2024
+                </div>
+<div class="text-xs text-rose-400/80 flex items-center gap-1.5 truncate mt-0.5">
+<span>No AniList match found automatically</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/25">
+                Not found
+              </span>
+<button class="text-xs px-3 py-1 font-medium rounded-lg bg-vault-elevated text-slate-300 border border-vault-border hover:border-sakura-500/50 hover:text-white transition-colors" type="button">
+                + Add custom entry
+              </button>
+</div>
+</article>
+</div>
+</section>
+<!-- END: InteractiveImportListSection -->
+</main>
+<!-- END: ModalContentBody -->
+<!-- BEGIN: StickyBottomActionBar -->
+<footer class="px-6 py-4 bg-vault-surface border-t border-vault-border flex flex-col sm:flex-row items-center justify-between gap-4 z-20" data-purpose="modal-footer-actions">
+<!-- Selection Summary Information -->
+<div class="text-xs text-slate-400 flex items-center gap-2 self-start sm:self-center">
+<span class="inline-block w-2 h-2 rounded-full bg-sakura-500 animate-pulse"></span>
+<span>
+<strong class="text-slate-200 font-semibold font-mono">122</strong> of 128 titles selected
+        </span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">0 local files moved or deleted</span>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+<button class="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-vault-elevated hover:bg-vault-card border border-vault-border hover:border-vault-borderLight text-slate-300 hover:text-white transition-colors" type="button">
+          Cancel
+        </button>
+<button class="flex-1 sm:flex-none px-5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-gradient-to-r from-sakura-500 to-sakura-600 hover:from-sakura-400 hover:to-sakura-500 text-white shadow-sakura-btn hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Apply 122 matches</span>
+</button>
+</div>
+</footer>
+<!-- END: StickyBottomActionBar -->
+</div>
+<!-- END: MainImporterModal -->
+</body></html>

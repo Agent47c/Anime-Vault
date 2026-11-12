@@ -1,0 +1,486 @@
+<!DOCTYPE html><html class="dark" lang="en" style="width: 1280px; height: 1430px; overflow: hidden; position: relative;"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><title>Anime Vault</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#ffb2bc", "on-secondary": "#492900", "inverse-surface": "#e6e0f0", "outline": "#a78a8c", "surface-tint": "#ffb2bc", "on-secondary-fixed": "#2c1600", "on-tertiary": "#312d44", "inverse-primary": "#b0284b", "surface-dim": "#14121d", "on-tertiary-fixed-variant": "#48445b", "secondary-fixed-dim": "#ffb86c", "tertiary-fixed": "#e6defc", "on-primary-container": "#6a0024", "background": "#14121d", "on-secondary-container": "#ffb86c", "tertiary-container": "#9c96b1", "surface-container-high": "#2b2834", "on-tertiary-container": "#332f45", "on-surface": "#e6e0f0", "on-primary-fixed": "#400012", "secondary-fixed": "#ffdcbc", "surface-container-low": "#1c1a25", "outline-variant": "#584143", "on-error-container": "#ffdad6", "inverse-on-surface": "#312f3b", "error": "#ffb4ab", "surface-variant": "#36333f", "tertiary-fixed-dim": "#c9c3df", "surface": "#14121d", "primary-fixed": "#ffd9dd", "on-background": "#e6e0f0", "surface-container-lowest": "#0f0d17", "tertiary": "#c9c3df", "secondary": "#ffb86c", "surface-container-highest": "#36333f", "primary": "#ffb2bc", "on-secondary-fixed-variant": "#683c00", "error-container": "#93000a", "surface-container": "#201e2a", "on-surface-variant": "#dfbfc2", "surface-bright": "#3a3744", "on-primary-fixed-variant": "#8f0935", "on-primary": "#670023", "primary-container": "#ff6584", "on-tertiary-fixed": "#1c192e", "on-error": "#690005", "secondary-container": "#794700" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1.25rem", "space-xs": "0.25rem", "space-lg": "1.5rem", "margin": "2rem", "gutter-compact": "0.75rem", "margin-compact": "1.25rem", "space-md": "1rem", "space-sm": "0.5rem", "space-xl": "2.5rem" }, "fontFamily": { "body-sm": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "label-code-md": ["JetBrains Mono"], "display": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-code-sm": ["JetBrains Mono"], "label-code-lg": ["JetBrains Mono"], "body-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"] }, "fontSize": { "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "label-code-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }], "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-code-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }], "label-code-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container antialiased"><header class="fixed top-0 left-0 right-0 z-50 pointer-events-none"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter pt-[18px] flex items-center justify-between pointer-events-auto"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-primary-container shadow-[0_4px_12px_rgba(0,0,0,0.4)]"><span class="material-symbols-outlined text-[20px]">filter_vintage</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Anime Vault</span><span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim leading-tight">Twilight Sanctuary</span></div></div><div class="h-12 px-space-xs bg-[#1E1B29]/95 backdrop-blur-xl rounded-full flex items-center shadow-[0_12px_32px_-4px_rgba(10,8,16,0.65)]"><nav class="flex items-center gap-1" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-full shadow-[0_0_12px_rgba(255,101,132,0.35)]"><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="library" href="#">Library</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5 bg-primary-container text-on-primary-container font-medium shadow-[0_0_12px_rgba(255,101,132,0.35)]" data-path="updates" href="#"><span>Updates</span><span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container leading-none">3</span></a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="downloads" href="#"><span>Downloads</span><span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant leading-none">2</span></a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="organizer" href="#">Organizer</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="storage" href="#">Storage</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="settings" href="#">Settings</a></nav></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-1.5 rounded-full text-on-surface-variant shadow-[0_4px_16px_rgba(0,0,0,0.2)]"><span class="material-symbols-outlined text-[16px]">search</span><span class="font-body-sm text-body-sm text-tertiary-fixed-dim pr-space-xs">Quick Find</span></div><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-full"></div><button aria-label="Settings" class="w-9 h-9 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"></div></div></div></header><main class="w-full pt-[78px] min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- Interactive Navigation Highlight Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const updatesNav = document.querySelector('nav a[data-path="updates"]');
+      if (updatesNav) {
+        document.querySelectorAll('nav a').forEach(a => {
+          a.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-medium', 'shadow-[0_0_12px_rgba(255,101,132,0.35)]');
+          a.classList.add('text-tertiary');
+        });
+        updatesNav.classList.remove('text-tertiary');
+        updatesNav.classList.add('bg-primary-container', 'text-on-primary-container', 'font-medium', 'shadow-[0_0_12px_rgba(255,101,132,0.35)]');
+      }
+    });
+  </script>
+<div class="max-w-[1440px] mx-auto w-full px-gutter-compact lg:px-gutter py-space-lg flex flex-col gap-space-lg">
+<!-- Header Section with Atmospheric Glow -->
+<div class="relative w-full rounded-xl bg-surface-container-low p-space-lg overflow-hidden shadow-xl">
+<div class="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-primary-container/10 blur-[90px] pointer-events-none"></div>
+<div class="absolute left-1/3 -bottom-16 w-80 h-80 rounded-full bg-secondary/5 blur-[80px] pointer-events-none"></div>
+<div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-code-sm text-label-code-sm uppercase tracking-wider text-primary">Ledger // Real-time Tracking</span>
+<span class="w-1 h-1 rounded-full bg-surface-variant"></span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Vault Daemon v2.4.9</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight flex items-center gap-space-sm">
+            Updates &amp; Library Health
+            <span class="font-label-code-sm text-label-code-sm px-2 py-0.5 rounded-full bg-surface-container-high text-tertiary font-normal">Active Watchlist</span>
+</h1>
+<div class="flex flex-wrap items-center gap-space-md pt-0.5">
+<div class="flex items-center gap-1.5">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+</span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant">AniList API Connected</span>
+</div>
+<span class="text-surface-variant">•</span>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[15px]">sync</span>
+<span class="font-label-code-sm text-label-code-sm">Synced 12m ago</span>
+</div>
+<span class="text-surface-variant">•</span>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[15px]">database</span>
+<span class="font-label-code-sm text-label-code-sm">4,120 titles indexed</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-headline-sm flex items-center gap-space-xs transition-all shadow-sm active:scale-95 group" id="btn-sync-all" onclick="refreshLedger()">
+<span class="material-symbols-outlined text-[18px] text-tertiary group-hover:rotate-180 transition-transform duration-500">cached</span>
+<span class="font-body-md text-body-md">Refresh Metadata</span>
+<kbd class="font-label-code-sm text-label-code-sm bg-surface-container-lowest px-1.5 py-0.5 rounded text-tertiary-fixed-dim ml-1">Ctrl+R</kbd>
+</button>
+<button class="px-space-md py-2 rounded-full bg-primary-container text-on-primary-container font-headline-sm text-headline-sm flex items-center gap-1.5 shadow-[0_0_16px_rgba(255,101,132,0.35)] hover:bg-[#FF7A95] transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">rule_folder</span>
+<span class="font-body-md text-body-md font-semibold">Auto-Fix Gaps</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Health Diagnostics Alert Ribbon -->
+
+<!-- 8 Filter Tabs Header Strip -->
+<div class="w-full flex items-center justify-between gap-space-md overflow-x-auto pb-1 scrollbar-none">
+<div class="flex items-center gap-1.5 p-1 rounded-full bg-surface-container-lowest shrink-0">
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-primary-container bg-primary-container font-semibold transition-all shadow-[0_0_12px_rgba(255,101,132,0.35)] flex items-center gap-1.5" data-tab="all" onclick="filterTab('all')">
+<span>All</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-on-primary-container/20 text-on-primary-container">14</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="episodes" onclick="filterTab('episodes')">
+<span>Episodes</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim">6</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="seasons" onclick="filterTab('seasons')">
+<span>Seasons</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim">3</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="gaps" onclick="filterTab('gaps')">
+<span>Health &amp; Gaps</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-secondary-container text-secondary font-medium">2</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="new" onclick="filterTab('new')">
+<span>New</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim">3</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="later" onclick="filterTab('later')">
+<span>Later</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim">0</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="not-interested" onclick="filterTab('not-interested')">
+<span>Not Interested</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim">0</span>
+</button>
+<button class="tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-tab="muted" onclick="filterTab('muted')">
+<span>Muted</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim">1</span>
+</button>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<div class="flex items-center gap-1 bg-surface-container-lowest px-3 py-1.5 rounded-full text-tertiary">
+<span class="material-symbols-outlined text-[16px]">sort</span>
+<span class="font-label-code-sm text-label-code-sm">Sort: Severity &amp; Date</span>
+</div>
+<button class="p-1.5 rounded-full bg-surface-container-lowest text-tertiary hover:text-on-surface" title="Batch Mark Read">
+<span class="material-symbols-outlined text-[18px]">done_all</span>
+</button>
+</div>
+</div>
+<!-- Ledger Feed Container -->
+<div class="flex flex-col gap-space-md" id="ledger-feed">
+<!-- CARD 1: Chainsaw Man Reze Arc (New Season Announced) -->
+<article class="ledger-row group relative w-full rounded-xl bg-surface-container p-space-md transition-all hover:bg-surface-container-high shadow-md" data-category="seasons new">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<!-- Poster Frame with 2:3 ratio -->
+<div class="relative w-20 h-28 shrink-0 rounded-lg overflow-hidden bg-surface-container-lowest shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Chainsaw Man movie promotional anime poster visual, dark twilight atmospheric crimson lighting with Reze standing amidst city explosions and floating rose petals, MAPPA aesthetic studio quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDePGxcrN_FNKD1oEl0ZkyWh30ueCyNSwoedS1wmorMizpWmEXjd5imEjKAenL5JWhN5pktVI9FRgxFOxUxJYYVbBe5ZUtKaYw4kiYBub5v71lyTQhDEGFsVkfRx9Gez8o28lVCM8wNe3B0RZkQqeuFlaB2YYUS-JK0VOQgq7gWMEypTOqlKBy3ybo8SsONivaqRa_YBwmQEgk_aeE63-ijHiMydYCzYHHSm2sqy_w">
+<div class="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-code-sm text-label-code-sm text-primary">MOVIE</div>
+</div>
+<!-- Content Details -->
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-primary-container/20 text-primary font-label-code-sm text-label-code-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">celebration</span>
+                  New Season Announced
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">AniList #172421</span>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary">Theatrical Fall 2025</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight truncate">Chainsaw Man: Reze Arc (Movie)</h2>
+<div class="flex flex-wrap items-center gap-space-sm text-on-surface-variant">
+<span class="font-body-sm text-body-sm text-tertiary">Studio: <strong class="text-on-surface font-medium">MAPPA</strong></span>
+<span class="text-surface-variant">•</span>
+<span class="font-body-sm text-body-sm text-tertiary">Sequel to: <strong class="text-on-surface font-medium">Chainsaw Man (Season 1)</strong></span>
+<span class="text-surface-variant">•</span>
+
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 max-w-2xl pt-1">
+                Official cinematic sequel confirmed. Vault auto-tracking has created a placeholder tracking entity in your library watchlist.
+              </p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-xs shrink-0 lg:self-center">
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-highest hover:bg-surface-bright text-on-surface font-body-sm text-body-sm transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span>View Changes</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container-highest text-tertiary hover:text-on-surface font-body-sm text-body-sm transition-all" onclick="dismissRow(this, 'later')">
+              Later
+            </button>
+<button class="p-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest transition-colors" onclick="dismissRow(this, 'dismiss')" title="Dismiss">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+</article>
+<!-- CARD 2: Frieren (New Episode Aired - Ep 29) -->
+<article class="ledger-row group relative w-full rounded-xl bg-surface-container p-space-md transition-all hover:bg-surface-container-high shadow-md" data-category="episodes new">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="relative w-20 h-28 shrink-0 rounded-lg overflow-hidden bg-surface-container-lowest shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Frieren: Beyond Journey's End anime episode frame, magical staff glowing with golden light in a calm twilight ancient forest, cinematic anime shot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN3OIM4cthKetd70lHqcppZS2fErruaItkL0Cei0JkHVHVgQDWVnxuTRQc2k3Hwn935nztR7L80r4JHnEO8BLx9CDxej4wKgpW0pTPx2l61mSgRMCI8JDF3sdDXciI_7S-_m0-6bE7o2t2iECJRajX20JM9jjGh5iODfUELAdHg6YGF0LtlKz9bKYKK-a8wyuaycDgn2tVAnnnsm-2TRgkbFVprnbvJxfDstS8VhQ">
+<div class="absolute bottom-0 inset-x-0 h-1 bg-surface-container-highest">
+<div class="h-full bg-primary-container" style="width: 0%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary font-label-code-sm text-label-code-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">play_circle</span>
+                  New Episode Aired
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Broadcasted 42m ago</span>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary">Madhouse</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight truncate">Frieren: Beyond Journey's End — Episode 29</h2>
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-tertiary">1080p Web-DL</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-tertiary">MULTI-SUBS</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-tertiary">E-AC-3</span>
+<span class="text-surface-variant">•</span>
+
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 max-w-2xl pt-1">
+                Release group [SubsPlease] and [Erai-raws] available via automated indexers. Awaiting manual confirmation or daemon ingest.
+              </p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-xs shrink-0 lg:self-center">
+<button class="px-space-md py-1.5 rounded-full bg-primary-container text-on-primary-container font-body-md text-body-md font-semibold flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,101,132,0.3)] hover:bg-[#FF7A95] transition-all">
+<span class="material-symbols-outlined text-[16px]">cloud_download</span>
+<span>Find Download Files</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container-highest text-tertiary hover:text-on-surface font-body-sm text-body-sm transition-all" onclick="dismissRow(this, 'dismiss')">
+              Dismiss
+            </button>
+</div>
+</div>
+</article>
+<!-- CARD 3: Dandadan (Metadata & Poster Refresh Available) -->
+<article class="ledger-row group relative w-full rounded-xl bg-surface-container p-space-md transition-all hover:bg-surface-container-high shadow-md" data-category="new">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<!-- Split Diff visual preview -->
+<div class="relative flex items-center shrink-0">
+<div class="w-14 h-24 rounded-lg overflow-hidden bg-surface-container-lowest opacity-40 shadow-sm">
+<img class="w-full h-full object-cover grayscale" data-alt="Old low resolution poster for Dandadan anime with washed out colors and blurry text logo." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcYzRYvLSOghVsJ5ncohCGYDTmUqrVjbsgivtS3jG_slvflLd-Sub-a38Y1PpoaQT_Q_GMtRSrNqFD0_AHMmlu3jfJVCF_K52nhkqVSLketiNKp74wkavsNUKY8GXD0jiXK-tkAzU4bzVUUkg-ixUXjmdoHU1OzzU8VCASG9lI9fUPcS6ynxhZix8_Bj6_NLwvO7MLbdCy8A9gyeJRSCh3fia4vj5vInLWc1KlzDQ">
+</div>
+<div class="w-16 h-28 -ml-6 rounded-lg overflow-hidden bg-surface-container-lowest z-10 shadow-lg ring-2 ring-primary">
+<img class="w-full h-full object-cover" data-alt="Dandadan official high fidelity key visual poster with vibrant neon turquoise and sakura magenta accents, ultra crisp typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAikNlKM0sFb9-iKGT4whoRt2hMZ9wetw7pkdjuzMGNRwymhkqAStiM8Zb8F2vAt58zUKc1Avk6t0TPzMSFR7uxCaesAi8GVkBbSdTVailsl7gZ8e-cCgKYuB6LYkDXv5aXSXtSNcJMPgZvw5H09JWoFJkCFD2hCnUny884yMbE0oLLQjdE7tBAqVoKxXpGkBWYyjqUdFZo-T0S5DqZ-W84WkEAcJqzW1jOJK-m490">
+</div>
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-tertiary font-label-code-sm text-label-code-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">palette</span>
+                  Poster &amp; Metadata Diff
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Science SARU</span>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-sm text-label-code-sm text-primary">+Official 4K Key Art</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight truncate">Dandadan (Season 1)</h2>
+<div class="flex flex-wrap items-center gap-space-sm">
+
+
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 max-w-2xl pt-1">
+                AniList pushed revised chapter synopses and official promotional artwork by Science SARU. No video re-encoding necessary.
+              </p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-xs shrink-0 lg:self-center">
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-highest hover:bg-surface-bright text-on-surface font-body-sm text-body-sm transition-all flex items-center gap-1" onclick="applyUpdate(this)">
+<span class="material-symbols-outlined text-[16px]">sync_alt</span>
+<span>Apply Update</span>
+</button>
+<button class="p-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest transition-colors" onclick="dismissRow(this, 'dismiss')" title="Dismiss">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+</article>
+<!-- CARD 4: Vinland Saga Season 2 (Library Health - Sequence Gap) -->
+<article class="ledger-row group relative w-full rounded-xl bg-surface-container p-space-md transition-all hover:bg-surface-container-high shadow-md" data-category="gaps">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="relative w-20 h-28 shrink-0 rounded-lg overflow-hidden bg-surface-container-lowest shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Vinland Saga Season 2 Ketil farm wheat field dramatic dusk sky with Thorfinn standing quietly, painterly atmospheric lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoUz4U7t84UClRxSJSx_PXFLaDcz_yMEJMgi5zqRJQExb2dXK-8hQzSzyIjF7XSkg8TvzDScU7oyPU-0OApNS7Ce45vz88wYxRvE-3hKMHizYYwnsClfto-PhfaI4BWZIsIARackF41nWc8c14G10DLy9gcihLtTdG1svBpVyU4JiBYzSP7WSV0wgIMhyPKHqcT7nuCMR62R71qTTIzQvH9v-Uny9Kvj9IgNRjSBc">
+<div class="absolute inset-0 bg-secondary/10"></div>
+<div class="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-code-sm text-label-code-sm">
+                ! GAP
+              </div>
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-secondary font-label-code-sm text-label-code-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">broken_image</span>
+                  Missing Episode Gap
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-secondary">Disk /mnt/vault/anime/</span>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-sm text-label-code-sm text-error">Missing: Episode 14</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight truncate">Vinland Saga Season 2</h2>
+<div class="flex flex-wrap items-center gap-space-sm text-tertiary">
+<span class="font-body-sm text-body-sm">Sequence Break:</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">EP 13</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-secondary-container text-secondary font-bold">─── [EP 14 MISSING] ───</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">EP 15</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 max-w-2xl pt-1">
+                Expected file <span class="font-label-code-sm text-label-code-sm text-on-surface">[SubsPlease] Vinland Saga S2 - 14 (1080p).mkv</span> not located in volume. Watch order broken.
+              </p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-xs shrink-0 lg:self-center">
+<button class="px-space-md py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-body-md text-body-md font-semibold flex items-center gap-1.5 hover:bg-secondary transition-all">
+<span class="material-symbols-outlined text-[16px]">manage_search</span>
+<span>Review Files &amp; Details</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container-highest text-tertiary hover:text-on-surface font-body-sm text-body-sm transition-all" onclick="dismissRow(this, 'ignore')">
+              Ignore Gap
+            </button>
+</div>
+</div>
+</article>
+<!-- CARD 5: Delicious in Dungeon (Episode Audio/Track Revision) -->
+<article class="ledger-row group relative w-full rounded-xl bg-surface-container p-space-md transition-all hover:bg-surface-container-high shadow-md" data-category="episodes">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="relative w-20 h-28 shrink-0 rounded-lg overflow-hidden bg-surface-container-lowest shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Delicious in Dungeon anime Marcille and Laios cooking monster hotpot in a dark dungeon, warm lantern glow, Studio Trigger style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB-uGAW7d1rburAh6iS6jYipAD_y0eZ0NoVRy0z-tJrSDa2jfJfR14CgaRR7qfdPQvcRDGmkRz5fg0mo6ikhZoCQXergfDCcWRt-uJOxr3zniRi2jfoDKb6YyCLJsuj68HOGDTuwJQrNh5_1t_LERaOKp7ub9VL7Xs9_gccKzxqO2o6Ex0baTQG-FnK1aD6oayPkVfckF0OKgua7o_Aspkp9tMepBsYuFRQlYVwF4">
+<div class="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-code-sm text-label-code-sm text-tertiary">TRACK</div>
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-tertiary font-label-code-sm text-label-code-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">graphic_eq</span>
+                  Audio / Subtitle Track Revision
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Studio Trigger</span>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-sm text-label-code-sm text-primary">v2 Patch</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight truncate">Delicious in Dungeon — Ep 18-24 Dual Audio Fix</h2>
+<div class="flex flex-wrap items-center gap-space-sm text-on-surface-variant">
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-tertiary">FLAC 5.1 -&gt; TrueHD</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-tertiary">Fixed Desync @ 14:22</span>
+<span class="text-surface-variant">•</span>
+<span class="font-body-sm text-body-sm text-tertiary">Release: <strong class="text-on-surface font-medium">[Kaleido]</strong></span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 max-w-2xl pt-1">
+                Release group published corrected MKV mux with aligned dub timings and translated cooking diagram signs.
+              </p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-xs shrink-0 lg:self-center">
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-highest hover:bg-surface-bright text-on-surface font-body-sm text-body-sm transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">compare</span>
+<span>View Changes</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container-highest text-tertiary hover:text-on-surface font-body-sm text-body-sm transition-all" onclick="dismissRow(this, 'not-interested')">
+              Not Interested
+            </button>
+<button class="p-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest transition-colors" onclick="dismissRow(this, 'dismiss')" title="Dismiss">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+</article>
+<!-- CARD 6: Bleach TYBW (Muted State / Restore Row) -->
+<article class="ledger-row group relative w-full rounded-xl bg-surface-container-lowest p-space-md transition-all hover:bg-surface-container-low opacity-75 hover:opacity-100 shadow-sm" data-category="muted">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="relative w-20 h-28 shrink-0 rounded-lg overflow-hidden bg-surface-container shadow-sm grayscale contrast-125">
+<img class="w-full h-full object-cover" data-alt="Bleach Thousand-Year Blood War anime Ichigo Kurosaki holding dual Zanpakuto in silhouette with deep purple twilight mist." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCXP1i9ynJsrNFQu7YG4BVhXb3SFMGiabd5DbhKWilY2B4UXszOLhu5okHY0f_0yPLJ_bVddtUhvdjidPm2IuwA5DgziKy_f8RbPoYUiopk9g92f3nAJgZCBw5_dWJMcPI46zVTOc9yn2z5V9e2gXUL6oolZNMB5TJ8xA6tPf6VVDHS3q_ktgjf9-G4C832HYd5V5P8xOE4N6KawNunI8aYvjjJxyhRsgG6PUsUfA">
+<div class="absolute inset-0 bg-surface/60 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[24px]">volume_off</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-tertiary-fixed-dim font-label-code-sm text-label-code-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">volume_off</span>
+                  Muted Notification Rule
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Muted 3 weeks ago</span>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Studio Pierrot</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface-variant tracking-tight line-through truncate">
+                Bleach: Thousand-Year Blood War — The Conflict
+              </h2>
+<div class="flex flex-wrap items-center gap-space-sm text-tertiary">
+<span class="font-body-sm text-body-sm">Silenced events: <span class="text-on-surface">New Episodes, Trailer Releases, Metadata Sync</span></span>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary-fixed-dim line-clamp-1 max-w-2xl pt-1">
+                Updates are hidden from normal dashboard alerts. Local files continue syncing in background.
+              </p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-xs shrink-0 lg:self-center">
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-body-sm transition-all flex items-center gap-1.5 shadow-sm" onclick="restoreUpdates(this)">
+<span class="material-symbols-outlined text-[16px] text-primary">volume_up</span>
+<span>Restore Updates</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container-highest text-tertiary hover:text-on-surface font-body-sm text-body-sm transition-all" onclick="dismissRow(this, 'watched-and-ignore')">
+              Watched &amp; Ignore
+            </button>
+<button class="p-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest transition-colors" onclick="dismissRow(this, 'dismiss')" title="Delete Rule">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+<!-- Quick Action / Status Footer Deck -->
+<div class="w-full rounded-xl bg-surface-container-low p-space-md flex flex-col md:flex-row items-center justify-between gap-space-md mt-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[20px]">tune</span>
+<span class="font-body-sm text-body-sm text-tertiary">
+          Auto-dismiss rules: <strong class="text-on-surface font-medium">Ignore sub-only release tags if dual-audio profile is active</strong>
+</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Showing 6 of 14 alerts</span>
+<button class="px-space-md py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-code-sm text-label-code-sm transition-colors">
+          View All Completed Records
+        </button>
+</div>
+</div>
+</div>
+<!-- Interactive Filtering & Ledger Operations -->
+<script>
+    function filterTab(category) {
+      // Update Tab Styles
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => {
+        if (tab.getAttribute('data-tab') === category) {
+          tab.className = 'tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-primary-container bg-primary-container font-semibold transition-all shadow-[0_0_12px_rgba(255,101,132,0.35)] flex items-center gap-1.5';
+          const badge = tab.querySelector('span:last-child');
+          if (badge) badge.className = 'font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-on-primary-container/20 text-on-primary-container';
+        } else {
+          tab.className = 'tab-btn px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5';
+          const badge = tab.querySelector('span:last-child');
+          if (badge) badge.className = 'font-label-code-sm text-label-code-sm px-1.5 py-0.2 rounded-full bg-surface-container-high text-tertiary-fixed-dim';
+        }
+      });
+
+      // Filter rows
+      const rows = document.querySelectorAll('.ledger-row');
+      rows.forEach(row => {
+        const cats = row.getAttribute('data-category') || '';
+        if (category === 'all') {
+          row.style.display = 'flex';
+        } else if (category === 'gaps' && cats.includes('gaps')) {
+          row.style.display = 'flex';
+        } else if (cats.includes(category)) {
+          row.style.display = 'flex';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    function dismissRow(btn, actionType) {
+      const row = btn.closest('.ledger-row');
+      if (row) {
+        row.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(24px)';
+        setTimeout(() => {
+          row.remove();
+        }, 300);
+      }
+    }
+
+    function applyUpdate(btn) {
+      btn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-primary animate-spin">refresh</span><span>Applying...</span>';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-[#10B981]">check_circle</span><span>Applied</span>';
+        btn.classList.add('bg-surface-container-high', 'text-[#10B981]');
+      }, 700);
+    }
+
+    function restoreUpdates(btn) {
+      const row = btn.closest('.ledger-row');
+      if (row) {
+        row.classList.remove('opacity-75', 'bg-surface-container-lowest');
+        row.classList.add('bg-surface-container');
+        const h2 = row.querySelector('h2');
+        if (h2) h2.classList.remove('line-through', 'text-on-surface-variant');
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-[#10B981]">check</span><span>Restored</span>';
+        btn.disabled = true;
+      }
+    }
+
+    function refreshLedger() {
+      const icon = document.querySelector('#btn-sync-all span');
+      if (icon) icon.classList.add('animate-spin');
+      setTimeout(() => {
+        if (icon) icon.classList.remove('animate-spin');
+      }, 1000);
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-lowest/80 backdrop-blur-md"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter py-space-md flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg text-on-surface-variant"><div class="flex items-center gap-space-xs"><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">Space</kbd><span class="font-body-sm text-body-sm">Play/Pause</span></div><div class="flex items-center gap-space-xs"></div><div class="flex items-center gap-space-xs"><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">F</kbd><span class="font-body-sm text-body-sm">Fullscreen</span></div></div><div class="flex items-center gap-space-sm"><span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Anime Vault OS</span><span class="font-label-code-sm text-label-code-sm text-primary">Sakura 1.0</span></div></div></footer>
+
+
+
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>

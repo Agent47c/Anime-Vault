@@ -8,6 +8,8 @@ import json
 import socket
 import sys
 import threading
+import os
+import secrets
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +20,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import db
 from app.config import COVERS_DIR, LOCAL_API_HOST, LOCAL_API_PORT
+from app.config import API_ACCESS_TOKEN
+ALLOWED_API_ORIGINS=[value.strip() for value in os.getenv('ALLOWED_API_ORIGINS','').split(',') if value.strip() and value.strip()!='*']
+
+def public_payload(value):
+    if isinstance(value,list):return [public_payload(item) for item in value]
+    if isinstance(value,dict):return {key:public_payload(item) for key,item in value.items() if key not in ('root_folder_path','season_folder_path','scan_root','user_notes','user_rating','metadata_json')}
+    return value
 
 # FastAPI app
 api = FastAPI(
@@ -31,11 +40,27 @@ app = api
 # Allow CORS for local streaming site
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_API_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["Authorization","X-API-Token"],
 )
+
+@api.middleware('http')
+async def protect_api(request,call_next):
+    if LOCAL_API_HOST not in ('127.0.0.1','::1','localhost') and not API_ACCESS_TOKEN:
+        return JSONResponse({'detail':'Non-loopback API requires API_ACCESS_TOKEN'},status_code=503)
+    origin=request.headers.get('origin')
+    local_origin=str(request.base_url).rstrip('/')
+    if origin and origin not in [local_origin,*ALLOWED_API_ORIGINS]:
+        return JSONResponse({'detail':'Origin is not allowed'},status_code=403)
+    if API_ACCESS_TOKEN and request.method!='OPTIONS':
+        supplied=request.headers.get('authorization','')
+        token=supplied[7:] if supplied.startswith('Bearer ') else request.headers.get('x-api-token','')
+        if not secrets.compare_digest(token.encode(),API_ACCESS_TOKEN.encode()):return JSONResponse({'detail':'Authentication required'},status_code=401)
+    response=await call_next(request)
+    response.headers['X-Content-Type-Options']='nosniff'
+    return response
 
 
 
@@ -45,7 +70,7 @@ api.add_middleware(
 @api.get("/api/library")
 async def get_library(
     sort_by: str = Query("display_title", description="Sort field"),
-    sort_order: str = Query("ASC", description="ASC or DESC"),
+    sort_order: str = Query("ASC", pattern="^(ASC|DESC|asc|desc)$", description="ASC or DESC"),
     search: str = Query("", description="Search query"),
     watch_status: Optional[str] = Query(None),
     storage_state: Optional[str] = Query(None),
@@ -65,7 +90,7 @@ async def get_library(
             f["genres"] = json.loads(f.get("genres", "[]"))
         except (json.JSONDecodeError, TypeError):
             f["genres"] = []
-    return franchises
+    return public_payload(franchises)
 
 
 @api.get("/api/franchise/{franchise_id}")
@@ -74,7 +99,7 @@ async def get_franchise(franchise_id: int):
     franchise = franchise_payload(franchise_id)
     if not franchise:
         raise HTTPException(status_code=404, detail="Franchise not found")
-    return franchise
+    return public_payload(franchise)
 
 
 def franchise_payload(franchise_id: int):
@@ -118,7 +143,7 @@ async def get_seasons(franchise_id: int):
             s["video_files"] = json.loads(s.get("video_files_json", "[]"))
         except (json.JSONDecodeError, TypeError):
             s["video_files"] = []
-    return seasons
+    return public_payload(seasons)
 
 
 @api.get("/api/cover/{franchise_id}")
@@ -128,7 +153,9 @@ async def get_cover(franchise_id: int):
     if not franchise or not franchise.get("cover_filename"):
         raise HTTPException(status_code=404, detail="Cover not found")
 
-    cover_path = COVERS_DIR / franchise["cover_filename"]
+    cover_path = (COVERS_DIR / franchise["cover_filename"]).resolve()
+    try:cover_path.relative_to(COVERS_DIR.resolve())
+    except ValueError:raise HTTPException(status_code=403,detail='Invalid cover path')
     if not cover_path.is_file():
         raise HTTPException(status_code=404, detail="Cover file missing")
 
@@ -202,7 +229,7 @@ async def get_updates():
     updates = [f for f in franchises if f.get("has_new_update")]
     for franchise in updates:
         franchise.pop("metadata_json", None)
-    return updates
+    return public_payload(updates)
 
 
 
@@ -224,6 +251,7 @@ def api_base_url():
 def start_server():
     """Reserve a port before starting Uvicorn, using a free port if needed."""
     global _server_thread, _server_instance, _bound_port
+    if LOCAL_API_HOST not in ('127.0.0.1','::1','localhost') and not API_ACCESS_TOKEN:return None
     if _server_thread and _server_thread.is_alive():
         return api_base_url()
 

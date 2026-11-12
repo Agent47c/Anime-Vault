@@ -51,13 +51,14 @@ class ToggleSwitch(QCheckBox):
         checked = self.isChecked()
 
         # Background track
-        bg_color = QColor("#8e75ff") if checked else QColor("#222638")
+        from app.ui.home_style import colors
+        c=colors();bg_color = QColor(c['coral'] if checked else c['raised'])
         painter.setBrush(bg_color)
         painter.setPen(Qt.NoPen)
         painter.drawRoundedRect(rect, 12, 12)
 
         # Thumb
-        painter.setBrush(QColor("#0b0c10" if checked else "#8e94a8"))
+        painter.setBrush(QColor(c['bg'] if checked else c['muted']))
         thumb_x = rect.width() - 20 if checked else 4
         painter.drawEllipse(thumb_x, 4, 16, 16)
         painter.end()
@@ -351,6 +352,13 @@ class OrganizerPage(QWidget):
         self._preview_stale = False
 
         self._setup_ui()
+        from app.ui.organizer_style import apply_layout
+        apply_layout(self);self.refresh_home_style()
+        from app.ui.pages.duplicate_page import DuplicatePage
+        self._duplicate_page=DuplicatePage(self);self._duplicate_page.setWindowFlags(Qt.Widget)
+        self.organizer_tabs.addTab(self._duplicate_page,'Review duplicate files')
+        self._duplicate_page.data_changed.connect(self.data_changed.emit)
+        self._duplicate_page.busy_changed.connect(self._duplicates_busy)
         self._load_library_roots()
         from app.ui.organizer_cache import load_preview
         cached = load_preview(self._rules)
@@ -362,6 +370,10 @@ class OrganizerPage(QWidget):
             self.top_status_badge.setText('Ready — click Scan now')
         from app.ui.organizer_cache import configuration
         self._shown_config = configuration(self._rules)
+
+    def refresh_home_style(self):
+        from app.ui.organizer_style import refresh
+        if getattr(self,'_reference_organizer',False):refresh(self)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -479,22 +491,15 @@ class OrganizerPage(QWidget):
             for worker in (self._worker, getattr(self, "_batch_worker", None))
         ):
             return
-        if getattr(self, "_duplicate_page", None) is not None:
-            page = self._duplicate_page
-            if page._busy():
-                return
-        from app.ui.pages.duplicate_page import DuplicatePage
-        page = DuplicatePage(self)
-        self._duplicate_page = page
-        page.data_changed.connect(self.data_changed.emit)
-        page.busy_changed.connect(self._duplicates_busy)
-        navigate(page)
+        self.organizer_tabs.setCurrentWidget(self._duplicate_page)
 
     def _duplicates_busy(self, busy):
         self._merge_busy_changed(busy)
         self.merge_page.setEnabled(not busy)
 
     def _merge_busy_changed(self, busy):
+        duplicate=getattr(self,'_duplicate_page',None)
+        if duplicate is not None and not duplicate._busy():duplicate.setEnabled(not busy)
         for control in (self.organize_btn, self.scan_btn, self.find_missing_btn, self.table):
             control.setEnabled(not busy)
         if not busy:
@@ -747,7 +752,10 @@ class OrganizerPage(QWidget):
                 color: #f3f4f6;
             }
         """)
-        self.search_filter.textChanged.connect(self._render_table)
+        from PyQt5.QtCore import QTimer
+        self._filter_timer=QTimer(self);self._filter_timer.setSingleShot(True);self._filter_timer.setInterval(150)
+        self._filter_timer.timeout.connect(self._apply_table_filter)
+        self.search_filter.textChanged.connect(lambda:self._filter_timer.start())
 
 
         layout.addLayout(top_row)
@@ -795,10 +803,12 @@ class OrganizerPage(QWidget):
         self.table.setColumnCount(4)
         self.table.verticalHeader().setDefaultSectionSize(64)
         self.table.setHorizontalHeaderLabels(["Folder / Anime", "Files", "Proposed", "Action"])
+        self.table.setObjectName('organizer_preview_table')
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for column, width in ((1, 76), (2, 126), (3, 116)):
-            self.table.horizontalHeader().setSectionResizeMode(column, QHeaderView.Fixed)
+        for column, width in ((1, 90), (2, 164), (3, 132)):
+            self.table.horizontalHeader().setSectionResizeMode(column, QHeaderView.ResizeToContents)
             self.table.setColumnWidth(column, width)
+        self.table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.verticalHeader().setVisible(False)
         self.table.setStyleSheet("""
@@ -911,7 +921,9 @@ class OrganizerPage(QWidget):
 
             state = d.get('availability','UNSCANNED')
             suffix = ' · ' + state.title() if state in ('OFFLINE','INACCESSIBLE') else ''
-            p_lbl = ElidedLabel(d["folder_path"] + suffix)
+            from app.ui.components.folder_button import FolderButton
+            p_lbl = FolderButton(d['folder_path'])
+            if suffix:p_lbl.setText(p_lbl.text()+suffix)
             p_lbl.setToolTip(d.get('scan_error') or d["folder_path"])
             p_lbl.setMinimumWidth(0)
             p_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
@@ -938,6 +950,8 @@ class OrganizerPage(QWidget):
             r_layout.addWidget(del_btn)
 
             self.roots_list_layout.addWidget(row)
+            if getattr(self,'_reference_organizer',False):
+                for widget in (row,*row.findChildren(QWidget)):widget.setStyleSheet('')
 
     def _add_library_root(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Anime Library Root Directory")
@@ -1126,6 +1140,10 @@ class OrganizerPage(QWidget):
         self._render_table()
 
     def _update_tab_styles(self):
+        if getattr(self,'_reference_organizer',False):
+            for button,key in ((self.tab_unorg_btn,'unorganized'),(self.tab_org_btn,'organized'),(self.tab_all_btn,'all')):
+                button.setStyleSheet('');button.setChecked(key==self._current_tab)
+            return
         buttons = [
             (self.tab_unorg_btn, "unorganized"),
             (self.tab_org_btn, "organized"),
@@ -1170,9 +1188,6 @@ class OrganizerPage(QWidget):
 
         filtered_items = []
         for idx, item in enumerate(items):
-            if query:
-                if query not in item.get("anime_name", "").lower() and query not in item.get("folder_path", "").lower():
-                    continue
             filtered_items.append((idx, item))
 
         self.table.setRowCount(len(filtered_items))
@@ -1265,7 +1280,8 @@ class OrganizerPage(QWidget):
             badge_layout = QHBoxLayout(badge_cell)
             badge_layout.setContentsMargins(4, 0, 4, 0)
             b_lbl.setFixedHeight(24)
-            badge_layout.addWidget(b_lbl, 0, Qt.AlignVCenter)
+            b_lbl.setMinimumWidth(b_lbl.fontMetrics().horizontalAdvance(badge_text)+28)
+            badge_layout.addWidget(b_lbl, 0, Qt.AlignCenter)
             self.table.setCellWidget(row_idx, 2, badge_cell)
 
             # Column 3: Review Button
@@ -1283,7 +1299,7 @@ class OrganizerPage(QWidget):
             action_cell.setObjectName('organizer_cell')
             action_layout = QHBoxLayout(action_cell)
             action_layout.setContentsMargins(6, 0, 6, 0)
-            action_layout.addWidget(rev_btn, 0, Qt.AlignVCenter)
+            action_layout.addWidget(rev_btn, 0, Qt.AlignCenter)
             self.table.setCellWidget(row_idx, 3, action_cell)
 
             if is_checked:
@@ -1299,6 +1315,15 @@ class OrganizerPage(QWidget):
             self.organize_btn.setText("Files already organized")
         else:
             self.organize_btn.setText(f"Organize {total_selected_folders} selected anime")
+
+        from app.ui.organizer_style import style_cells
+        style_cells(self)
+        self._apply_table_filter()
+
+    def _apply_table_filter(self):
+        query=self.search_filter.text().strip().casefold()
+        for row,item in enumerate(self._data.get(self._current_tab,[])):
+            self.table.setRowHidden(row,bool(query) and query not in item.get('anime_name','').casefold() and query not in item.get('folder_path','').casefold())
 
     def _on_item_checked(self, orig_idx: int, state: int):
         if state == Qt.Checked:
@@ -1331,6 +1356,15 @@ class OrganizerPage(QWidget):
             self._open_review_dialog(filtered[row])
 
     def _open_review_dialog(self, item: Dict[str, Any]):
+        if item.get('download_job_id') or Path(item.get('folder_path','')).name.lstrip('.').lower()=='animevault-downloads':
+            from app.core.download_library import preview
+            from app.ui.dialogs.download_library_move import DownloadLibraryMove
+            from app.ui.io_task import start
+            identifier=item.get('download_job_id')
+            def show(plan):
+                if identifier:plan['rows']=[row for row in plan['rows'] if row['job_id']==identifier]
+                navigate(DownloadLibraryMove(plan,self),lambda _:self.data_changed.emit())
+            start(self,preview,show);return
         if self._preview_stale:
             return
         if self._worker and self._worker.isRunning():
@@ -1354,6 +1388,8 @@ class OrganizerPage(QWidget):
             return
         items = self._data.get(self._current_tab, [])
         selected = [items[i] for i in sorted(self._selected_items) if i < len(items)]
+        if any(item.get('download_job_id') for item in selected):
+            QMessageBox.information(self,'Review completed download moves','Use Review on each completed download to confirm its anime and season destination.');return
 
         if not selected:
             return

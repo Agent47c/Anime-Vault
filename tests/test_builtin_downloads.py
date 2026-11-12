@@ -56,8 +56,8 @@ class BuiltinTests(unittest.TestCase):
                 self.assertEqual(service.add_download(self.fid,str(path),2,origin='browser:test'),destination)
                 entries=service.builtin_files(job['id'])
                 self.assertEqual(len(entries),2)
-                self.assertTrue(all(e['priority']==0 for e in entries))
-                with self.assertRaises(ValueError): service.control_builtin(job['id'],'resume')
+                self.assertTrue(all(e['priority']==4 for e in entries))
+                service.control_builtin(job['id'],'resume')
                 with self.assertRaises(ValueError): service.control_builtin(job['id'],'files',[])
                 service.control_builtin(job['id'],'files',[0])
                 job=service.jobs()[0]

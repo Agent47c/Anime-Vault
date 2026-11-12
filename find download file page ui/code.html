@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Find Download Files &amp; Release Search</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk & Plus Jakarta Sans & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration for Twilight Sakura Palette -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              obsidian: '#12111a',
+              canvas: '#14121d',
+              surface: '#1a1826',
+              elevated: '#1f1d2e',
+              border: '#2d293d',
+              borderLight: '#3f3a53',
+              sakura: '#ff6584',
+              sakuraHover: '#ff4d72',
+              lavender: '#a78bfa',
+              cyan: '#38bdf8',
+              emerald: '#34d399',
+              amber: '#fbbf24',
+              muted: '#8b859e',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          boxShadow: {
+            'glow-sakura': '0 0 20px -3px rgba(255, 101, 132, 0.35)',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Micro-Styles -->
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d293d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3a53;
+    }
+  </style>
+<style data-purpose="interactive-states">
+    .custom-checkbox:checked {
+      background-color: #ff6584;
+      border-color: #ff6584;
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+    }
+    .custom-checkbox:focus {
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px rgba(255, 101, 132, 0.3);
+    }
+  </style>
+<!-- END: Custom Micro-Styles -->
+</head>
+<body class="bg-vault-canvas text-gray-200 font-sans min-h-screen antialiased flex flex-col selection:bg-vault-sakura selection:text-white">
+<!-- BEGIN: Application Shell Wrapper -->
+<div class="flex-1 flex flex-col min-h-screen max-w-[1920px] mx-auto w-full relative">
+<!-- BEGIN: Top Window Titlebar -->
+<header class="h-10 bg-vault-obsidian border-b border-vault-border/80 flex items-center justify-between px-4 select-none shrink-0" data-purpose="desktop-window-bar">
+<!-- Window Controls & Breadcrumb Context -->
+<div class="flex items-center space-x-4">
+<!-- Traffic Light Buttons -->
+<div class="flex items-center space-x-2">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block shadow-sm cursor-pointer hover:opacity-80 transition-opacity"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block shadow-sm cursor-pointer hover:opacity-80 transition-opacity"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block shadow-sm cursor-pointer hover:opacity-80 transition-opacity"></span>
+</div>
+<div class="h-4 w-[1px] bg-vault-border"></div>
+<div class="flex items-center space-x-2 text-xs font-medium text-vault-muted">
+<span class="text-vault-sakura font-bold tracking-wider font-mono">AV</span>
+<span>/</span>
+<span class="text-gray-300">Anime Vault — Desktop Media Engine v2.4.1</span>
+</div>
+</div>
+<!-- App Status Indicators -->
+<div class="flex items-center space-x-3 text-xs font-mono text-vault-muted">
+<span class="flex items-center gap-1.5 bg-vault-elevated px-2 py-0.5 rounded border border-vault-border text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Daemon Online
+        </span>
+<span>Nyaa Indexer: Ready</span>
+</div>
+</header>
+<!-- END: Top Window Titlebar -->
+<!-- BEGIN: Main View Content Container -->
+<main class="flex-1 px-6 pt-5 pb-36 space-y-5" data-purpose="main-explorer-workspace">
+<!-- BEGIN: Sub-Header & Series Navigation -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
+<div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-1.5 text-xs font-medium text-vault-muted hover:text-vault-sakura transition-colors px-2.5 py-1 rounded-md bg-vault-surface border border-vault-border hover:border-vault-sakura/50">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+              Back to ONE PIECE Hub
+            </button>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-vault-sakura/10 text-vault-sakura border border-vault-sakura/30">
+              Release Search
+            </span>
+</div>
+<div class="mt-2 flex items-baseline gap-3">
+<h1 class="text-2xl font-display font-bold text-white tracking-tight">Find Download Files</h1>
+<p class="text-xs uppercase tracking-widest font-mono text-vault-muted font-medium">
+              ONE PIECE • Continuing Arc / Series Search
+            </p>
+</div>
+</div>
+<!-- Quick Info Meta Pill -->
+<div class="flex items-center gap-3 self-start md:self-auto">
+<div class="bg-vault-surface/90 border border-vault-border rounded-lg px-3.5 py-1.5 flex items-center space-x-3 text-xs">
+<span class="text-vault-muted">Target Profile:</span>
+<span class="font-semibold text-white">1080p HEVC Dual-Audio</span>
+<span class="text-vault-border">|</span>
+<span class="text-vault-cyan font-mono">1,120/1,122 Synced</span>
+</div>
+</div>
+</div>
+<!-- END: Sub-Header & Series Navigation -->
+<!-- BEGIN: Search & Source Configuration Card -->
+<section class="bg-vault-surface rounded-xl border border-vault-border p-5 shadow-glass space-y-4" data-purpose="search-configuration-panel">
+<!-- Dropdowns Row: Context & Provider -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+<!-- Anime Series & Season Context Dropdown -->
+<div class="lg:col-span-8 space-y-1.5">
+<label class="block text-[11px] font-bold uppercase tracking-wider text-vault-muted font-mono">
+              Anime Series &amp; Season Context
+            </label>
+<div class="relative">
+<select class="w-full bg-vault-elevated text-sm text-gray-200 border border-vault-border rounded-lg py-2.5 px-3.5 pr-10 focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura transition appearance-none cursor-pointer">
+<option selected="">Continuing / choose season (Current: Season 21 - Egghead Arc)</option>
+<option>Season 20 - Wano Country Arc (Episodes 892 - 1085)</option>
+<option>Season 19 - Whole Cake Island Arc (Episodes 783 - 891)</option>
+<option>Batch Complete Run (All-in-One Collection)</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-vault-muted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Source Provider Selection -->
+<div class="lg:col-span-4 space-y-1.5">
+<label class="block text-[11px] font-bold uppercase tracking-wider text-vault-muted font-mono">
+              Source Provider
+            </label>
+<div class="relative">
+<select class="w-full bg-vault-elevated text-sm text-gray-200 border border-vault-border rounded-lg py-2.5 px-3.5 pr-10 focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura transition appearance-none cursor-pointer font-medium">
+<option selected="">Nyaa (Primary Torrent Index)</option>
+<option>Tokyo Toshokan (Backup)</option>
+<option>AniDex Community Feed</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-vault-muted">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+</div>
+<!-- Title Mapping Selection & Helper Buttons -->
+<div class="space-y-1.5 pt-1">
+<label class="block text-[11px] font-bold uppercase tracking-wider text-vault-muted font-mono">
+            Search Title Mapping
+          </label>
+<div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+<div class="relative flex-1">
+<select class="w-full bg-vault-elevated text-sm text-gray-200 border border-vault-border rounded-lg py-2.5 px-3.5 pr-10 focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura transition appearance-none cursor-pointer">
+<option selected="">English • ONE PIECE</option>
+<option>Romaji • One Piece (Wan Pīsu)</option>
+<option>Japanese • ワンピース</option>
+<option>Alternative • One Piece: Egghead Arc</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-vault-muted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+<!-- Action buttons for Title configuration -->
+<div class="flex items-center gap-2 shrink-0">
+<button class="px-3.5 py-2.5 text-xs font-semibold rounded-lg bg-vault-elevated hover:bg-vault-border border border-vault-border text-gray-300 hover:text-white transition">
+                Use title
+              </button>
+<button class="px-3.5 py-2.5 text-xs font-semibold rounded-lg bg-vault-elevated hover:bg-vault-border border border-vault-border text-gray-300 hover:text-white transition">
+                Use Custom One
+              </button>
+</div>
+</div>
+<!-- Fallback Query Checkbox -->
+<div class="pt-1.5 flex items-center">
+<label class="flex items-center space-x-2.5 text-xs text-gray-400 hover:text-gray-300 cursor-pointer select-none">
+<input class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+<span>Try other saved titles if this query has no results</span>
+</label>
+</div>
+</div>
+<!-- Main Query Input Bar & Search CTA -->
+<div class="pt-2">
+<div class="flex flex-col md:flex-row gap-2.5 items-stretch">
+<!-- Search field with clear cross -->
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vault-muted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<input class="w-full bg-vault-elevated border border-vault-border rounded-lg pl-10 pr-9 py-2.5 text-sm font-mono text-gray-100 placeholder-vault-muted focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura" placeholder="Enter search expression or release group filter..." type="text" value="[ASW] ONE PIECE 1080p"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-vault-muted hover:text-gray-200" title="Clear search query">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Primary Search Button -->
+<button class="px-5 py-2.5 bg-vault-sakura hover:bg-vault-sakuraHover text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2 shadow-glow-sakura transition shrink-0 active:scale-[0.99]">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Search releases</span>
+</button>
+<!-- Secondary Cancel Button -->
+<button class="px-4 py-2.5 bg-vault-elevated hover:bg-vault-border border border-vault-border text-gray-300 hover:text-white text-sm font-semibold rounded-lg transition shrink-0">
+              Cancel search
+            </button>
+</div>
+</div>
+<!-- Search URL Readout & Preset Notification Banner -->
+<div class="space-y-2 pt-1 border-t border-vault-border/60">
+<div class="flex items-center gap-2 text-xs font-mono">
+<span class="text-vault-muted font-bold tracking-wider shrink-0">SEARCH URL</span>
+<div class="flex-1 bg-vault-elevated/70 border border-vault-border/80 px-3 py-1.5 rounded text-gray-400 truncate select-all flex items-center justify-between">
+<span class="truncate">https://nyaa.si/?q=%5BASW%5D+ONE+PIECE+1080p&amp;f=0&amp;c=0_0</span>
+<button class="ml-2 text-vault-muted hover:text-vault-sakura shrink-0" title="Copy exact provider search URL">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 text-[11px] text-vault-muted bg-vault-elevated/40 px-3 py-1.5 rounded-md border border-vault-border/40">
+<span class="text-vault-sakura">💡</span>
+<span>Custom search saved for this anime and season. It will be used automatically next time. Choose another title and click <strong>"Use title"</strong> to switch back.</span>
+</div>
+</div>
+</section>
+<!-- END: Search & Source Configuration Card -->
+<!-- BEGIN: Filter, Sort & Ledger Scope Toolbar -->
+<section class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs" data-purpose="table-controls-toolbar">
+<div class="flex flex-wrap items-center gap-3">
+<!-- Results scope dropdown -->
+<div class="relative min-w-[160px]">
+<select class="w-full bg-vault-surface text-xs text-gray-300 border border-vault-border rounded-lg py-2 px-3 pr-8 focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura cursor-pointer">
+<option selected="">All results (24 found)</option>
+<option>Only missing episodes (12)</option>
+<option>Full batch releases (4)</option>
+<option>Single episode drops (8)</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-2.5 pointer-events-none text-vault-muted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+<!-- Secondary inline quality/group filter -->
+<div class="relative min-w-[260px] flex-1 sm:flex-initial">
+<input class="w-full bg-vault-surface text-xs text-gray-200 border border-vault-border rounded-lg py-2 pl-8 pr-3 placeholder-vault-muted focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura" placeholder="Filter quality/group/title..." type="text"/>
+<div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-vault-muted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<!-- Sort Selector -->
+<div class="flex items-center gap-2">
+<span class="text-vault-muted text-xs whitespace-nowrap">Sort by:</span>
+<div class="relative">
+<select class="bg-vault-surface text-xs text-gray-300 border border-vault-border rounded-lg py-2 px-3 pr-8 focus:ring-1 focus:ring-vault-sakura focus:border-vault-sakura cursor-pointer">
+<option selected="">Most seeders</option>
+<option>Newest release date</option>
+<option>Episode number (Desc)</option>
+<option>File size (Smallest first)</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-2.5 pointer-events-none text-vault-muted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Availability Ledger Toggle Switch -->
+<div class="flex items-center gap-2 bg-vault-surface border border-vault-border px-3 py-1.5 rounded-lg">
+<input checked="" class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0 cursor-pointer" id="toggleLedger" type="checkbox"/>
+<label class="text-xs text-gray-300 cursor-pointer select-none font-medium" for="toggleLedger">Show episode availability</label>
+</div>
+</div>
+</section>
+<!-- END: Filter, Sort & Ledger Scope Toolbar -->
+<!-- BEGIN: Episode Availability Ledger Panel (from Reference IMAGE_11) -->
+<div class="bg-vault-surface/80 border border-vault-border rounded-lg p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs" data-purpose="episode-coverage-indicator-bar">
+<div class="flex items-center space-x-3">
+<div class="w-2 h-2 rounded-full bg-vault-cyan animate-ping"></div>
+<span class="font-mono text-gray-300">
+            Local episode coverage: <span class="text-emerald-400 font-bold">1,120 indexed</span> / <span class="text-white">1,122 aired</span>
+</span>
+<span class="text-vault-border">|</span>
+<span class="text-vault-muted font-mono">2 missing aired episodes needed to complete season</span>
+</div>
+<!-- Missing Episode Chips -->
+<div class="flex items-center gap-2 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-vault-sakura/10 border border-vault-sakura/40 text-vault-sakura font-mono text-[11px] font-semibold">
+            Ep 1121: Missing
+          </span>
+<span class="px-2 py-0.5 rounded bg-vault-sakura/10 border border-vault-sakura/40 text-vault-sakura font-mono text-[11px] font-semibold">
+            Ep 1122: Missing
+          </span>
+<span class="px-2 py-0.5 rounded bg-vault-elevated border border-vault-border text-vault-muted font-mono text-[11px]">
+            Ep 1123: Airing Sun, 13 Apr
+          </span>
+</div>
+</div>
+<!-- END: Episode Availability Ledger Panel -->
+<!-- BEGIN: Releases Results Table -->
+<section class="bg-vault-surface rounded-xl border border-vault-border overflow-hidden shadow-glass" data-purpose="releases-table-container">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse" id="releases-table">
+<thead>
+<tr class="border-b border-vault-border bg-vault-obsidian/70 text-[11px] font-mono font-bold tracking-wider uppercase text-vault-muted select-none">
+<th class="py-3 px-4 w-12 text-center">
+<input class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+</th>
+<th class="py-3 px-4">SELECT / RELEASE TITLE</th>
+<th class="py-3 px-4">EPISODES</th>
+<th class="py-3 px-4">QUALITY / GROUP</th>
+<th class="py-3 px-4">SIZE</th>
+<th class="py-3 px-4">SEEDERS</th>
+<th class="py-3 px-4">SOURCE</th>
+<th class="py-3 px-4 text-right">AVAILABILITY</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-vault-border/60 text-xs font-normal">
+<!-- Row 1: Selected Batch match -->
+<tr class="bg-vault-sakura/5 hover:bg-vault-elevated/70 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<input checked="" class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-start gap-2">
+<span class="text-vault-sakura mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<div>
+<a class="font-medium text-white group-hover:text-vault-sakura transition-colors line-clamp-1" href="#">
+                        [ASW] One Piece - 1085-1122 [1080p HEVC x265 10Bit][Multi-Subs]
+                      </a>
+<div class="text-[11px] text-vault-muted font-mono flex items-center gap-2 mt-0.5">
+<span>Batch Release (Egghead Arc Complete to date)</span>
+<span>•</span>
+<span>Added 4 hrs ago</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-mono font-medium text-gray-300 whitespace-nowrap">
+                  Ep 1085 - 1122 <span class="text-vault-muted font-normal">(38 eps)</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-vault-elevated border border-vault-border text-gray-200">
+                    1080p HEVC • ASW
+                  </span>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-300">14.2 GB</td>
+<td class="py-3.5 px-4 font-mono">
+<span class="text-emerald-400 font-semibold">142</span>
+<span class="text-vault-muted text-[10px]"> / 38 peers</span>
+</td>
+<td class="py-3.5 px-4 text-vault-muted font-mono">Nyaa</td>
+<td class="py-3.5 px-4 text-right">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-vault-sakura/15 text-vault-sakura border border-vault-sakura/40 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-sakura"></span>
+                    ⚡ Missing — Release Found
+                  </span>
+</td>
+</tr>
+<!-- Row 2: Single episode 1122 (Missing) -->
+<tr class="hover:bg-vault-elevated/70 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<input class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-start gap-2">
+<span class="text-vault-muted group-hover:text-vault-sakura transition-colors mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<div>
+<a class="font-medium text-gray-200 group-hover:text-vault-sakura transition-colors line-clamp-1" href="#">
+                        [ASW] One Piece - 1122 [1080p HEVC x265 10Bit][Dual-Audio]
+                      </a>
+<div class="text-[11px] text-vault-muted font-mono flex items-center gap-2 mt-0.5">
+<span>Single Episode</span>
+<span>•</span>
+<span>Added 1 day ago</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-mono font-medium text-gray-300 whitespace-nowrap">
+                  Episode 1122
+                </td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-vault-elevated border border-vault-border text-gray-200">
+                    1080p HEVC • ASW
+                  </span>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-300">410 MB</td>
+<td class="py-3.5 px-4 font-mono">
+<span class="text-emerald-400 font-semibold">89</span>
+<span class="text-vault-muted text-[10px]"> / 14 peers</span>
+</td>
+<td class="py-3.5 px-4 text-vault-muted font-mono">Nyaa</td>
+<td class="py-3.5 px-4 text-right">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-vault-sakura/15 text-vault-sakura border border-vault-sakura/40 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-sakura"></span>
+                    ⚡ Missing — Release Found
+                  </span>
+</td>
+</tr>
+<!-- Row 3: SubsPlease 1121 (In Library) -->
+<tr class="hover:bg-vault-elevated/70 transition-colors group opacity-85">
+<td class="py-3.5 px-4 text-center">
+<input class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-start gap-2">
+<span class="text-vault-muted mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<div>
+<a class="font-medium text-gray-300 group-hover:text-white transition-colors line-clamp-1" href="#">
+                        [SubsPlease] One Piece - 1121 (1080p) [84A291F]
+                      </a>
+<div class="text-[11px] text-vault-muted font-mono flex items-center gap-2 mt-0.5">
+<span>CR Rip • English Softsubs</span>
+<span>•</span>
+<span>Added 6 days ago</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-400 whitespace-nowrap">
+                  Episode 1121
+                </td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-vault-elevated border border-vault-border text-gray-300">
+                    1080p AVC • SubsPlease
+                  </span>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-400">1.3 GB</td>
+<td class="py-3.5 px-4 font-mono">
+<span class="text-emerald-400 font-semibold">215</span>
+<span class="text-vault-muted text-[10px]"> / 19 peers</span>
+</td>
+<td class="py-3.5 px-4 text-vault-muted font-mono">Nyaa</td>
+<td class="py-3.5 px-4 text-right">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    ✓ In Library
+                  </span>
+</td>
+</tr>
+<!-- Row 4: Erai-raws 1120 (In Library) -->
+<tr class="hover:bg-vault-elevated/70 transition-colors group opacity-85">
+<td class="py-3.5 px-4 text-center">
+<input class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-start gap-2">
+<span class="text-vault-muted mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<div>
+<a class="font-medium text-gray-300 group-hover:text-white transition-colors line-clamp-1" href="#">
+                        [Erai-raws] One Piece - 1120 [1080p][Multiple Subtitle]
+                      </a>
+<div class="text-[11px] text-vault-muted font-mono flex items-center gap-2 mt-0.5">
+<span>Multi-sub pack</span>
+<span>•</span>
+<span>Added 2 weeks ago</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-400 whitespace-nowrap">
+                  Episode 1120
+                </td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-vault-elevated border border-vault-border text-gray-300">
+                    1080p • Erai-raws
+                  </span>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-400">1.25 GB</td>
+<td class="py-3.5 px-4 font-mono">
+<span class="text-gray-300 font-semibold">64</span>
+<span class="text-vault-muted text-[10px]"> / 5 peers</span>
+</td>
+<td class="py-3.5 px-4 text-vault-muted font-mono">Nyaa</td>
+<td class="py-3.5 px-4 text-right">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    ✓ In Library
+                  </span>
+</td>
+</tr>
+<!-- Row 5: Judas Large Batch (Match Uncertain) -->
+<tr class="hover:bg-vault-elevated/70 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<input class="custom-checkbox w-4 h-4 rounded bg-vault-elevated border-vault-border text-vault-sakura focus:ring-0" type="checkbox"/>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-start gap-2">
+<span class="text-vault-amber mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<div>
+<a class="font-medium text-gray-200 group-hover:text-vault-amber transition-colors line-clamp-1" href="#">
+                        [Judas] One Piece - Batch 01-1000 [720p HEVC]
+                      </a>
+<div class="text-[11px] text-vault-amber/80 font-mono flex items-center gap-2 mt-0.5">
+<span>Legacy batch • Title requires confirmation</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-mono font-medium text-gray-300 whitespace-nowrap">
+                  Ep 001 - 1000
+                </td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-vault-elevated border border-vault-border text-gray-300">
+                    720p HEVC • Judas
+                  </span>
+</td>
+<td class="py-3.5 px-4 font-mono text-gray-300">118.4 GB</td>
+<td class="py-3.5 px-4 font-mono">
+<span class="text-gray-300 font-semibold">45</span>
+<span class="text-vault-muted text-[10px]"> / 11 peers</span>
+</td>
+<td class="py-3.5 px-4 text-vault-muted font-mono">Nyaa</td>
+<td class="py-3.5 px-4 text-right">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    ⚠ Match Uncertain
+                  </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- END: Releases Results Table -->
+</main>
+<!-- END: Main View Content Container -->
+<!-- BEGIN: Sticky Bottom Action Dock (Reference IMAGE_11) -->
+<footer class="fixed bottom-0 left-0 right-0 z-40 bg-vault-obsidian/95 backdrop-blur-md border-t border-vault-border shadow-2xl" data-purpose="sticky-bottom-action-bar">
+<div class="max-w-[1920px] mx-auto px-6 py-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+<!-- Left Side Action Group -->
+<div class="flex flex-wrap items-center gap-2">
+<!-- Confirm highlighted match -->
+<button class="px-3.5 py-2 rounded-lg bg-vault-surface hover:bg-vault-elevated border border-vault-border hover:border-vault-borderLight text-xs font-semibold text-gray-200 transition shadow-sm active:scale-95">
+            Confirm highlighted match
+          </button>
+<!-- Confirm anime episodes -->
+<button class="px-3.5 py-2 rounded-lg bg-vault-surface hover:bg-vault-elevated border border-vault-border hover:border-vault-borderLight text-xs font-semibold text-gray-200 transition shadow-sm active:scale-95">
+            Confirm anime episodes
+          </button>
+<!-- Paste magnet / torrent -->
+<button class="px-3.5 py-2 rounded-lg bg-vault-surface hover:bg-vault-elevated border border-vault-border hover:border-vault-borderLight text-xs font-semibold text-gray-200 transition shadow-sm flex items-center gap-1.5 active:scale-95">
+<svg class="w-3.5 h-3.5 text-vault-lavender" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Paste magnet / torrent</span>
+</button>
+<!-- Open source in Chrome -->
+<button class="px-3.5 py-2 rounded-lg bg-vault-surface hover:bg-vault-elevated border border-vault-border hover:border-vault-borderLight text-xs font-semibold text-gray-200 transition shadow-sm flex items-center gap-1.5 active:scale-95" title="Inspect current search query in web browser">
+<!-- Inline Mini Chrome/Browser Icon -->
+<svg class="w-3.5 h-3.5 text-vault-cyan" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"></path>
+</svg>
+<span>Open source in Chrome</span>
+</button>
+</div>
+<!-- Right Side Primary Action Group -->
+<div class="flex items-center gap-3 shrink-0">
+<!-- Download Missing Episodes -->
+<button class="px-4 py-2 rounded-lg bg-vault-surface hover:bg-vault-elevated border border-vault-sakura/50 text-xs font-semibold text-vault-sakura hover:text-white transition shadow-sm flex items-center gap-1.5 active:scale-95">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Download Missing Episodes (2)</span>
+</button>
+<!-- Review selected downloads (Vibrant CTA) -->
+<button class="px-5 py-2.5 rounded-lg bg-vault-sakura hover:bg-vault-sakuraHover text-white text-xs font-bold tracking-wide transition shadow-glow-sakura flex items-center gap-2 active:scale-95">
+<span>Review selected downloads</span>
+<span class="inline-flex items-center justify-center bg-white/20 text-white rounded-full px-2 py-0.5 text-[11px] font-mono font-bold">1</span>
+</button>
+</div>
+</div>
+<!-- Telemetry Strip -->
+<div class="bg-vault-canvas px-6 py-1 border-t border-vault-border/50 flex items-center justify-between text-[10px] font-mono text-vault-muted select-none">
+<div class="flex items-center space-x-3">
+<span>Daemon v2.4.1 connected</span>
+<span>•</span>
+<span class="text-vault-emerald">Nyaa API: 42ms response</span>
+<span>•</span>
+<span>Library Directory: <span class="text-gray-300">E:\Anime Library\One Piece</span></span>
+</div>
+<div class="flex items-center space-x-2">
+<span>Free Disk Storage: <strong class="text-gray-200">257.98 GB</strong> available</span>
+</div>
+</div>
+</footer>
+<!-- END: Sticky Bottom Action Dock -->
+</div>
+<!-- END: Application Shell Wrapper -->
+</body></html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Anime Vault — Library Table &amp; Sort Explorer</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              base: '#14121d',
+              card: '#1c1a27',
+              hover: '#232032',
+              border: '#2e293f',
+              borderSubtle: '#3b3452',
+              muted: '#8f88a3',
+              coral: '#ff6584',
+              coralHover: '#ff4d71',
+              violet: '#7c5dfa',
+              statusGreen: '#10b981',
+              statusAmber: '#f59e0b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="scrollbar-styling">
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e293f;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3b3452;
+    }
+  </style>
+<style data-purpose="subtle-glows">
+    .glow-coral {
+      box-shadow: 0 0 16px -2px rgba(255, 101, 132, 0.35);
+    }
+    .glow-dropdown {
+      box-shadow: 0 14px 35px -6px rgba(10, 8, 18, 0.75), 0 0 0 1px #3b3452;
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="bg-vault-base text-gray-200 min-h-screen flex flex-col font-sans select-none antialiased">
+<!-- BEGIN: MainHeader -->
+<header class="bg-[#181524] border-b border-vault-border sticky top-0 z-40 px-6 py-2.5 flex items-center justify-between gap-4">
+<!-- Left Section: App Logo & Primary Navigation -->
+<div class="flex items-center space-x-7">
+<div class="flex items-center space-x-3 cursor-pointer">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-vault-violet to-vault-coral flex items-center justify-center text-white shadow-md font-bold text-base">
+          🌸
+        </div>
+<div class="flex items-baseline space-x-1.5">
+<span class="text-white font-bold tracking-tight text-lg">Anime Vault</span>
+<span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-vault-card border border-vault-border text-vault-coral font-medium">v2.5</span>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="hidden md:flex items-center space-x-1">
+<button class="relative px-3.5 py-1.5 text-sm font-semibold text-white bg-vault-card rounded-md border border-vault-border shadow-sm flex items-center gap-1.5">
+<span>Library</span>
+<span class="absolute bottom-[-11px] left-2 right-2 h-[2.5px] bg-vault-coral rounded-full"></span>
+</button>
+<button class="px-3.5 py-1.5 text-sm font-medium text-vault-muted hover:text-white hover:bg-vault-card/60 rounded-md transition flex items-center gap-1.5">
+<span>Updates</span>
+<span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-vault-coral/20 text-vault-coral border border-vault-coral/30">21</span>
+</button>
+<button class="px-3.5 py-1.5 text-sm font-medium text-vault-muted hover:text-white hover:bg-vault-card/60 rounded-md transition flex items-center gap-1.5">
+<span>Downloads</span>
+<span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-vault-violet/20 text-vault-violet border border-vault-violet/30">1</span>
+</button>
+<button class="px-3.5 py-1.5 text-sm font-medium text-vault-muted hover:text-white hover:bg-vault-card/60 rounded-md transition">
+          Organizer
+        </button>
+<button class="px-3.5 py-1.5 text-sm font-medium text-vault-muted hover:text-white hover:bg-vault-card/60 rounded-md transition">
+          Storage
+        </button>
+<button class="px-3.5 py-1.5 text-sm font-medium text-vault-muted hover:text-white hover:bg-vault-card/60 rounded-md transition">
+          Settings
+        </button>
+</nav>
+</div>
+<!-- Right Section: Search & System Storage Indicators -->
+<div class="flex items-center space-x-3.5">
+<!-- Quick Find Bar -->
+<div class="relative w-64 hidden lg:block">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-vault-muted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+</span>
+<input class="w-full bg-[#13111c] border border-vault-border rounded-lg pl-9 pr-12 py-1 text-xs text-gray-200 focus:outline-none focus:border-vault-coral placeholder:text-vault-muted" placeholder="Quick find anime..." type="text">
+<span class="absolute inset-y-0 right-1.5 flex items-center pointer-events-none">
+<kbd class="text-[10px] text-vault-muted font-mono bg-vault-card px-1.5 py-0.5 rounded border border-vault-border">Ctrl+K</kbd>
+</span>
+</div>
+<!-- Drive Storage Pill -->
+<div class="flex items-center bg-[#13111c] border border-vault-border rounded-full px-3 py-1 space-x-2 text-xs">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="text-gray-300 font-mono text-[11px]">1.6 / 1.8 TB</span>
+</div>
+<!-- Settings Icon Button -->
+<button class="p-1.5 text-vault-muted hover:text-white hover:bg-vault-card rounded-md border border-transparent hover:border-vault-border transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: BreadcrumbAndControlToolbar -->
+<div class="px-6 pt-3 pb-2 border-b border-vault-border/50 bg-[#161421]">
+<!-- Breadcrumb -->
+<div class="text-[11px] text-vault-muted flex items-center space-x-1.5 mb-2.5">
+<span>Library</span>
+<span>/</span>
+<span class="text-vault-coral font-medium">Table View &amp; Sorting Options</span>
+</div>
+<!-- Controls Row -->
+<div class="flex flex-wrap items-center justify-between gap-3">
+<!-- Search & Filters -->
+<div class="flex flex-wrap items-center gap-2.5">
+<!-- View Toggle Buttons -->
+<div class="flex items-center bg-[#100e18] p-0.5 rounded-lg border border-vault-border">
+<button class="p-1.5 text-vault-muted hover:text-white rounded transition" title="Grid View">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-1.5 text-vault-coral bg-vault-card rounded border border-vault-border shadow-sm" title="Table View (Active)">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Filter Input -->
+<div class="relative w-80">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-vault-muted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<input class="w-full bg-[#100e18] border border-vault-border rounded-lg pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-vault-coral" placeholder="Search anime title, romaji, genres..." type="text">
+</div>
+<!-- Filter Badges -->
+<div class="hidden xl:flex items-center space-x-1 text-xs">
+<button class="px-2.5 py-1 rounded bg-vault-coral text-white font-semibold text-[11px] shadow">All (230)</button>
+<button class="px-2.5 py-1 rounded bg-vault-card text-vault-muted hover:text-white border border-vault-border text-[11px]">Watching (18)</button>
+<button class="px-2.5 py-1 rounded bg-vault-card text-vault-muted hover:text-white border border-vault-border text-[11px]">Plan to Watch (42)</button>
+<button class="px-2.5 py-1 rounded bg-vault-card text-vault-muted hover:text-white border border-vault-border text-[11px]">On Disk (184)</button>
+<button class="px-2.5 py-1 rounded bg-vault-card text-vault-muted hover:text-white border border-vault-border text-[11px]">Has New Update (21)</button>
+<button class="px-2.5 py-1 rounded bg-vault-card text-vault-muted hover:text-white border border-vault-border text-[11px]">Needs Review (4)</button>
+</div>
+</div>
+<!-- Action Buttons & Dropdown Area -->
+<div class="relative flex items-center space-x-2">
+<!-- Relative Anchor for Floating Sort Dropdown Menu (IMAGE_13) -->
+<div class="relative">
+<button class="px-3 py-1.5 rounded-lg bg-vault-card border border-vault-border text-white text-xs font-medium flex items-center space-x-2 hover:border-vault-coral transition shadow-sm">
+<svg class="w-3.5 h-3.5 text-vault-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Sort: <strong class="font-semibold text-vault-coral">Name A to Z</strong></span>
+<svg class="w-3 h-3 text-vault-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<!-- BEGIN: Floating Sort Dropdown Menu (Direct Replica of IMAGE_13) -->
+<div class="absolute right-0 top-full mt-2 w-56 bg-[#161325] border border-vault-border rounded-xl glow-dropdown z-50 overflow-hidden py-1 text-xs shadow-2xl" data-purpose="sort-dropdown-menu">
+<!-- Active Option: Name A to Z -->
+
+
+
+
+
+
+</div>
+<!-- END: Floating Sort Dropdown Menu -->
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-vault-card border border-vault-border hover:bg-vault-hover text-xs text-gray-300 font-medium transition">
+          Batch Select
+        </button>
+<button class="px-3.5 py-1.5 rounded-lg bg-vault-coral hover:bg-vault-coralHover text-white text-xs font-semibold flex items-center space-x-1.5 transition glow-coral shadow-sm">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+<span>Add Anime</span>
+</button>
+</div>
+</div>
+</div>
+<!-- END: BreadcrumbAndControlToolbar -->
+<!-- BEGIN: MainContentTable -->
+<main class="flex-1 overflow-x-auto px-6 py-4">
+<div class="border border-vault-border rounded-xl bg-vault-card/40 backdrop-blur-sm overflow-hidden shadow-2xl">
+<table class="w-full text-left text-xs border-collapse" id="anime-library-table">
+<!-- Table Header (Replicating Header of IMAGE_14) -->
+<thead>
+<tr class="border-b border-vault-border bg-[#191626]/90 text-vault-muted uppercase tracking-wider text-[11px] font-semibold">
+<th class="py-3 px-3.5 w-10 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox">
+</th>
+<th class="py-3 px-3 w-16 text-center">COVER</th>
+<th class="py-3 px-4">TITLE</th>
+<th class="py-3 px-4 w-32 text-left">STATUS</th>
+<th class="py-3 px-4 w-28 text-left">SIZE</th>
+<th class="py-3 px-4 w-24 text-left">RATING</th>
+<th class="py-3 px-4 w-28 text-center">ACTION</th>
+</tr>
+</thead>
+<!-- Table Body Rows matching IMAGE_14 items -->
+<tbody class="divide-y divide-vault-border/60 text-sm">
+<!-- Row 1: 86 EIGHTY-SIX -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="86 EIGHTY-SIX" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2ywkrgFxOsaKaDYUfzZilAdMRx-fTZfGH_GcjvFpVD9UrzMag0Ii5QEMXrqWqwLidDUq_FnBQE7bcmsFnbeTOH5h8v8V087fcwfDm9hoblK0fsVBY5XQuRmCbfGOBUqZqhacxF8yaEZzP4Kg4Rr0wMuQF5bCQrj5oylKr9HnicLTZkVNHZtvD4WwyEb_YoTccqBswecv0S1MUhMoDxx48b_voSjMavr6OTdfa1dU">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">86 EIGHTY-SIX</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">86: Eighty Six</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 8.8</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 2: A Gatherer's Adventure in Isekai -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="A Gatherer's Adventure in Isekai" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_Dn9ywswljpAdx3iz3Zb-3wNmbN_WCjjJxcFQSPeZznB-CgN1fD5yai2L0y0d2TdJhynH3-un22Dm3cHDtL5PuvRmRkmwqrcq0o6hALHU2_UCjm-Rf8iLA_KCz--gWKUxmhJJ-VpUu1mTY9kAg2--ygKXMToLmNY9qDOoF5RZ5l53dVXA7L2PL7YIEt_2ItxDLe8qoNRxPzzQPnG_PUqSftx8O9WhGMW_xsIsF_g">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">A Gatherer's Adventure in Isekai</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Sozai Saishuka no Isekai Ryokouki</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusGreen bg-vault-statusGreen/10 border border-vault-statusGreen/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusGreen"></span>
+                On disk
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-gray-300">863 MB</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 6.4</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 3: A Nobody's Way Up to an Exploration Hero -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="A Nobody's Way Up" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmV3eCFMfd5xlLFxG71B02GfmOkOudfKy6f5arbIDQ74YA_TPmoGWPzbW6YgbOODuwCsY6N5cJ9HAFSPKVzB99wA6tLUoqb6mW1DyeRsATAwRKOxtv3CAG-_RYq2wBcWJVSNkpxVyJz6omoKd5GPq8uRfOeQeiJMgoquITc8X-67DM-jYSq800gDzsKwPT1hDYhvNQlJMR0GfKLlmX8O_9YkY0QsEWbrB0UHz_e_k">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">A Nobody's Way Up to an Exploration Hero</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Mob kara Hajimaru Tansaku Eiyuutan</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 6.1</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 4: A Playthrough of a Certain Dude's VRMMO Life -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="VRMMO Life" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWwzsChSmpm0zHbTL49LuPjqO44as7SAUj4wyb5mADpr9XBIUobV_Jp-Lg2R92TpKfy53vKtQ9LsdF_1TaRVD-kDf22Hfm-X_c9B43_Zmn2dWGAX3LNF3jepHM1HYoaqMs40yOkNONKgfBGiUSe-9AYWetCak4WnXySdA1QEBuNshIaAaxnXiaoFQ5PlfDKySVJjiBLafByXJ9ctGDlWUpUucrKKf58eT1doFw1iI">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">A Playthrough of a Certain Dude's VRMMO Life</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Toaru Ossan no VRMMO Katsudouki</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusGreen bg-vault-statusGreen/10 border border-vault-statusGreen/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusGreen"></span>
+                On disk
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-gray-300">2.7 GB</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 6.9</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 5: A Returner's Magic Should Be Special -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="A Returner's Magic" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTwvXa0oUu5p9NPJCV90hHKTO9KpIurjsK0AEXm1mMOY9x0qrGYSPGenlrLtu0TQJjO3jjlpKNahvpMy28jtDbtforlvdsNx6X_7ynK5mPcDc8Zff2oX6j7lNDmo3cyU9_UfWH-BdsymTYY9bzZK0Tw_H9NvoOchJyOv1bKv_sYaGtnDIdhOwJfKbOnX-elqlGV_bn6uk30SfYpSHYIOPNsI-DU7NBMsBWp1bQMYg">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">A Returner's Magic Should Be Special</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Kikansha no Mahou wa Tokubetsu desu</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusGreen bg-vault-statusGreen/10 border border-vault-statusGreen/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusGreen"></span>
+                On disk
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-gray-300">848 MB</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 7.5</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 6: Accel World -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="Accel World" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6wHtJs31XTtzzyQL8GGyvFPutfzMO4CuryugcTWwrJlSNCe4fteQKn9qeY8LJEshr6jbTEs6vOk6Sst2bL7RkN_OwdJrXrb2Y-TJzz5C0OY0Tqi1k7GUrEKQvW-e3lD5egx_bce0o66xAorkOAjVAZk9x3ZrMKhYMjtffkld3G7ooZgpXd7A3UcFQlrjgcMINM-i8ZlqoBImsLMKzn39lCmLLR-O41q5z5e-x8UU">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">Accel World</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Accel World</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 7.2</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 7: Aesthetica of a Rogue Hero -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="Aesthetica of a Rogue Hero" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdLrFL8v-szU3Hx163o3D8wyja4pP6ajpvqNqw40MMGFjI6jg0Gnh1y9gT9EZial93S5sJQWSuNc6M9iWNMbA8uaHHAlGyv8mYfiRgF0N1zdcpYF_b54XVQjcOQ2o9gScxWzNHZyF-EHX9QYnBcWZqMoAhXRz48PW3vUJ6wleygOsQ-UhIPTQXHljP8vhDcBeb386V5c0lVZ0U_UU01jFFFxFgJes8utOZukrkUos">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">Aesthetica of a Rogue Hero</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Hagure Yuusha no Estetica</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 6.8</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 8: Akashic Records of Bastard Magic Instructor -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="Akashic Records" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuXu3-aLo5jTIhOhySmeerRzTriUcoSlS_NsGkVuqIDhEFo8egOowmkIe-_273hD3JzJLBBO-0mJejnIuaDWHI4wETQ4hyBgf3EPKNANMwWaMD7M-1JHFn5qvF-f9iEU0_MzrN4FX2cF5x1kX9weLW_6IF_EJWiHbA3a7ls0zfs3ldTcn9IIwfThWRxmWKkjgzfXluI3CwfdzjgDvjE2BkKFDeqsG51cFl61vMr5E">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">Akashic Records of Bastard Magic Instructor</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Rokudenashi Majutsu Koushi to Akashic Records</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 7.1</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 9: Am I Actually the Strongest? -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="Am I Actually the Strongest?" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKITmZk_04yhpO5lzQSgLxWfQpCcMVSGvDt89kue8ndCNRQz4SB3PAPpgMzKN_6GIrUU8P9nYjgmQU_BqsbnrPf5dJPEyowRvqvBxcoWnEKOIP6jSAtF89ZKJIV4XiFUJ_5VkYC4AX3KRwTq673BVKmC14hEj-EMJ3RjXcjGBYWrLzte-BuSTMNSP99cFWVSoykqFbueatvJ5ivOfCI2yrDrIuenM1bYg6nCXaNwc">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">Am I Actually the Strongest?</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Jitsu wa Ore, Saikyou Deshita?</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 6.5</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 10: Amagi Brilliant Park -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="Amagi Brilliant Park" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdk8ApxsXCKYqXx1kg5BYfZA8PSZX1MGsqoCj70qcL4mOonB5xr1ZuNQEGz_qu6A-ERNIOW5d2GBjeINO3yvzw_0Ti5A2_lDFhVSSV1aB0ZDGF0sdrPn_gP4eiu481I_dkZbyfFI6v0YOEc1oxs9dlsd8jLuzfWD-WLAEjRO-jgDqwUCwU2v3wpW8ILnvGGVpn1Sf8_-VnDP7TxoTFhW3g9vsV1SOzB1YBQ9kxmk0">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">Amagi Brilliant Park</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Amagi Brilliant Park</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusAmber bg-vault-statusAmber/10 border border-vault-statusAmber/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusAmber"></span>
+                Partial
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-vault-muted">—</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 7.8</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 11: An Adventurer's Daily Grind at Age 29 -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="An Adventurer's Daily Grind" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrLNV4vCGEmoBms7EU-bbCDHSy70hAVJjR7tTK0Fg7lBIZPcvGfOabxsigb3bEQ3fpOQhf65RCbYUO7DtVlYlIYYMyE_baBvnqAXGE1kVF7Tl_FEesXWIPv6XHIhU22qwUlFWMWWF4O1gpTciPAAjRsXpmcy6aH0kDZicA0Hb9G_i5TvdtrdnRkHvzalZ6zdzWtHjmQpaj2tg9yPLBSCSNkg9KGuQlQKNePADi5A0">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">An Adventurer's Daily Grind at Age 29</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">29-sai Dokushin Chuuken Boukensha no Nichijou</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusGreen bg-vault-statusGreen/10 border border-vault-statusGreen/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusGreen"></span>
+                On disk
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-gray-300">3.1 GB</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 7.0</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+<!-- Row 12: An Archdemon's Dilemma -->
+<tr class="hover:bg-vault-hover/60 transition group">
+<td class="py-2.5 px-3.5 text-center">
+<input class="rounded bg-[#12101b] border-vault-border text-vault-coral focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-2.5 px-3 text-center">
+<img alt="An Archdemon's Dilemma" class="w-10 h-14 object-cover rounded shadow-md border border-vault-border mx-auto group-hover:border-vault-coral/50 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrEt1r0zk853YVHiWcu841-3_4UkWjDoyfhLO1wypZRjr8zAEczXyOTIX0zjx7KU-sOs6GEUko4A8RqtSvey2swyUfLwxcwPQAhFBQQHcaBWomoQGp_Im3u44ojntDnrzxrAHtnZNiLWp0ExJlmyPMA6uSUFDDz5--E7UEtcu4tvyARTY9RVcVYuPsuOgt8cePB7F0DbQVPuMfj-ayI9BejS8zX8_SsplIOkGAF0M">
+</td>
+<td class="py-2.5 px-4">
+<div class="font-bold text-gray-100 group-hover:text-vault-coral transition cursor-pointer text-sm">An Archdemon's Dilemma: How to Love Your Elf Bride</div>
+<div class="text-[11px] text-vault-muted italic mt-0.5">Maou no Ore ga Dorei Elf wo Yome ni Shitanda ga, Dou Medereba Ii?</div>
+</td>
+<td class="py-2.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-vault-statusGreen bg-vault-statusGreen/10 border border-vault-statusGreen/20">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-statusGreen"></span>
+                On disk
+              </span>
+</td>
+<td class="py-2.5 px-4 font-mono text-xs text-gray-300">1.4 GB</td>
+<td class="py-2.5 px-4 text-xs font-semibold text-amber-300">★ 7.9</td>
+<td class="py-2.5 px-4 text-center">
+<button class="px-4 py-1.5 bg-[#231f35] hover:bg-vault-border text-gray-200 hover:text-white rounded-md border border-vault-border text-xs font-medium transition shadow-sm">
+                Details
+              </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+<!-- END: MainContentTable -->
+<!-- BEGIN: BottomTelemetryFooter -->
+<footer class="bg-[#110f19] border-t border-vault-border px-6 py-2 text-[11px] font-mono text-vault-muted flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center space-x-3">
+<span class="flex items-center gap-1.5 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        Streaming API running • http://127.0.0.1:8765
+      </span>
+<span class="text-vault-border">|</span>
+<span>Last scan just now • 230 anime indexed</span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="text-gray-300">Online • AniList &amp; Jikan</span>
+<span class="text-vault-border">|</span>
+<span class="text-vault-coral font-medium">257.98 GB free • E:\</span>
+</div>
+</footer>
+<!-- END: BottomTelemetryFooter -->
+
+
+
+
+</body></html>

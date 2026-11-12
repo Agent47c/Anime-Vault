@@ -105,9 +105,11 @@ def show_system_menu(widget, point):
         user.PostMessageW(hwnd, 0x0112, command, 0)
 
 
-def maximize_bounds(monitor, work):
-    """Native maximize coordinates are relative to the selected monitor."""
-    return (work[0] - monitor[0], work[1] - monitor[1], work[2] - work[0], work[3] - work[1])
+def maximize_bounds(monitor, work, frame=(0,0,0,0)):
+    """Fill the work area with the client, placing resize borders outside it."""
+    left,top,right,bottom=frame
+    return (work[0]-monitor[0]-left,work[1]-monitor[1]-top,
+            work[2]-work[0]+left+right,work[3]-work[1]+top+bottom)
 
 
 def handle_maximize_message(widget, message):
@@ -133,7 +135,23 @@ def handle_maximize_message(widget, message):
         if not user.GetMonitorInfoW(monitor, ctypes.byref(info)):
             return False
         m, w = info.monitor, info.work
-        x, y, width, height = maximize_bounds((m.left,m.top,m.right,m.bottom), (w.left,w.top,w.right,w.bottom))
+        # The thick resize frame remains after removing the native caption.
+        # Windows needs its outer rectangle expanded by that frame; otherwise
+        # the visible client is inset on every edge instead of fully maximizing.
+        try:
+            user.GetDpiForWindow.argtypes=[ctypes.c_void_p]
+            user.GetDpiForWindow.restype=ctypes.c_uint
+            dpi=user.GetDpiForWindow(event.hWnd) or 96
+            user.GetSystemMetricsForDpi.argtypes=[ctypes.c_int,ctypes.c_uint]
+            user.GetSystemMetricsForDpi.restype=ctypes.c_int
+            metric=lambda index:user.GetSystemMetricsForDpi(index,dpi)
+        except AttributeError:
+            metric=user.GetSystemMetrics
+        # Qt's custom-caption client includes the one-pixel visible border.
+        border_x=max(0,metric(32)+metric(92)-metric(5))
+        border_y=max(0,metric(33)+metric(92)-metric(6))
+        x, y, width, height = maximize_bounds((m.left,m.top,m.right,m.bottom), (w.left,w.top,w.right,w.bottom),
+                                             (border_x,border_y,border_x,border_y))
         limits = MINMAXINFO.from_address(event.lParam)
         limits.max_position.x, limits.max_position.y = x, y
         limits.max_size.x, limits.max_size.y = width, height

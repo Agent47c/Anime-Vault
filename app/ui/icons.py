@@ -7,6 +7,20 @@ from PyQt5.QtSvg import QSvgRenderer
 
 
 _PATHS = {
+    "more": "M12 4h.01 M12 12h.01 M12 20h.01",
+    "chevron-down": "M6 9l6 6 6-6",
+    "arrow-left": "M19 12H5 M11 6l-6 6 6 6",
+    "plus": "M12 4v16 M4 12h16",
+    "import": "M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h5",
+    "edit": "M4 16l12-12 4 4L8 20H4z M14 6l4 4",
+    "refresh": "M20 7V3l-4 4 M20 7a8 8 0 1 0 0 10 M4 17v4l4-4",
+    "info": "M12 8h.01 M12 11v6 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18",
+    "select-multiple": "M2 12l4 4L16 6 M10 16l4 4L24 10",
+    "pause": "M8 4v16 M16 4v16",
+    "play": "M8 4l12 8-12 8z",
+    "check": "M4 12l5 5L20 6",
+    "calendar": "M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2 M3 9h18 M7 2v4 M17 2v4 M7 13h1 M12 13h1 M17 13h1 M7 17h1 M12 17h1",
+    "flower": "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6 M12 9C4 2 9 0 12 5c3-5 8-3 0 4 M15 12c7-8 10-3 5 0 5 3 3 8-5 0 M12 15c8 7 3 10 0 5-3 5-8 3 0-5 M9 12C2 20-1 15 4 12-1 9 1 4 9 12",
     "library": "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
     "updates": "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9 M10 21h4",
     "organizer": "M3 6a2 2 0 0 1 2-2h4l3 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",

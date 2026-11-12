@@ -42,7 +42,7 @@ class UpdateChoiceTests(unittest.TestCase):
     def test_restore_button_only_on_saved_cards_and_dropdown_is_removed(self):
         db.publish_updates(self.fid, "Season 2 released")
         page = UpdatesPage()
-        self.assertFalse(page.findChildren(QComboBox))
+        self.assertEqual(page.findChildren(QComboBox),[page.sort])  # No global muted-anime dropdown; approved sorting remains.
         card = page.list_widget.findChild(UpdateCard)
         self.assertNotIn("Restore updates", [b.text() for b in card.findChildren(QPushButton)])
         finished = QSignalSpy(page.action_finished)

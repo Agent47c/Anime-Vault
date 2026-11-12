@@ -10,6 +10,30 @@ from app.core.consolidation import explicit_season
 from app.core.library_health import aired_boundary
 
 
+def download_title_key(value):
+    import unicodedata
+    value=re.sub(r'\.(?:mkv|mp4|avi|webm|m4v|ts|mov)$','',value,flags=re.I)
+    return ''.join(c.casefold() for c in unicodedata.normalize('NFKC',base_title(value)) if c.isalnum())
+
+
+def download_aliases(fid,season):
+    series=db.get_series(fid)
+    if not series:return []
+    try:values=json.loads(db.get_state(f"download_aliases:{series['id']}:{season or 0}",'[]'))
+    except (TypeError,ValueError):return []
+    return values if isinstance(values,list) else []
+
+
+def remember_download_alias(fid,season,title):
+    series=db.get_series(fid)
+    if not series:raise ValueError('The anime is no longer in the library.')
+    title=title.strip();key=download_title_key(title)
+    if not key:raise ValueError('Enter an alternate anime title to remember.')
+    values=download_aliases(fid,season)
+    if not any(download_title_key(value)==key for value in values):values.append(title)
+    db.set_state(f"download_aliases:{series['id']}:{season or 0}",json.dumps(values))
+
+
 def sources():
     try: saved=json.loads(db.get_state('downloads.sources','[]'))
     except (TypeError,ValueError): saved=[]
@@ -129,7 +153,7 @@ def library_context(fid,season=None):
                     keys=[episode_key(False,chosen,number) for number in numbers]
             except ValueError:pass
         pending.update(keys)
-    return dict(fid=fid,title=series['display_title'],aliases=aliases,continuous=continuous,season=season,
+    return dict(fid=fid,title=series['display_title'],aliases=aliases,download_aliases=download_aliases(fid,season),continuous=continuous,season=season,
                 local=available,expected=sorted(expected),pending=sorted(pending),missing=sorted(expected-set(available)-pending),
                 unavailable=unavailable,seasons=selected,boundaries=boundaries)
 
@@ -142,7 +166,8 @@ def classify(entry,context):
         return ''.join(c.casefold() for c in unicodedata.normalize('NFKC',base_title(value)) if c.isalnum())
     clean=title_key(title)
     aliases=[title_key(alias) for alias in context['aliases']]
-    title_ok=bool(clean) and clean in aliases
+    saved_alias=bool(clean) and clean in [download_title_key(alias) for alias in context.get('download_aliases',[])]
+    title_ok=bool(clean) and (clean in aliases or saved_alias)
     season=explicit_season(title)
     numbers=extract_episode_numbers(title)
     if not numbers:
@@ -158,7 +183,7 @@ def classify(entry,context):
     if not context['continuous']:
         if context['season'] is None: reasons.append('Choose the release/season first')
         elif season is not None and season!=context['season']: reasons.append('Season differs from the selected release')
-        elif season is None and (context['season'] or 1)>1: reasons.append('Later season is not explicit')
+        elif season is None and (context['season'] or 1)>1 and not saved_alias: reasons.append('Later season is not explicit')
     boundary=context.get('boundaries',{}).get('ABS' if context['continuous'] else 'S'+str(season or context['season']))
     if boundary is not None and any(n>boundary for n in numbers): reasons.append('Episode is beyond the verified aired boundary; confirm its release')
     keys=[episode_key(context['continuous'],season or context['season'],ep) for ep in numbers] if not reasons else []

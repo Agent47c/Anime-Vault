@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+
+<html class="dark h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Settings &amp; System Configuration</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              base: '#14121d',
+              card: '#1c1a27',
+              surface: '#221f30',
+              border: '#2e2a40',
+              borderLight: '#3d3854',
+              sakura: '#ff6584',
+              sakuraHover: '#ff4d71',
+              sakuraMuted: '#ff658425',
+              text: '#f3f2f8',
+              secondary: '#9993ab',
+              subtle: '#68617d',
+              online: '#10b981',
+              warning: '#ffb86c'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
+          },
+          boxShadow: {
+            'sakura-glow': '0 0 16px -2px rgba(255, 101, 132, 0.35)',
+            'card-elevated': '0 8px 24px -4px rgba(8, 7, 13, 0.45)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: StyleConfigurations -->
+<style data-purpose="custom-scrollbars">
+    /* Sleek scrollbar styling for desktop aesthetic */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e2a40;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff658488;
+    }
+  </style>
+<style data-purpose="switch-styling">
+    /* Custom clean accessible toggles replicating desktop UI */
+    .toggle-checkbox:checked {
+      right: 0;
+      background-color: #ff6584;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #ff658444;
+      border-color: #ff6584;
+    }
+    .toggle-checkbox {
+      right: 1.25rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+<!-- END: StyleConfigurations -->
+</head>
+<body class="bg-vault-base text-vault-text font-sans antialiased min-h-screen flex flex-col selection:bg-vault-sakura selection:text-white overflow-hidden">
+<!-- BEGIN: DesktopWindowChromeHeader -->
+<header class="bg-vault-card/90 backdrop-blur-md border-b border-vault-border flex flex-col shrink-0 z-40 select-none">
+<!-- Top System Window Bar & Main Brand Navigation -->
+<div class="h-14 px-4 flex items-center justify-between border-b border-vault-border/60">
+<!-- Brand & Version Segment -->
+<div class="flex items-center space-x-3.5">
+<div class="relative flex items-center justify-center w-8 h-8 rounded-lg bg-vault-surface border border-vault-border text-vault-sakura shadow-sakura-glow">
+<!-- Cherry Blossom Emblem Icon -->
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
+<path d="M12 2C12.5 5 15.5 8 18.5 8.5C18.5 11.5 16 14.5 14 16C13 18.5 12 22 12 22C12 22 11 18.5 10 16C8 14.5 5.5 11.5 5.5 8.5C8.5 8 11.5 5 12 2M12 9A3 3 0 1 0 12 15A3 3 0 1 0 12 9Z"></path>
+</svg>
+<span class="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-vault-sakura opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-vault-sakura"></span>
+</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="font-semibold text-sm tracking-wide text-vault-text">Anime Vault</span>
+<span class="font-mono text-[10px] text-vault-subtle px-1.5 py-0.5 rounded bg-vault-base border border-vault-border">v2.5.0</span>
+</div>
+</div>
+<!-- App Navigation Modules -->
+<nav aria-label="Main Navigation" class="hidden md:flex items-center space-x-1">
+<a class="px-3 py-1.5 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface rounded-md transition-colors" href="#library">Library</a>
+<a class="px-3 py-1.5 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface rounded-md transition-colors flex items-center gap-1.5" href="#updates">
+          Updates
+          <span class="px-1.5 py-0.2 text-[10px] font-semibold bg-vault-sakura/20 text-vault-sakura rounded-full border border-vault-sakura/40">21</span>
+</a>
+<a class="px-3 py-1.5 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface rounded-md transition-colors" href="#downloads">Downloads</a>
+<a class="px-3 py-1.5 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface rounded-md transition-colors" href="#organizer">Organizer</a>
+<a class="px-3 py-1.5 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface rounded-md transition-colors" href="#storage">Storage</a>
+<!-- Active Tab: Settings -->
+<a class="px-3 py-1.5 text-xs font-medium text-vault-sakura bg-vault-sakura/10 border border-vault-sakura/30 rounded-md shadow-sm flex items-center gap-1.5" href="#settings">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-sakura"></span>
+          Settings
+        </a>
+</nav>
+<!-- Right Utility Cluster & Window Controls -->
+<div class="flex items-center space-x-4">
+<!-- Search Prompt Hint -->
+<button class="hidden lg:flex items-center space-x-2 text-xs text-vault-subtle bg-vault-base px-2.5 py-1 rounded border border-vault-border hover:border-vault-borderLight transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Search quick index...</span>
+<kbd class="text-[10px] font-mono bg-vault-surface px-1.5 py-0.5 rounded border border-vault-border">Ctrl+K</kbd>
+</button>
+<!-- Disk Quota Widget -->
+<div class="hidden sm:flex items-center space-x-2 text-xs text-vault-secondary bg-vault-surface/60 px-2.5 py-1 rounded-md border border-vault-border">
+<svg class="w-3.5 h-3.5 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>1.6 / 1.8 TB</span>
+<div class="w-12 h-1.5 bg-vault-base rounded-full overflow-hidden border border-vault-border/50">
+<div class="h-full bg-vault-sakura rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<!-- Window Action Buttons (Desktop Emulation) -->
+<div class="flex items-center space-x-1.5 pl-2 border-l border-vault-border/70">
+<button class="w-3 h-3 rounded-full bg-vault-surface border border-vault-border hover:bg-vault-border transition-colors" title="Minimize"></button>
+<button class="w-3 h-3 rounded-full bg-vault-surface border border-vault-border hover:bg-vault-border transition-colors" title="Maximize"></button>
+<button class="w-3 h-3 rounded-full bg-vault-sakura/60 border border-vault-sakura hover:bg-vault-sakura transition-colors" title="Close"></button>
+</div>
+</div>
+</div>
+<!-- Secondary Context & Action Bar -->
+<div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-vault-card/40">
+<div>
+<div class="flex items-center space-x-2 text-xs text-vault-subtle font-medium uppercase tracking-wider mb-1">
+<span>Settings</span>
+<span>/</span>
+<span class="text-vault-sakura font-semibold">System Configuration</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          Settings &amp; Configuration
+          <span class="text-xs font-normal text-vault-secondary px-2 py-0.5 rounded-full bg-vault-surface border border-vault-border">Active Profile: Local Vault</span>
+</h1>
+<p class="text-xs text-vault-secondary mt-0.5 max-w-2xl">
+          Manage indexing roots, automated watchers, download engines, media preferences, and database integrity.
+        </p>
+</div>
+<!-- Quick Action CTA Group -->
+<div class="flex items-center space-x-2.5 self-start md:self-auto">
+<button class="px-3.5 h-9 text-xs font-medium text-vault-secondary bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:text-white rounded-md transition-all">
+          Discard Changes
+        </button>
+<button class="px-4 h-9 text-xs font-semibold text-white bg-vault-sakura hover:bg-vault-sakuraHover rounded-md shadow-sakura-glow hover:shadow-lg transition-all flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Save All Changes
+        </button>
+</div>
+</div>
+</header>
+<!-- END: DesktopWindowChromeHeader -->
+<!-- BEGIN: MainContentShell -->
+<div class="flex-1 flex overflow-hidden relative">
+<!-- Subtle Japanese Ambient Motif Kanji Watermark (設定 = Settings) -->
+<div class="absolute right-4 bottom-10 pointer-events-none select-none text-[180px] font-black text-vault-surface/20 leading-none z-0">
+      設定
+    </div>
+<!-- BEGIN: SettingsSidebarNavigation -->
+<aside class="w-64 border-r border-vault-border bg-vault-card/40 flex flex-col shrink-0 p-4 space-y-6 overflow-y-auto">
+<!-- Search Filter in Nav -->
+<div class="relative">
+<input class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-1.5 pl-8 text-xs text-vault-text placeholder-vault-subtle focus:border-vault-sakura focus:ring-0 focus:outline-none transition-colors" placeholder="Filter settings..." type="text"/>
+<svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<!-- Navigation Category Group -->
+<div class="space-y-1">
+<div class="px-2 text-[10px] font-semibold uppercase tracking-wider text-vault-subtle mb-2">Core System</div>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#cat-appearance">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Appearance &amp; Themes</span>
+</div>
+</a>
+<!-- Active Navigation Pill -->
+<a class="flex items-center justify-between px-3 py-2 text-xs font-semibold text-vault-sakura bg-vault-sakura/10 border-l-2 border-vault-sakura rounded-r-md transition-colors" href="#section-library">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-sakura" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Library Roots &amp; Scanning</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-vault-sakura"></span>
+</a>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#section-rules">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Naming &amp; Organization</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#section-metadata">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Metadata &amp; AniList</span>
+</div>
+</a>
+</div>
+<div class="space-y-1">
+<div class="px-2 text-[10px] font-semibold uppercase tracking-wider text-vault-subtle mb-2">Automation &amp; Ingestion</div>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#section-watchers">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Watchers &amp; TXT Lists</span>
+</div>
+<span class="text-[10px] font-mono px-1.5 py-0.2 bg-vault-surface rounded border border-vault-border text-vault-secondary">2 active</span>
+</a>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#section-downloads">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Downloads &amp; Sources</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#section-mediaplayer">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Media Player (mpv)</span>
+</div>
+</a>
+</div>
+<div class="space-y-1">
+<div class="px-2 text-[10px] font-semibold uppercase tracking-wider text-vault-subtle mb-2">Maintenance</div>
+<a class="flex items-center justify-between px-3 py-2 text-xs font-medium text-vault-secondary hover:text-vault-text hover:bg-vault-surface/60 rounded-md transition-colors" href="#section-database">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3m-16 5c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Database &amp; Backups</span>
+</div>
+</a>
+</div>
+<!-- Quick Engine Status Card in Sidebar -->
+<div class="mt-auto pt-4 border-t border-vault-border">
+<div class="p-3 bg-vault-surface/50 border border-vault-border rounded-lg text-xs space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="text-vault-subtle text-[11px]">Vault Daemon</span>
+<span class="inline-flex items-center gap-1 text-[11px] text-vault-online font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-online"></span>
+              Online
+            </span>
+</div>
+<div class="text-[11px] text-vault-secondary truncate font-mono">SQLite: WAL Committed</div>
+</div>
+</div>
+</aside>
+<!-- END: SettingsSidebarNavigation -->
+<!-- BEGIN: SettingsScrollableCanvas -->
+<main class="flex-1 overflow-y-auto px-8 py-6 space-y-8 z-10" id="main-settings-container">
+<!-- ========================================== -->
+<!-- SECTION A: LIBRARY ROOTS AND SCANNING     -->
+<!-- Referencing IMAGE_11 & IMAGE_12            -->
+<!-- ========================================== -->
+<!-- BEGIN: SectionLibraryRoots -->
+<section class="space-y-4" data-purpose="library-roots-and-scanning" id="section-library">
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated">
+<!-- Card Header -->
+<div class="flex items-start justify-between border-b border-vault-border pb-4 mb-5">
+<div>
+<h2 class="text-base font-semibold text-vault-text tracking-tight">Library roots and scanning</h2>
+<p class="text-xs text-vault-secondary mt-0.5">Folders used to discover and index your anime.</p>
+</div>
+<span class="text-[11px] font-mono text-vault-subtle bg-vault-base px-2.5 py-1 rounded border border-vault-border">Roots: 1 active directory</span>
+</div>
+<!-- Directory List Box (Exact Match to IMAGE_11) -->
+<div class="space-y-3">
+<div class="w-full h-32 bg-vault-base border border-vault-border rounded-lg p-3 overflow-y-auto text-xs font-mono text-vault-text focus-within:border-vault-sakura/50" data-purpose="directory-container">
+<!-- Selected/Configured Path Item -->
+<div class="px-2.5 py-2 rounded bg-vault-surface/80 border border-vault-border/80 flex items-center justify-between group hover:border-vault-borderLight cursor-pointer">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-vault-sakura" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-vault-text font-medium">E:/Anime Library</span>
+</div>
+<div class="flex items-center space-x-2 text-[11px] text-vault-secondary">
+<span class="px-1.5 py-0.5 rounded bg-vault-base text-vault-online text-[10px] font-sans">Primary Root</span>
+<span class="text-vault-subtle">• 184 anime indexed</span>
+</div>
+</div>
+</div>
+<!-- Root Action Buttons Row (IMAGE_11) -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+<div class="flex items-center space-x-2">
+<button class="h-9 px-3.5 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:bg-vault-surface/80 rounded-md transition-colors flex items-center gap-1.5" type="button">
+<svg class="w-3.5 h-3.5 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  + Add folder
+                </button>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-secondary bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:text-vault-text rounded-md transition-colors" type="button">
+                  Remove selected
+                </button>
+</div>
+<!-- Sakura Action Scan Button -->
+<button class="h-9 px-4 text-xs font-semibold text-white bg-vault-sakura hover:bg-vault-sakuraHover rounded-md shadow-sakura-glow hover:shadow-lg transition-all flex items-center gap-2" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Scan all directories
+              </button>
+</div>
+</div>
+</div>
+<!-- Scanning and Organization Policy (IMAGE_12) -->
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5">
+<div class="border-b border-vault-border pb-3">
+<h3 class="text-base font-semibold text-vault-text tracking-tight">Scanning and organization</h3>
+</div>
+<!-- Toggle: Flat folder detection -->
+<div class="flex items-center justify-between py-2">
+<div>
+<div class="text-xs font-semibold text-vault-text">Flat folder detection</div>
+<div class="text-[11px] text-vault-secondary">Treat direct root video files as Season 1</div>
+</div>
+<!-- Custom Toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Toggle: Preview file movements -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Preview file movements</div>
+<div class="text-[11px] text-vault-secondary">Require confirmation before organizing</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Scheduled scan dropdown (IMAGE_12) -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Scheduled scan</div>
+<div class="text-[11px] text-vault-secondary">Check folders for newly added anime</div>
+</div>
+<div class="w-48">
+<select class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-1.5 text-xs text-vault-text focus:border-vault-sakura focus:ring-0 focus:outline-none cursor-pointer">
+<option selected="" value="startup">On startup</option>
+<option value="manual">Manual only</option>
+<option value="1h">Every hour</option>
+<option value="1d">Every day</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+<!-- END: SectionLibraryRoots -->
+<!-- ========================================== -->
+<!-- SECTION B: NAMING AND ORGANIZATION RULES  -->
+<!-- Referencing IMAGE_11                       -->
+<!-- ========================================== -->
+<!-- BEGIN: SectionNamingRules -->
+<section class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5" data-purpose="naming-and-organization-rules" id="section-rules">
+<div class="border-b border-vault-border pb-3">
+<h2 class="text-base font-semibold text-vault-text tracking-tight">Naming and organization rules</h2>
+</div>
+<!-- Detect season/part names -->
+<div class="flex items-center justify-between py-2">
+<div>
+<div class="text-xs font-semibold text-vault-text">Detect season/part names</div>
+<div class="text-[11px] text-vault-secondary">Applies to the next organizer preview.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Detect episode numbers -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Detect episode numbers</div>
+<div class="text-[11px] text-vault-secondary">Applies to the next organizer preview.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Keep subtitles and fonts with episodes -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Keep subtitles and fonts with episodes</div>
+<div class="text-[11px] text-vault-secondary">Applies to the next organizer preview.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Open organizer CTA -->
+<div class="pt-2">
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:bg-vault-surface/80 rounded-md transition-colors flex items-center gap-2" type="button">
+<svg class="w-3.5 h-3.5 text-vault-subtle" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Open organizer and preview file changes
+          </button>
+</div>
+</section>
+<!-- END: SectionNamingRules -->
+<!-- ========================================== -->
+<!-- SECTION C: METADATA AND ANILIST           -->
+<!-- Referencing IMAGE_12                       -->
+<!-- ========================================== -->
+<!-- BEGIN: SectionMetadataAniList -->
+<section class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5" data-purpose="metadata-and-anilist" id="section-metadata">
+<div class="border-b border-vault-border pb-3 flex items-center justify-between">
+<h2 class="text-base font-semibold text-vault-text tracking-tight">Metadata and AniList</h2>
+<span class="text-[11px] font-mono text-vault-online flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-online"></span>
+            AniList GraphQL API connected
+          </span>
+</div>
+<!-- Automatic metadata updates -->
+<div class="flex items-center justify-between py-2">
+<div>
+<div class="text-xs font-semibold text-vault-text">Automatic metadata updates</div>
+<div class="text-[11px] text-vault-secondary">Check for new seasons and episodes</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Prefer official English titles -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Prefer official English titles</div>
+<div class="text-[11px] text-vault-secondary">Fall back to Romaji and Japanese; applies to new matches</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Allow mature (18+) titles -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Allow mature (18+) titles</div>
+<div class="text-[11px] text-vault-secondary">Include adult titles in search results</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Rematch low-confidence titles -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Rematch low-confidence titles</div>
+<div class="text-[11px] text-vault-secondary">Allow automatic exact-title checks for entries needing review</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+</section>
+<!-- END: SectionMetadataAniList -->
+<!-- ========================================== -->
+<!-- SECTION D: WATCHERS AND AUTOMATIC IMPORTS -->
+<!-- Referencing IMAGE_13                       -->
+<!-- ========================================== -->
+<!-- BEGIN: SectionWatchersImports -->
+<section class="space-y-4" data-purpose="watchers-and-automatic-imports" id="section-watchers">
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5">
+<div class="border-b border-vault-border pb-3">
+<h2 class="text-base font-semibold text-vault-text tracking-tight">Watchers and automatic imports</h2>
+</div>
+<!-- Watch library folders toggle (OFF in IMAGE_13) -->
+<div class="flex items-center justify-between py-2">
+<div>
+<div class="text-xs font-semibold text-vault-text">Watch library folders</div>
+<div class="text-[11px] text-vault-secondary">Detect changes in configured roots and indexed season folders. Changes trigger a debounced local scan.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-vault-subtle after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Watch TXT import lists toggle (ON in IMAGE_13) -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Watch TXT import lists</div>
+<div class="text-[11px] text-vault-secondary">Check enabled lists once a minute. New names become custom entries needing review; no weak API matches are applied.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- TXT Import Subscriptions Container Box (IMAGE_13) -->
+<div class="w-full h-36 bg-vault-base border border-vault-border rounded-lg p-3 overflow-y-auto font-mono text-xs text-vault-text space-y-1.5" data-purpose="txt-watchers-listbox">
+<!-- Row 1 -->
+<div class="p-2 rounded bg-vault-surface/60 border border-vault-border flex items-center justify-between hover:border-vault-borderLight cursor-pointer">
+<span class="text-vault-text font-normal">On • E:/Anime Library/Seen And Deleted Animes.txt • WATCHED</span>
+<span class="text-[10px] font-sans px-2 py-0.5 rounded bg-vault-online/10 text-vault-online border border-vault-online/30">Active Watcher</span>
+</div>
+<!-- Row 2 -->
+<div class="p-2 rounded bg-vault-surface/60 border border-vault-border flex items-center justify-between hover:border-vault-borderLight cursor-pointer">
+<span class="text-vault-text font-normal">On • E:/Anime Library/Deleted Seen Anime 1.txt • WATCHED</span>
+<span class="text-[10px] font-sans px-2 py-0.5 rounded bg-vault-online/10 text-vault-online border border-vault-online/30">Active Watcher</span>
+</div>
+</div>
+<!-- TXT List Action Controls (IMAGE_13) -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<button class="h-9 px-3.5 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+              Add TXT list
+            </button>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-secondary bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:text-vault-text rounded-md transition-colors" type="button">
+              Enable / disable selected list
+            </button>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-secondary bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:text-vault-text rounded-md transition-colors" type="button">
+              Remove selected list
+            </button>
+</div>
+<!-- Status Assignment Row (IMAGE_13) -->
+<div class="pt-2 border-t border-vault-border/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div>
+<div class="text-xs font-semibold text-vault-text">Status for selected list</div>
+<div class="text-[11px] text-vault-secondary">Choose status, then apply it to the highlighted subscription.</div>
+</div>
+<div class="flex items-center space-x-2">
+<select class="w-36 bg-vault-base border border-vault-border rounded-md px-3 py-1.5 text-xs text-vault-text focus:border-vault-sakura focus:ring-0 focus:outline-none">
+<option selected="" value="watched">Watched</option>
+<option value="watching">Currently Watching</option>
+<option value="plan">Plan to Watch</option>
+<option value="dropped">Dropped</option>
+</select>
+<button class="h-9 px-3 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+                Apply list status
+              </button>
+<button class="h-9 px-3 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+                Check enabled lists now
+              </button>
+</div>
+</div>
+</div>
+<!-- Watched List Import Card (IMAGE_13) -->
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5">
+<div class="border-b border-vault-border pb-3">
+<h3 class="text-base font-semibold text-vault-text tracking-tight">Watched list import</h3>
+</div>
+<!-- Auto-select high-confidence matches -->
+<div class="flex items-center justify-between py-2">
+<div>
+<div class="text-xs font-semibold text-vault-text">Auto-select high-confidence matches</div>
+<div class="text-[11px] text-vault-secondary">Select matches at 90% or higher; Apply still confirms the import</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Review ambiguous matches -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Review ambiguous matches</div>
+<div class="text-[11px] text-vault-secondary">Leave uncertain matches unchecked for your review</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Ignore duplicate entries -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Ignore duplicate entries</div>
+<div class="text-[11px] text-vault-secondary">Skip repeated titles and entries already in the library</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-vault-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vault-sakura"></div>
+</label>
+</div>
+<!-- Import watched list action row -->
+<div class="flex items-center justify-between pt-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Import watched list</div>
+<div class="text-[11px] text-vault-secondary">Review anime titles from a text file</div>
+</div>
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors flex items-center gap-1.5" type="button">
+<span>Open importer</span>
+<kbd class="text-[10px] font-mono bg-vault-base px-1.5 py-0.5 rounded border border-vault-border text-vault-secondary">Ctrl+I</kbd>
+</button>
+</div>
+</div>
+</section>
+<!-- END: SectionWatchersImports -->
+<!-- ========================================== -->
+<!-- SECTION E: DOWNLOADS & SOURCES             -->
+<!-- Referencing IMAGE_14, IMAGE_15, IMAGE_16   -->
+<!-- ========================================== -->
+<!-- BEGIN: SectionDownloadsSources -->
+<section class="space-y-4" data-purpose="downloads-and-sources" id="section-downloads">
+<!-- Torrent Engine Configuration Card (IMAGE_16) -->
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-6">
+<div class="border-b border-vault-border pb-3 flex items-center justify-between">
+<div>
+<h2 class="text-base font-semibold text-vault-text tracking-tight">Download engine</h2>
+<p class="text-xs text-vault-secondary mt-0.5">Anime Vault downloads directly using its built-in torrent engine. No external client, Web UI or login is needed.</p>
+</div>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+              Check Anime Vault engine
+            </button>
+</div>
+<!-- Engine Selector Dropdown -->
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-vault-text">Active Downloader</label>
+<select class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs text-vault-text focus:border-vault-sakura focus:ring-0">
+<option selected="" value="builtin">Built-in downloader</option>
+<option value="qbittorrent">qBittorrent (Web API)</option>
+<option value="transmission">Transmission RPC</option>
+</select>
+</div>
+<!-- Chrome Extension Integration Box (IMAGE_16) -->
+<div class="p-4 bg-vault-base/60 border border-vault-border rounded-lg space-y-3">
+<div>
+<div class="text-xs font-semibold text-vault-text">Chrome extension ID</div>
+<div class="text-[11px] text-vault-secondary mt-0.5">
+                Optional Chrome extension: save your source website below first, then connect the extension. It catches clicks only on that site; your normal magnet handler stays unchanged.
+              </div>
+</div>
+<input class="w-full bg-vault-card border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="ebphigopcneachageneimcfbdaemblki"/>
+<div class="flex items-center space-x-2 pt-1">
+<button class="h-8 px-3 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+                Connect Chrome extension
+              </button>
+<button class="h-8 px-3 text-xs font-medium text-vault-secondary bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:text-vault-text rounded-md transition-colors" type="button">
+                Open Chrome extension folder
+              </button>
+</div>
+</div>
+<!-- Enable Downloads Toggle & Destination -->
+<div class="space-y-4 pt-1">
+<div class="flex items-start space-x-3">
+<input checked="" class="mt-0.5 rounded bg-vault-base border-vault-border text-vault-sakura focus:ring-0 focus:ring-offset-0" id="enable-downloads" type="checkbox"/>
+<div>
+<label class="text-xs font-semibold text-vault-text cursor-pointer" for="enable-downloads">Enable downloads</label>
+<p class="text-[11px] text-vault-secondary">Confirmed downloads start automatically. Choose files remains available as an optional queue action.</p>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-vault-text">Download destination</label>
+<div class="flex items-center space-x-2">
+<input class="flex-1 bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="E:\Anime Library\.animevault-downloads"/>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors whitespace-nowrap" type="button">
+                  Choose destination...
+                </button>
+</div>
+</div>
+</div>
+<!-- Search URL, Release Group & Quality Parameters (IMAGE_16) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-vault-border/50">
+<div class="md:col-span-2 space-y-1.5">
+<label class="text-xs font-semibold text-vault-text">Website search URL — use {query}</label>
+<input class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="https://nyaa.si/?q={query}&amp;f=0&amp;c=0_0"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-vault-text">Release group (optional)</label>
+<input class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="ASW"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-vault-text">Quality (optional)</label>
+<input class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="1080p"/>
+</div>
+</div>
+<!-- Bandwidth Limits & Seed Options (IMAGE_14, IMAGE_15) -->
+<div class="space-y-4 pt-4 border-t border-vault-border/50">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-vault-text">Built-in download limit (KiB/s)</label>
+<input class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="Unlimited"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-vault-text">Built-in upload limit (KiB/s)</label>
+<input class="w-full bg-vault-base border border-vault-border rounded-md px-3 py-2 text-xs font-mono text-vault-text focus:border-vault-sakura focus:ring-0" type="text" value="Unlimited"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center space-x-2.5">
+<input class="rounded bg-vault-base border-vault-border text-vault-sakura focus:ring-0" id="seed-downloads" type="checkbox"/>
+<label class="text-xs text-vault-text cursor-pointer" for="seed-downloads">Keep seeding completed downloads</label>
+</div>
+<p class="text-[11px] text-vault-secondary">Built-in downloads continue in the tray. Exiting completely saves progress and stops transfers. Cancel keeps downloaded files.</p>
+<div class="flex items-center space-x-2 text-xs text-vault-subtle">
+<span class="w-2 h-2 rounded-full bg-vault-subtle"></span>
+<span>Not connected</span>
+</div>
+</div>
+<!-- Save Download Settings CTA -->
+<div class="flex justify-end pt-2">
+<button class="h-9 px-5 text-xs font-semibold text-white bg-vault-sakura hover:bg-vault-sakuraHover rounded-md shadow-sakura-glow transition-all" type="button">
+                Save settings
+              </button>
+</div>
+</div>
+</div>
+<!-- Sources Management Table Card (IMAGE_14, IMAGE_15) -->
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-4">
+<div class="border-b border-vault-border pb-3">
+<h3 class="text-base font-semibold text-vault-text tracking-tight">Sources</h3>
+</div>
+<!-- Structured Source Table (IMAGE_14) -->
+<div class="border border-vault-border rounded-lg overflow-hidden">
+<table class="w-full text-left text-xs" id="sources-configuration-table">
+<thead class="bg-vault-base/80 uppercase text-[10px] tracking-wider text-vault-subtle border-b border-vault-border">
+<tr>
+<th class="py-2.5 px-4 font-semibold w-1/4" scope="col">SOURCE NAME</th>
+<th class="py-2.5 px-4 font-semibold" scope="col">SEARCH URL — INCLUDE {QUERY}</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-vault-border bg-vault-card">
+<tr class="hover:bg-vault-surface/40 transition-colors">
+<td class="py-3 px-4 font-medium text-vault-text flex items-center gap-2">
+<span>Nyaa</span>
+<span class="text-[10px] px-1.5 py-0.2 rounded bg-vault-sakura/10 text-vault-sakura border border-vault-sakura/30">Default</span>
+</td>
+<td class="py-3 px-4 font-mono text-vault-secondary text-[11px]">
+                    https://nyaa.si/?q={query}&amp;f=0&amp;c=0_0
+                  </td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="text-[11px] text-vault-secondary">The extension needs permission for the source you select. Nyaa-style tables and generic magnet rows are supported.</p>
+<!-- Source Action Buttons Row (IMAGE_14, IMAGE_15) -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<button class="h-9 px-3.5 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+              Add source
+            </button>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-secondary bg-vault-surface border border-vault-border hover:border-vault-borderLight hover:text-vault-text rounded-md transition-colors" type="button">
+              Remove selected source
+            </button>
+<button class="h-9 px-4 text-xs font-semibold text-white bg-vault-sakura hover:bg-vault-sakuraHover rounded-md shadow-sakura-glow transition-all" type="button">
+              Save sources / use highlighted
+            </button>
+</div>
+</div>
+</section>
+<!-- END: SectionDownloadsSources -->
+<!-- ========================================== -->
+<!-- SECTION F: DATABASE AND BACKUP             -->
+<!-- Referencing IMAGE_17                       -->
+<!-- ========================================== -->
+<!-- BEGIN: SectionDatabaseBackup -->
+<section class="space-y-4 pb-12" data-purpose="database-and-backup" id="section-database">
+<!-- Primary Database Card (IMAGE_17) -->
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5">
+<div class="border-b border-vault-border pb-3 flex items-center justify-between">
+<h2 class="text-base font-semibold text-vault-text tracking-tight">Database and backup</h2>
+<span class="text-[11px] font-mono text-vault-subtle">Engine: SQLite 3.42.0</span>
+</div>
+<!-- Database Status Row -->
+<div class="py-2">
+<div class="text-xs font-semibold text-vault-text">Database</div>
+<div class="text-xs text-vault-secondary font-mono mt-0.5">library.db - SQLite (WAL)</div>
+</div>
+<!-- Backup Row with Button (IMAGE_17) -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Backup</div>
+<div class="text-[11px] text-vault-secondary">Save a copy of the library before making changes</div>
+</div>
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+              Create backup
+            </button>
+</div>
+<!-- Restore Row with Button (IMAGE_17) -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Restore</div>
+<div class="text-[11px] text-vault-secondary">Restore a saved library; a safety copy is kept</div>
+</div>
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+              Restore backup
+            </button>
+</div>
+<!-- Export Row with JSON and CSV Buttons (IMAGE_17) -->
+<div class="flex items-center justify-between py-2 border-t border-vault-border/50">
+<div>
+<div class="text-xs font-semibold text-vault-text">Export</div>
+<div class="text-[11px] text-vault-secondary">Full library for safe keeping</div>
+</div>
+<div class="flex items-center space-x-2">
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors font-mono" type="button">
+                JSON
+              </button>
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors font-mono" type="button">
+                CSV
+              </button>
+</div>
+</div>
+</div>
+<!-- Backup Location and Maintenance Card (IMAGE_17) -->
+<div class="bg-vault-card border border-vault-border rounded-xl p-6 shadow-card-elevated space-y-5">
+<div class="border-b border-vault-border pb-3">
+<h3 class="text-base font-semibold text-vault-text tracking-tight">Backup location and maintenance</h3>
+</div>
+<!-- Backup folder location row -->
+<div class="flex items-center justify-between py-2">
+<div>
+<div class="text-xs font-semibold text-vault-text">Backup folder</div>
+<div class="text-[11px] text-vault-secondary">SQLite backups include committed WAL data.</div>
+</div>
+<div class="font-mono text-xs text-vault-secondary bg-vault-base px-3 py-1.5 rounded border border-vault-border">
+              ls\data\backups
+            </div>
+</div>
+<!-- Choose backup folder button -->
+<div>
+<button class="h-9 px-3.5 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors" type="button">
+              Choose backup folder
+            </button>
+</div>
+<!-- Check database integrity and checkpoint row -->
+<div class="pt-2 border-t border-vault-border/50 space-y-2">
+<p class="text-[11px] text-vault-secondary">Check database integrity and checkpoint the write-ahead log.</p>
+<button class="h-9 px-4 text-xs font-medium text-vault-text bg-vault-surface border border-vault-border hover:border-vault-borderLight rounded-md transition-colors flex items-center gap-2" type="button">
+<svg class="w-3.5 h-3.5 text-vault-sakura" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              Check and maintain database
+            </button>
+</div>
+</div>
+</section>
+<!-- END: SectionDatabaseBackup -->
+</main>
+<!-- END: SettingsScrollableCanvas -->
+</div>
+<!-- END: MainContentShell -->
+<!-- BEGIN: BottomSystemTelemetryBar -->
+<footer class="h-8 bg-vault-card/95 border-t border-vault-border px-4 flex items-center justify-between text-[11px] text-vault-secondary shrink-0 select-none z-50">
+<div class="flex items-center space-x-4">
+<!-- Local Daemon Address -->
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-vault-online animate-pulse"></span>
+<span class="font-mono text-vault-text">Streaming API running • http://127.0.0.1:8765</span>
+</div>
+<span class="text-vault-border">|</span>
+<!-- Last scan time -->
+<span>Last scan just now • 230 anime indexed</span>
+</div>
+<div class="flex items-center space-x-4">
+<!-- Sync status indicator -->
+<span class="flex items-center gap-1 text-vault-online">
+<svg class="w-3 h-3 fill-current" viewbox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg>
+        Online • AniList &amp; Jikan
+      </span>
+<span class="text-vault-border">|</span>
+<!-- Storage capacity text -->
+<span class="font-mono text-vault-subtle">257.98 GB free • E:\</span>
+</div>
+</footer>
+<!-- END: BottomSystemTelemetryBar -->
+</body></html>

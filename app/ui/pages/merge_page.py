@@ -87,7 +87,13 @@ class MergePage(QWidget):
         self._merge_worker = self._merge_plan_worker = None
         self._rows = []
         self._setup_ui()
+        from app.ui.merge_duplicate_style import apply_merge
+        apply_merge(self)
         self.load_roots()
+
+    def refresh_home_style(self):
+        from app.ui.merge_duplicate_style import qss
+        self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(qss('merge_page'))
 
     @staticmethod
     def _label(value, role="merge_hint"):
@@ -183,7 +189,7 @@ class MergePage(QWidget):
         self.table = QTableWidget(0, 6)
         self.table.setObjectName("merge_preview")
         self.table.setHorizontalHeaderLabels(["", "Anime", "Ready files", "Needs folder", "Total size", "Destination"])
-        self._style_table(self.table, 64)
+        self._style_table(self.table, 80)
         self.table.setMinimumHeight(240)
         self.table.setMaximumHeight(340)
         for col in (0, 2, 3, 4):
@@ -373,7 +379,6 @@ class MergePage(QWidget):
             self._pill(self.table, row, 3, str(len(entries) - len(ready)), bool(len(entries) - len(ready)))
             title_cell = QWidget()
             title_cell.setObjectName("merge_title_cell")
-            title_cell.setAttribute(Qt.WA_TransparentForMouseEvents)
             labels = QVBoxLayout(title_cell)
             labels.setContentsMargins(12, 8, 12, 8)
             labels.setSpacing(3)
@@ -381,7 +386,8 @@ class MergePage(QWidget):
             name.setObjectName("merge_title")
             labels.addWidget(name)
             source = str(Path(entries[0]["source"]).parent)
-            path = ElidedLabel(source)
+            from app.ui.components.folder_button import FolderButton
+            path = FolderButton(source)
             path.setObjectName("merge_path")
             labels.addWidget(path)
             self.table.item(row, 1).setForeground(QColor(Qt.transparent))

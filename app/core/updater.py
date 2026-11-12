@@ -39,6 +39,8 @@ class UpdaterThread(QThread):
             franchises = db.get_all_franchises()
             total = len(franchises)
             updates_found = 0
+            from app.core.release_calendar import saved
+            self._airing_schedule=saved()
 
             for idx, franchise in enumerate(franchises):
                 if self._cancelled:
@@ -124,9 +126,16 @@ class UpdaterThread(QThread):
                 updates.append(f"{title} — Released (Not in Library)")
 
         # Check if the main entry is currently airing
-        airing = media.get("nextAiringEpisode")
-        if airing:
-            ep = airing.get("episode", "?")
-            updates.append(f"Episode {ep} airing soon")
+        from app.core.episode_updates import episode_notifications
+        from app.core.release_calendar import saved
+        import json
+        cached_history=getattr(self,'_airing_schedule',None)
+        history=list(saved() if cached_history is None else cached_history)
+        try:
+            previous=json.loads(franchise.get('metadata_json') or '{}') or {}
+            if previous.get('id')==media.get('id') and previous.get('nextAiringEpisode'):
+                history.append(dict(previous['nextAiringEpisode'],mediaId=media.get('id')))
+        except (ValueError,TypeError):pass
+        updates.extend(episode_notifications(media,history))
 
         return " | ".join(updates) if updates else None

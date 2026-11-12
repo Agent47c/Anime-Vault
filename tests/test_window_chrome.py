@@ -37,6 +37,12 @@ class WindowChromeTests(unittest.TestCase):
         self.assertEqual(maximize_bounds((0, 0, 1920, 1080), (0, 0, 1920, 1032)), (0, 0, 1920, 1032))
         self.assertEqual(maximize_bounds((-1920, 0, 0, 1080), (-1872, 0, 0, 1080)), (48, 0, 1872, 1080))
 
+    def test_maximize_expands_only_resize_border_past_taskbar_work_area(self):
+        from app.ui.window_chrome import maximize_bounds
+        self.assertEqual(maximize_bounds((0,0,1920,1080),(0,0,1920,1032),(7,7,7,7)),(-7,-7,1934,1046))
+        # A left-docked taskbar and a monitor left of the primary display.
+        self.assertEqual(maximize_bounds((-1920,0,0,1080),(-1872,0,0,1080),(7,7,7,7)),(41,-7,1886,1094))
+
     def test_f11_fullscreen_restores_previous_window_mode(self):
         from PyQt5.QtWidgets import QMainWindow
         from app.ui.components.title_bar import AppTitleBar

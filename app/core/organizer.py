@@ -288,6 +288,13 @@ def inspect_all_library(
     # 1. Collect all root paths from watched directories and franchises
     watched_dirs = db.get_watched_directories()
     all_franchises = db.get_all_franchises()
+    from app.core.download_queue import scan_exclusions
+    from app.core import downloads
+    destination=Path(downloads.settings()['destination']).resolve()
+    excluded=scan_exclusions()+([] if any(destination==Path(root['folder_path']).resolve() for root in watched_dirs) else [destination])
+    def staging(path):
+        resolved=Path(path).resolve()
+        return any(resolved==root or resolved.is_relative_to(root) for root in excluded)
 
     # Map root_folder_path -> franchise dict
     folder_to_franchise = {}
@@ -304,6 +311,7 @@ def inspect_all_library(
     # Scan watched root directories for subfolders
     for wdir in watched_dirs:
         wpath = Path(wdir["folder_path"])
+        if staging(wpath):continue
         if wpath.is_dir():
             from app.core.loose import inspect_loose_episodes
             found, unknown = inspect_loose_episodes(wpath)
@@ -314,7 +322,7 @@ def inspect_all_library(
             unclassified_loose.extend(unknown)
             try:
                 for child in wpath.iterdir():
-                    if child.is_dir():
+                    if child.is_dir() and not staging(child):
                         norm = os.path.normpath(str(child)).lower()
                         franchise = folder_to_franchise.get(norm)
                         disp_name = franchise["display_title"] if franchise else clean_title(child.name)
@@ -326,7 +334,7 @@ def inspect_all_library(
     # Add any franchise paths that weren't inside the watched dirs
     for f in all_franchises:
         rfp = f.get("root_folder_path")
-        if rfp and os.path.isdir(rfp):
+        if rfp and os.path.isdir(rfp) and not staging(rfp):
             if rfp not in targets:
                 targets[rfp] = (f["display_title"], f["id"])
 
@@ -353,6 +361,16 @@ def inspect_all_library(
             else:
                 unorganized_list.append(item)
 
+    # Staging is never a generic anime folder. Completed jobs retain their
+    # explicit series identity and use the reviewed download relocation path.
+    hidden = set(json.loads(db.get_state('library.removed_ids', '[]')))
+    for job in downloads.jobs():
+        if job.get('fid') in hidden: continue
+        if not job.get('indexed') or not job.get('verified_files') or job.get('library_moved') or job.get('integrity_missing'):continue
+        series=db.get_series(job['fid'])
+        if not series:continue
+        item=dict(anime_name=series['display_title'],folder_path=job['destination'],franchise_id=job['fid'],download_job_id=job['id'],video_count=len(job.get('verified_files') or []),is_organized=False,status_badge='Download ready',status_reason='Completed download — review move to its anime and season folder',moves=[])
+        unorganized_list.append(item);all_list.append(item)
     return {
         "unclassified_loose": unclassified_loose,
         "unorganized": unorganized_list,
@@ -384,6 +402,8 @@ def execute_organize_anime(
     Safely moves files into target season folders, cleans up empty directories,
     and updates the database records.
     """
+    if item.get('download_job_id') or Path(item.get('folder_path','')).name.lstrip('.').lower()=='animevault-downloads':
+        raise ValueError('Review completed download moves to their linked anime and season; do not organize the staging folder as an anime.')
     if rules is None:
         rules = DEFAULT_RULES
 

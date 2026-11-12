@@ -1,0 +1,632 @@
+<!DOCTYPE html><html class="dark" lang="en" style="width: 1280px; height: 1592px; overflow: hidden; position: relative;"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><title>Anime Vault</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#ffb2bc", "on-secondary": "#492900", "inverse-surface": "#e6e0f0", "outline": "#a78a8c", "surface-tint": "#ffb2bc", "on-secondary-fixed": "#2c1600", "on-tertiary": "#312d44", "inverse-primary": "#b0284b", "surface-dim": "#14121d", "on-tertiary-fixed-variant": "#48445b", "secondary-fixed-dim": "#ffb86c", "tertiary-fixed": "#e6defc", "on-primary-container": "#6a0024", "background": "#14121d", "on-secondary-container": "#ffb86c", "tertiary-container": "#9c96b1", "surface-container-high": "#2b2834", "on-tertiary-container": "#332f45", "on-surface": "#e6e0f0", "on-primary-fixed": "#400012", "secondary-fixed": "#ffdcbc", "surface-container-low": "#1c1a25", "outline-variant": "#584143", "on-error-container": "#ffdad6", "inverse-on-surface": "#312f3b", "error": "#ffb4ab", "surface-variant": "#36333f", "tertiary-fixed-dim": "#c9c3df", "surface": "#14121d", "primary-fixed": "#ffd9dd", "on-background": "#e6e0f0", "surface-container-lowest": "#0f0d17", "tertiary": "#c9c3df", "secondary": "#ffb86c", "surface-container-highest": "#36333f", "primary": "#ffb2bc", "on-secondary-fixed-variant": "#683c00", "error-container": "#93000a", "surface-container": "#201e2a", "on-surface-variant": "#dfbfc2", "surface-bright": "#3a3744", "on-primary-fixed-variant": "#8f0935", "on-primary": "#670023", "primary-container": "#ff6584", "on-tertiary-fixed": "#1c192e", "on-error": "#690005", "secondary-container": "#794700" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1.25rem", "space-xs": "0.25rem", "space-lg": "1.5rem", "margin": "2rem", "gutter-compact": "0.75rem", "margin-compact": "1.25rem", "space-md": "1rem", "space-sm": "0.5rem", "space-xl": "2.5rem" }, "fontFamily": { "body-sm": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "label-code-md": ["JetBrains Mono"], "display": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-code-sm": ["JetBrains Mono"], "label-code-lg": ["JetBrains Mono"], "body-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"] }, "fontSize": { "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "label-code-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }], "display": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-code-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }], "label-code-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container antialiased"><header class="fixed top-0 left-0 right-0 z-50 pointer-events-none"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter pt-[18px] flex items-center justify-between pointer-events-auto"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-primary-container shadow-[0_4px_12px_rgba(0,0,0,0.4)]"><span class="material-symbols-outlined text-[20px]">filter_vintage</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Anime Vault</span><span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim leading-tight">Twilight Sanctuary</span></div></div><div class="h-12 px-space-xs bg-[#1E1B29]/95 backdrop-blur-xl rounded-full flex items-center shadow-[0_12px_32px_-4px_rgba(10,8,16,0.65)]"><nav class="flex items-center gap-1" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-full shadow-[0_0_12px_rgba(255,101,132,0.35)]"><a aria-current="page" class="px-space-md py-1.5 rounded-full font-body-md text-body-md bg-primary-container text-on-primary-container font-medium shadow-[0_0_12px_rgba(255,101,132,0.35)] flex items-center" data-path="library" href="#">Library</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="updates" href="#"><span>Updates</span><span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container leading-none">3</span></a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5" data-path="downloads" href="#"><span>Downloads</span><span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant leading-none">2</span></a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="organizer" href="#">Organizer</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="storage" href="#">Storage</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-tertiary hover:text-on-surface hover:bg-surface-container transition-all flex items-center" data-path="settings" href="#">Settings</a></nav></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-1.5 rounded-full text-on-surface-variant shadow-[0_4px_16px_rgba(0,0,0,0.2)]"><span class="material-symbols-outlined text-[16px]">search</span><span class="font-body-sm text-body-sm text-tertiary-fixed-dim pr-space-xs">Quick Find</span></div><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-full"><span class="material-symbols-outlined text-secondary text-[16px]">hard_drive</span><div class="flex flex-col"><div class="flex justify-between items-center gap-2"><span class="font-label-code-sm text-label-code-sm text-secondary">1.8 / 4.0 TB</span></div><div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: 45%"></div></div></div></div><button aria-label="Settings" class="w-9 h-9 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"></div></div></div></header><main class="w-full pt-[78px] min-h-[calc(100vh-80px)]"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter py-space-md"><div class="flex flex-col w-full gap-space-lg">
+<!-- 1. Continue Watching Hero Banner (260px) -->
+<section class="relative w-full h-[260px] rounded-xl overflow-hidden shadow-xl bg-surface-container-low flex items-end">
+<!-- Cinematic Backdrop with Gradient Scrim -->
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Cinematic still from Jujutsu Kaisen Shibuya Incident Arc anime, Sukuna standing amidst glowing cursed flames in nocturnal Tokyo ruins, deep velvet shadows, warm embers and coral crimson glow, 4k master animation render" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC7rs8t-ner0RCgFeC7NpWA56TaYKrNAMX14cGyAaQBf2J8T0wfNLMQUHkhs_JLrDBdtRq3y560Uez_kbjcLEvwUYjg0hDvPxFtoxBgqmXJq4EGGYQ2fCXhunIEhMobQb-XfQbfIACTpT_ORUuQmvaWboFEateLVezhW-yUHq7o9su84TAt8G2-PthIPN9w9Hoy7LBJ49RSWA38e7E4o6tBfF2974c8poTg46mS9rU')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/65 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-surface-dim via-surface-dim/70 to-transparent"></div>
+<!-- Content Stack -->
+<div class="relative z-10 p-space-lg flex flex-col md:flex-row md:items-end justify-between w-full gap-space-md">
+<div class="flex flex-col max-w-2xl">
+<div class="flex items-center gap-space-sm mb-space-xs">
+<span class="font-label-code-sm text-label-code-sm uppercase tracking-wider text-primary px-space-xs py-0.5 rounded bg-primary/10">Continue Watching</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Jujutsu Kaisen: Shibuya Jihen</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+          Jujutsu Kaisen <span class="font-body-md text-body-md text-tertiary font-normal ml-2">Season 2</span>
+</h1>
+<div class="flex items-center gap-space-md mt-space-xs font-label-code-md text-label-code-md text-on-surface-variant">
+<span class="text-on-surface font-medium">Episode 17 • Thunderclap, Part 2</span>
+<span>•</span>
+<span class="text-tertiary-fixed-dim">18m left of 24m</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-tertiary font-label-code-sm text-label-code-sm">1080p HEVC</span>
+</div>
+<!-- Crisp Coral Progress Bar -->
+<div class="w-full max-w-md h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-space-sm">
+<div class="h-full bg-primary-container rounded-full" style="width: 75%;"></div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="px-space-lg py-2.5 rounded-full bg-primary-container text-on-primary-container font-headline-sm text-headline-sm font-semibold flex items-center gap-2 hover:brightness-110 shadow-[0_0_16px_rgba(255,101,132,0.35)] transition-all">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Resume Episode 17</span>
+</button>
+<button class="px-space-md py-2.5 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-body-md text-body-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">info</span>
+<span>Series Details</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 2. Weekly Release Calendar (Mon to Sun) -->
+<section class="flex flex-col gap-space-sm bg-surface-container-low p-space-md rounded-xl shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Simulcast Broadcast Schedule</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim px-2 py-0.5 rounded bg-surface-container">Week 44 • JST</span>
+</div>
+<!-- Navigation Controls -->
+<div class="flex items-center gap-1 bg-surface-container rounded-full p-1">
+<button class="px-3 py-1 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-label-code-sm text-label-code-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">chevron_left</span> Prev
+        </button>
+<button class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-code-sm text-label-code-sm">This Week</button>
+<button class="px-3 py-1 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-label-code-sm text-label-code-sm transition-colors flex items-center gap-1">
+          Next <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- 7 Day Cards Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-space-sm pt-space-xs">
+<!-- Mon -->
+<div class="relative group bg-surface-container rounded-lg p-space-sm hover:bg-surface-container-high transition-colors cursor-pointer flex flex-col justify-between h-[104px]">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-tertiary uppercase">Mon</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded">1</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface truncate">Bleach: TYBW</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Ep 31 • 23:00</span>
+</div>
+<div class="w-full h-1 bg-[#10B981]/20 rounded-full overflow-hidden">
+<div class="h-full bg-[#10B981] w-full"></div>
+</div>
+<!-- Hover Popover -->
+<div class="absolute left-0 top-full mt-2 w-64 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-2 z-30 pointer-events-none">
+<div class="font-label-code-sm text-label-code-sm text-tertiary uppercase">Monday Airing</div>
+<div class="flex items-center gap-2">
+<div class="w-9 h-12 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="Bleach Thousand Year Blood War anime poster showing Ichigo Kurosaki with dark bankai sword aesthetic" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_PHYEB1-bF4d04BhpaW-OKjJ9vcBUrVFts5MopRzHnKw45MjNLgaJHQXxrLnWyNRfP9ZWTXF_sGPofMhJXuEmob4NFfz5g1IVZhAKMnNPB1HLjK1DHt4bK2rTEHQ0naTIaaU7nYa7aQP3nwAayMETXalDYGKvcwOeNFEr3ZTGK7mpCpFrejK7WeIkMBi8U3O2KSIqbTAqOY7WvxGlHh9MbgPI1_WyfFE2orOxfns')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">Bleach: TYBW Part 3</span>
+<span class="font-label-code-sm text-label-code-sm text-[#10B981]">● In Library (Watched)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tue -->
+<div class="relative group bg-surface-container rounded-lg p-space-sm hover:bg-surface-container-high transition-colors cursor-pointer flex flex-col justify-between h-[104px]">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-tertiary uppercase">Tue</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded">2</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface truncate">Chainsaw Man S2</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Ep 4 • 24:00</span>
+</div>
+<div class="w-full h-1 bg-[#10B981]/20 rounded-full overflow-hidden">
+<div class="h-full bg-[#10B981] w-full"></div>
+</div>
+<div class="absolute left-0 top-full mt-2 w-64 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-2 z-30 pointer-events-none">
+<div class="font-label-code-sm text-label-code-sm text-tertiary uppercase">Tuesday Airing</div>
+<div class="flex items-center gap-2">
+<div class="w-9 h-12 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="Chainsaw Man anime poster of Denji in hybrid chainsaw form with intense orange blood spatter" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuACZ83tu-o8xEvYfYwpW1kF1FX_FPDws4i6ugu7xN0dza8jxDqpQpe0zF0-POJSSN6iYJHK8x9mLxhI4aqI-89iIM1cIPgoEH8KceDVN74mzQutm_Gc1L9mAZIp7arC4hrsWmTpQG7-d5TYZIqtxTo6Og974julgZ2bax5E3RYjBPUPIQXSuAJOF_c1le8ykh8WT98ApMOh1t-OR-rP9UEzNcuBh-jHPod51YYk00Q')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">Chainsaw Man Reze Arc</span>
+<span class="font-label-code-sm text-label-code-sm text-[#10B981]">● In Library (1080p)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Wed -->
+<div class="relative group bg-surface-container rounded-lg p-space-sm hover:bg-surface-container-high transition-colors cursor-pointer flex flex-col justify-between h-[104px]">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-tertiary uppercase">Wed</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded">1</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface truncate">Solo Leveling S2</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Ep 7 • 18:30</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+<div class="absolute left-0 top-full mt-2 w-64 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-2 z-30 pointer-events-none">
+<div class="font-label-code-sm text-label-code-sm text-tertiary uppercase">Wednesday Airing</div>
+<div class="flex items-center gap-2">
+<div class="w-9 h-12 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="Solo Leveling anime poster featuring Sung Jin-woo with glowing blue eyes and shadow monarch daggers" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDgxe_vg7abIQDokv7O1K8ssTqvks9TysahIaXZrwWGYuRtmHEiq_fbdbFBUZh8SNV8QUSBa7JJwNBcVDmigFe1TXxU_i_mmMDkee4sIIje6QBQLcN0EziqecQFxIdb2p-CSn_IuplCEiQ-UMB1XUZu4Bgo1U2W4z97yXQiYQjbsBHirqMHnK3rwjGX8SxSqkg0sQ7NOTE_Bx8f4HwgPjKLO_fqtkjJLPavZN02Xug')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">Solo Leveling</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary">◐ In Library (Unwatched)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Thu (Today - Highlighted) -->
+<div class="relative group bg-surface-container-high rounded-lg p-space-sm hover:bg-surface-bright transition-colors cursor-pointer flex flex-col justify-between h-[104px] shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-primary font-bold uppercase flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Thu (Today)
+          </span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-primary/20 text-primary font-bold rounded">3</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-semibold truncate">Dandadan</span>
+<span class="font-label-code-sm text-label-code-sm text-primary">Ep 08 • 24:26 JST</span>
+</div>
+<div class="w-full h-1.5 bg-primary/20 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-4/5 animate-pulse"></div>
+</div>
+<!-- Detailed Popover with multiple entries -->
+<div class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-2.5 z-30 pointer-events-none">
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-primary">
+<span>Airing Today</span>
+<span>3 Episodes</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-10 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="Dandadan anime poster featuring Momo Ayase and Okarun running from supernatural urban spirits" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAmjMHIZhVwNvjKl37mrdvBIG6d9EH3thqal43pSFmiT5aRLZd-0nQuLhjL3lwt2KqkHSi63DDd6oogApXYROPd-U8H1wPzsRRo4u-oqbgplyFwvkuxbdoQ-wapEyWILyrL3xw1n7NxSqEKaxl1yYSqp-3Vtra0h6ppmbhRAqwlLiadOxRVXOYfeUV1tL8-NZM95QTXVNYavfqzKklltTqhJBFMfImqozgH75drjLA')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">Dandadan Ep 8</span>
+<span class="font-label-code-sm text-label-code-sm text-primary-container">◐ DL 82% (Queued)</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-10 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="Delicious in Dungeon anime still showing Laios and Marcille inspecting a cooking pot in ancient dungeon" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA0_oZVGi1gH-j_vv_AQRx3Kc2JhUXUcX_ack3BfTAn93VCyZektB6kRrYUZ0XbffQOTDKJq1_c2BB6jqEzrCh8zlglvUXOYVrWTqLdBqHJLFgd_ZejkDcUJ5-ZsvhsmA2_g3oNKEhwetwPU9_SQ-8QYwNVo7YyFnyIMpa9BAW1tq8JgLP9cyTvyQkAJn6_y_rC--vwwqGq3Aa1ZLAK2guLBcxREedGH1JHaRO2tVA')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">Delicious in Dungeon Ep 21</span>
+<span class="font-label-code-sm text-label-code-sm text-[#10B981]">● In Library</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Fri -->
+<div class="relative group bg-surface-container rounded-lg p-space-sm hover:bg-surface-container-high transition-colors cursor-pointer flex flex-col justify-between h-[104px]">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-tertiary uppercase">Fri</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded">2</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface truncate">Frieren S2</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Ep 29 • 23:00</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-0"></div>
+</div>
+<div class="absolute left-0 top-full mt-2 w-64 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-2 z-30 pointer-events-none">
+<div class="font-label-code-sm text-label-code-sm text-tertiary uppercase">Friday Airing</div>
+<div class="flex items-center gap-2">
+<div class="w-9 h-12 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="Frieren Beyond Journeys End anime poster featuring white-haired elf mage Frieren holding magical staff under twilight sky" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCVlK0bHZcuH0A8YHQ-PclUkpCRbEgYavBSSHYFvWI6Q8D_pgp-k-fFabyBwHd9PSkRs3jm5bzxAh64t9uRKW7hKhngD71bLlgylyalQJxlnyHChEbefPDjhZGhA6D9Kh87nGhZ5hajBjDaYKgp69l8pEkQeqYqWC5fV46C_Z2fxRTZbCGuKxszvxsXm_IFd0SAhqz-m3S9EjOWPLeZDAMOUagoC9QzEkkFCGOcrY8')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">Frieren: Beyond Journey's End</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary-fixed-dim">○ Aired, Missing</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sat -->
+<div class="relative group bg-surface-container rounded-lg p-space-sm hover:bg-surface-container-high transition-colors cursor-pointer flex flex-col justify-between h-[104px]">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-tertiary uppercase">Sat</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded">1</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface truncate">Apothecary Diaries</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Ep 19 • 24:55</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-0"></div>
+</div>
+<div class="absolute right-0 top-full mt-2 w-64 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-2 z-30 pointer-events-none">
+<div class="font-label-code-sm text-label-code-sm text-tertiary uppercase">Saturday Airing</div>
+<div class="flex items-center gap-2">
+<div class="w-9 h-12 rounded bg-surface-dim bg-cover bg-center shrink-0" data-alt="The Apothecary Diaries anime poster of Maomao examining Chinese medicinal herbs with delicate lanterns in background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuChk6t6JsOgalbymaMBaa9aphd0-dzSA7b9DrvaS11EGLviAxJDJ-t-3JIj3YBLCAp6Nn38eT7LysGsdePwLRpODkRD0EwSmQZgIrm1OM2ftdXfDEJFerBoRJ2ohmS8j5P5LmREbbCr02jtEPk2c8AP0tvnscQ8P1dTjza3BACloYvBZ9haGBx5qLCOFvMo42gSvqLMuseEbwOm08Dx4WT0lH3LiMd5Td_-q0ODYNg')"></div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface truncate">The Apothecary Diaries</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary">○ Airing in 2 days</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sun -->
+<div class="relative group bg-surface-container rounded-lg p-space-sm hover:bg-surface-container-high transition-colors cursor-pointer flex flex-col justify-between h-[104px]">
+<div class="flex items-center justify-between">
+<span class="font-label-code-md text-label-code-md text-tertiary uppercase">Sun</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded">0</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-tertiary-fixed-dim truncate">No Library Airings</span>
+<span class="font-label-code-sm text-label-code-sm text-tertiary-fixed-dim">Vault Idle</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-surface-container-highest w-full"></div>
+</div>
+<div class="absolute right-0 top-full mt-2 w-60 bg-surface-container-highest/95 backdrop-blur-xl p-3 rounded-lg shadow-xl hidden group-hover:flex flex-col gap-1 z-30 pointer-events-none">
+<span class="font-label-code-sm text-label-code-sm text-tertiary">Sunday Airings</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">No monitored series airing on Sunday this week.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Filter & Sort Strip -->
+<section class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md py-space-xs">
+<!-- Status Filter Pills -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+<button class="px-space-md py-1.5 rounded-full bg-primary-container text-on-primary-container font-body-md text-body-md font-medium shadow-[0_0_12px_rgba(255,101,132,0.3)] shrink-0 flex items-center gap-1.5">
+<span>All</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-on-primary-container/20 text-on-primary-container">142</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors shrink-0 flex items-center gap-1.5">
+<span>Watching</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-surface-container-high text-tertiary">14</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors shrink-0 flex items-center gap-1.5">
+<span>Plan to watch</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-surface-container-high text-tertiary">38</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors shrink-0 flex items-center gap-1.5">
+<span>On disk</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-surface-container-high text-[#10B981]">118</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors shrink-0 flex items-center gap-1.5">
+<span>Has new update</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">4</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors shrink-0 flex items-center gap-1.5">
+<span>Needs review</span>
+<span class="font-label-code-sm text-label-code-sm px-1.5 py-0.5 rounded-full bg-error-container text-error">2</span>
+</button>
+</div>
+<!-- Sort & Layout Controls -->
+<div class="flex items-center gap-space-sm shrink-0 self-end lg:self-auto">
+<div class="flex items-center gap-2 bg-surface-container-low px-space-md py-1.5 rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-tertiary">sort</span>
+<span class="font-body-sm text-body-sm text-tertiary-fixed-dim">Sort by:</span>
+<select class="bg-transparent text-on-surface font-label-code-sm text-label-code-sm focus:outline-none cursor-pointer pr-1">
+<option class="bg-surface-container-high text-on-surface" value="recent">Recently Added</option>
+<option class="bg-surface-container-high text-on-surface" value="az">Name A-Z</option>
+<option class="bg-surface-container-high text-on-surface" value="rating">Rating</option>
+<option class="bg-surface-container-high text-on-surface" value="size">Disk Size</option>
+</select>
+</div>
+<!-- View Switcher -->
+<div class="flex items-center bg-surface-container-low p-1 rounded-full">
+<button aria-label="Grid View" class="w-8 h-8 rounded-full bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+</button>
+<button aria-label="List View" class="w-8 h-8 rounded-full text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">view_list</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 4. Batch Selection Toolbar (Appears when cards are selected) -->
+<section class="w-full bg-surface-container p-space-sm rounded-xl flex flex-wrap items-center justify-between gap-space-md shadow-lg" id="batch-toolbar">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface"><span id="selected-count">2</span> series selected</span>
+</div>
+<span class="text-surface-variant">•</span>
+<span class="font-label-code-md text-label-code-md text-secondary">42.8 GB total disk</span>
+</div>
+<div class="flex items-center flex-wrap gap-space-xs">
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#10B981]">done_all</span>
+<span>Mark Watched</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">play_circle</span>
+<span>Mark Watching</span>
+</button>
+<button class="px-space-md py-1.5 rounded-full bg-error-container hover:brightness-110 text-on-error font-body-md text-body-md transition-all flex items-center gap-1.5" onclick="if(confirm('Are you sure you want to permanently delete files for 2 series (42.8 GB) from the Vault drive?')) alert('Files purged from vault.');">
+<span class="material-symbols-outlined text-[16px]">delete_forever</span>
+<span>Delete Files...</span>
+</button>
+<button class="px-space-sm py-1.5 text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm underline ml-2" id="clear-selection-btn">
+        Clear Selection
+      </button>
+</div>
+</section>
+<!-- 5. Responsive 5-column Anime Poster Grid (Real 10 Anime cards) -->
+<section class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-space-md">
+<!-- Card 1: Frieren (Selected state) -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="14.2 GB" data-title="Frieren: Beyond Journey's End">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Frieren Beyond Journeys End official anime visual, tranquil fantasy mountain meadow at dusk, high detail Japanese key visual" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhO7gLwQsRF1Wc_Wr5ATS9wwpWtey-vVcDUcQdG_AuKVrdN1NI4OF5vH1GEcvLCrR7S9l4UBTYU9cEU1B15kuDYs5A2-9fUF-1nhR2ngy1nq1msEFBoLbMCNFMFFnoYnoJcY-yBrRg8lyoUx2o1KXOJVLBdoePNum-BhfdSqwDICcDoAs1jR9DLKK5y_OT1c8c7H1g7vg8Wb5KS5sQN-QO63z-J8rcHyWkr_bojtw')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<!-- Selection Checkbox -->
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-primary-container text-on-primary-container flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<!-- Rating Chip -->
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 9.38
+        </div>
+<!-- Progress Tracker Bar at base of image -->
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Title & Meta Strictly below poster -->
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Frieren: Beyond Journey's End</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>28 / 28 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Chainsaw Man -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="9.6 GB" data-title="Chainsaw Man">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Chainsaw Man high quality anime promotional poster, Denji with dark blood splatter and cinematic urban neon lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDt1no8YnUgeEK_fCCLuHKhZw-yCn6pya7Y4tNVBkgqLrdnp6yHlOsnG0tOOzeG-xzn-BatLuZWY1VvV9kxWy05k9mSsED12afmfdwtmdwbVO0byVGCOf_tkyVm5Y5mvR0zkH_4S19ehsEbvLYg9Ta7yEgq3_N9GdgjgiE-OpKcHEq63sXznYoMjReX8EXVD5gZ2OxFjUR0dq2kH8gpV10HuuOAh2TyJ01SmAjD4HQ')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant group-hover:text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.52
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Chainsaw Man</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>12 / 12 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Dandadan (DL 82% Badge) -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="6.4 GB" data-title="Dandadan">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Dandadan anime key visual, colorful supernatural aliens and ghosts swirling around high schoolers in Tokyo, vibrant modern illustration" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCVgEFzVNIhXFf4K2GdDyxIS1yccGeM-RlqeSO7-rXuULtflFptFKNWcfk-KiZlq9HmadboKZRIT_pQcrlJOR70uJDz3mHZAG2lkKyjuTVqSnIa10QEngqdlYEDoV7wWUxp9xZKaV_6B31xw_sh-qy4OkdY1-BzIsdV5V2QnuitYgVAA48m2JM9GLzxQUqr6NCGCWiY3wQOn4rf1atEp7FJAtcI-mMt0DfhfOfLX1o')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.76
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1.5 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 82%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Dandadan</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>7 / 12 eps</span>
+<span class="text-primary-container font-medium flex items-center gap-1">◐ DL 82%</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Vinland Saga Season 2 (Selected state) -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="28.6 GB" data-title="Vinland Saga Season 2">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Vinland Saga Season 2 anime poster showing mature Thorfinn working wheat field under golden sunset rays, quiet emotional mood" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDB1qpIM4iIw09Vy3N1fljEq0nA64Oj4sOOv4tIbLm2za2Ab1ttkAW2Qu22z_DVE4ABqlIaH8pEFucQcrdxXlb1UsEn9xMO3B5Ig_AZJGO7bmSD4HzAWbJfh6dVGkrjpc249PmCm_Ckf6uI6ClXguctewKiDjwwJaMpeZAP9APQPDxMtUeVhQZd9wPM7Esq3rrrjB-CvXlI4bNDPp5Pzd071ZFz7qGXRxXbuWqFspE')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<!-- Selection Checkbox -->
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-primary-container text-on-primary-container flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.98
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Vinland Saga Season 2</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>24 / 24 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 5: The Apothecary Diaries -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="12.1 GB" data-title="The Apothecary Diaries">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="The Apothecary Diaries key visual, Maomao and Jinshi in imperial palace courtyard with cherry blossoms and ancient jade lanterns" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAt8UvPUOePQiVU858JPOj2UaWRaSEm-VjKGZy-xEEBzlhnd6y5haTHAu9rWpi-aJRRRViOc9-QW2MAhk6CMZ39pOo9hlrgHVvwzOHZgEMY1ZzDmL9b25_TQ8tQYNctr-pjYpDaw070p9HX77j4YsHhvsEPi9TQh8J41yRuyW3KpKgazU2WDafz021Vel2csykWQgA0L-_qQefsziNKsJzaMlcIIwSE6dmYASv1dbo')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.87
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 75%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">The Apothecary Diaries</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>18 / 24 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 6: Solo Leveling -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="8.8 GB" data-title="Solo Leveling">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Solo Leveling anime poster, Jin-Woo standing against dungeon boss monarch with blue electric daggers and shadows rising" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdcoE80Nb87PSmG4j53x_gjaDL2uMixEs8JBdz8XZb1nM1AWlairktGGM2jHnzryLUpUUGAIYpcdZ7nWB3koX7vt_BtpYs3ta9AJYN_OMHO-b9ShIvrAEGpqYpZ7vbK6HnWha0kiM1mGaUeMj2_Q-w-FIobiTObIWfXonaOOXKfwl6kTbMmkGTRZ5M35rY8SISQl6BtPiE5jfyIyjWqzWUYfSKnkqGZVHDDXd7_w4')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.35
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Solo Leveling</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>12 / 12 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 7: Delicious in Dungeon -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="11.4 GB" data-title="Delicious in Dungeon">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Delicious in Dungeon anime poster with adventurer party cooking fantasy monsters in warm tavern style lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCWdJRPWxjHvB1_m5NBFpUtOsMa9P4TLpEhx7AOgflSRDaDGHcS6YT-8OFjX3Q1_PHM--bGHTTYVbFoKSro4t_K3qYigpbnjrH9ubdl5srCPF0EW2eS-GXRmu9NWVLiF2rZMd-1EDtIQ0VdrK5TliDmZ-cvG3jhxeNfUcDL3fOOY8RtioTmqCFb3rPObzUYrmgEZkmHdVF-8DGQijdLCiJeAWXsYNjFZ0KmBUNOBWQ')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.65
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 87%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Delicious in Dungeon</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>21 / 24 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 8: Bleach TYBW -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="19.5 GB" data-title="Bleach: Thousand-Year Blood War">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Bleach Thousand-Year Blood War dramatic poster, Ichigo and Quincy Sternritter facing off with spiritual pressure aura" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCWwNrYAMNGY7GOShfa085d8dHmByeNxxEJqw_l--nzIay4cogLZcA8na2u6VCzH1QZebRhEi92maIW24YK8JGoHZ76qbFCYtMBD-AhqR7vy3wAJc3AjZBZnF9psNvdFPtbDH3tUo5uLGTFC287Yf1i5M_1PQHAtNF6yInEhASsYn34lbP2S39psRL8zG8URI3-dfOXLbwSQ-X-_AtgY0cve26qcwY9fPpcBHJ5HBc')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 9.08
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Bleach: TYBW</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>26 / 26 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 9: Cyberpunk Edgerunners -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="11.2 GB" data-title="Cyberpunk: Edgerunners">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Cyberpunk Edgerunners official poster with David Martinez and Lucy sitting on the roof gazing at Night City skyline" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD1Ipe8sZoRbyhu8WY-sUJo0CJOnwaNhCQx5wBu4hfam3t0m42dS0oaOadCZDXFymRigqFxohdufb7jfMySQT9qZ2C0wgaWDGfPKpVeSMyQMfGF2RKHQof2cx-s7Zm9gUMZ2Zyk5Hz6zXLetyS20yIE6FeJ2xQ5JiIW5x_AflSIpiqKAsflmVKXwO2iV-M_-QjeCJp2onfJqylEfQsUFh2177osXpEWu2fXEDfkBiA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 8.61
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Cyberpunk: Edgerunners</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>10 / 10 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+<!-- Card 10: Steins;Gate -->
+<div class="group flex flex-col cursor-pointer select-anime relative" data-size="16.4 GB" data-title="Steins;Gate">
+<div class="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden bg-surface-container shadow-md group-hover:shadow-xl transition-all duration-200">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Steins Gate anime poster showing Rintaro Okabe and Kurisu Makise surrounded by glowing nixie tubes divergence meter in dark Akihabara lab" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDGXuwOQIdhApW7Xqyy-cmWkJJet6hZeB--XRLHqSwDNvCzqUsmlULWDMIeiHjxyzMUxjm2GmZkIofOKIDq2MDfPAm97xeo4GB8vyySjaW9r4a3vf8JvP4S6yxle_WGjSFa26MFgFiuEDeZHD5W-3bJPE2oir_aN2hJYQBxs-iPgri6qkx8v9jRPIPliUcVfbSkwlYz_iC0TaHoGuZtC1EShvFQmcBHToLFqH0NX68')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-black/30"></div>
+<div class="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-surface-dim/80 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md font-label-code-sm text-label-code-sm text-secondary flex items-center gap-1">
+<span class="text-secondary">★</span> 9.07
+        </div>
+<div class="absolute bottom-0 inset-x-0 h-1 bg-white/10">
+<div class="h-full bg-primary-container" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col mt-space-xs">
+<span class="font-body-md text-body-md font-medium text-on-surface truncate group-hover:text-primary transition-colors">Steins;Gate</span>
+<div class="flex items-center justify-between font-label-code-sm text-label-code-sm text-on-surface-variant mt-0.5">
+<span>24 / 24 eps</span>
+<span class="text-[#10B981] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>On Disk</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Dynamic batch selection behavior
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.select-anime');
+    const countDisplay = document.getElementById('selected-count');
+    const toolbar = document.getElementById('batch-toolbar');
+    const clearBtn = document.getElementById('clear-selection-btn');
+
+    function updateSelectionState() {
+      let count = 0;
+      cards.forEach(card => {
+        const checkIcon = card.querySelector('.material-symbols-outlined');
+        if (checkIcon && checkIcon.textContent === 'check') {
+          count++;
+        }
+      });
+
+      if (countDisplay) countDisplay.textContent = count;
+      if (toolbar) {
+        toolbar.style.display = count > 0 ? 'flex' : 'none';
+      }
+    }
+
+    cards.forEach(card => {
+      const selectBtn = card.querySelector('.absolute.top-2.left-2');
+      if (selectBtn) {
+        selectBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isSelected = selectBtn.classList.contains('bg-primary-container');
+          if (isSelected) {
+            selectBtn.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-md');
+            selectBtn.classList.add('bg-surface-dim/80', 'text-on-surface-variant');
+            selectBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>';
+          } else {
+            selectBtn.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-md');
+            selectBtn.classList.remove('bg-surface-dim/80', 'text-on-surface-variant');
+            selectBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] font-bold">check</span>';
+          }
+          updateSelectionState();
+        });
+      }
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        cards.forEach(card => {
+          const selectBtn = card.querySelector('.absolute.top-2.left-2');
+          if (selectBtn && selectBtn.classList.contains('bg-primary-container')) {
+            selectBtn.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-md');
+            selectBtn.classList.add('bg-surface-dim/80', 'text-on-surface-variant');
+            selectBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>';
+          }
+        });
+        updateSelectionState();
+      });
+    }
+
+    // Activate library nav item in App Shell
+    const navItems = document.querySelectorAll('nav a');
+    navItems.forEach(item => {
+      if (item.getAttribute('data-path') === 'library') {
+        item.className = "px-space-md py-1.5 rounded-full font-body-md text-body-md bg-primary-container text-on-primary-container font-medium shadow-[0_0_12px_rgba(255,101,132,0.35)] flex items-center";
+      }
+    });
+  });
+</script></div></main><footer class="w-full bg-surface-container-lowest/80 backdrop-blur-md"><div class="max-w-[1440px] mx-auto px-gutter-compact lg:px-gutter py-space-md flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg text-on-surface-variant"><div class="flex items-center gap-space-xs"><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">Space</kbd><span class="font-body-sm text-body-sm">Play/Pause</span></div><div class="flex items-center gap-space-xs"></div><div class="flex items-center gap-space-xs"><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">F</kbd><span class="font-body-sm text-body-sm">Fullscreen</span></div></div><div class="flex items-center gap-space-sm"></div></div></footer>
+
+
+
+</body></html>

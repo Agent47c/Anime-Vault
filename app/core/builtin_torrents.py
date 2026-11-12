@@ -251,7 +251,7 @@ class Engine:
 
     def recheck(self,item):
         handle=self.attach(item)
-        handle.force_recheck();handle.resume()
+        handle.clear_error();handle.force_recheck();handle.resume()
         self.configured.pop(item['id'],None)
 
     def close(self):

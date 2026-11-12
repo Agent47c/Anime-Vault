@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget
 
 
 def scale_inline(widget, scale):
+    if widget.property('animevaultOwnScaledStyle'):return
     local = widget.styleSheet()
     if not local or "font-size" not in local or local == widget.property("animevaultScopeStyle"):
         return
@@ -27,12 +28,15 @@ class ThemeScopes(QObject):
         if not self.stylesheet or widget.property("animevaultScopeStyle") == self.stylesheet:
             return
         if widget.property("animevaultScopeStyle") is None and self.parent().styleSheet() == self.stylesheet:
+            if hasattr(widget,'refresh_home_style'):
+                widget.setProperty('animevaultScopeStyle',self.stylesheet);widget.refresh_home_style()
             return
         self.applying = True
         widget.setProperty("animevaultScopeStyle", self.stylesheet)
         widget.setStyleSheet(self.stylesheet)
         if self.font is not None:
             widget.setFont(self.font)
+        if hasattr(widget,'refresh_home_style'):widget.refresh_home_style()
         self.applying = False
 
     def update(self, stylesheet, font):
@@ -44,6 +48,8 @@ class ThemeScopes(QObject):
                 app.setStyleSheet(stylesheet)
             if app.font() != font:
                 app.setFont(font)
+            for widget in app.allWidgets():
+                if widget.isVisible() and hasattr(widget,'refresh_home_style'):self.apply_scope(widget)
         else:
             scopes = [w for w in app.allWidgets() if w.isVisible() and w.property("animevaultThemeScope")]
             windows = [w for w in app.topLevelWidgets() if w.isVisible() and not w.property("animevaultScopedWindow")]

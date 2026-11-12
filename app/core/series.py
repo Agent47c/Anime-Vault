@@ -82,6 +82,17 @@ def build_groups(franchises, related_media=None, overrides=None):
         result.remove(left)
     for card in result:
         members = [entry for entry in franchises if entry["id"] in card["series_member_ids"]]
+        # Manual grouping may keep an old unmatched representative. Its empty
+        # presentation fields must not hide verified artwork/metadata in the group.
+        matched=[m for m in members if m.get('anilist_id')]
+        donor=next((m for m in matched if m.get('anilist_id')==card.get('anilist_id')),None)
+        if donor is None and matched:
+            try:provider=(json.loads(card.get('metadata_json') or '{}') or {}).get('id')
+            except (ValueError,TypeError):provider=None
+            donor=next((m for m in matched if m.get('anilist_id')==provider),matched[0])
+        if donor:
+            for field in ('synopsis','cover_filename','banner_filename','genres','anilist_id','metadata_json'):
+                if not card.get(field) or card.get(field) in ('{}','[]','null'):card[field]=donor.get(field)
         on_disk = [m for m in members if m.get("storage_state") in ("ON_DISK", "PARTIALLY_ON_DISK")]
         if on_disk:
             card["storage_state"] = "PARTIALLY_ON_DISK" if any(m.get("storage_state") in ("PARTIALLY_ON_DISK", "WATCHED_REMOVED") for m in members) else "ON_DISK"

@@ -52,6 +52,8 @@ def build():
         "--collect-all=libtorrent",
         "--hidden-import=builtin_torrent_host",
         f"--add-data={base_dir / 'third_party' / 'libtorrent-LICENSE.txt'};third_party",
+        f"--add-data={base_dir / 'assets' / 'fonts'};assets/fonts",
+        f"--add-data={base_dir / 'scripts' / 'cache_player_icon.ps1'};scripts",
         "--hidden-import=PIL",
         "--hidden-import=PyQt5",
         "--hidden-import=PyQt5.QtCore",

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Edit Season Numbers</title>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+JP:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: {
+              950: '#0d0b14',
+              900: '#14121d',
+              850: '#181524',
+              800: '#1c1a27',
+              750: '#221f30',
+              700: '#2d293d',
+              600: '#3a344d',
+            },
+            sakura: {
+              300: '#ff9db0',
+              400: '#ff7b96',
+              500: '#ff6584',
+              600: '#ff5376',
+              700: '#e63d62',
+              glow: 'rgba(255, 101, 132, 0.28)',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            jp: ['"Noto Sans JP"', 'sans-serif']
+          },
+          boxShadow: {
+            'modal-elevation': '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(255, 101, 132, 0.12)',
+            'sakura-btn': '0 0 20px rgba(255, 101, 132, 0.38), 0 2px 4px rgba(0,0,0,0.4)',
+            'sakura-btn-hover': '0 0 28px rgba(255, 101, 132, 0.55), 0 4px 12px rgba(255, 83, 118, 0.3)',
+            'subtle-inner': 'inset 0 1px 0 rgba(255, 255, 255, 0.06)'
+          }
+        }
+      }
+    };
+  </script>
+<!-- Custom CSS Styles -->
+<style data-purpose="custom-steppers">
+    /* Remove native spin buttons for custom tactile stepper styling */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
+<style data-purpose="watermark-glow">
+    .kanji-watermark {
+      user-select: none;
+      pointer-events: none;
+      font-family: 'Noto Sans JP', sans-serif;
+      text-shadow: 0 0 35px rgba(255, 83, 118, 0.18);
+    }
+
+    .noise-bg {
+      background-image: radial-gradient(circle at 50% 0%, rgba(255, 101, 132, 0.08) 0%, transparent 60%),
+                        radial-gradient(circle at 90% 90%, rgba(138, 92, 246, 0.05) 0%, transparent 50%);
+    }
+  </style>
+</head>
+<body class="bg-obsidian-950 font-sans text-slate-200 antialiased overflow-hidden h-screen w-screen selection:bg-sakura-500/30 selection:text-white">
+<!-- BEGIN: DesktopAppWindow -->
+<div class="relative flex flex-col h-screen w-full bg-obsidian-900 overflow-hidden" data-purpose="desktop-app-shell">
+<!-- BEGIN: BackgroundDesktopAppHeader -->
+<!-- Window top title bar & main app navigation (Dimmed context behind modal) -->
+<header class="h-12 border-b border-obsidian-700/60 bg-obsidian-900/90 px-4 flex items-center justify-between text-xs text-slate-400 select-none filter blur-[1px] opacity-40">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 mr-2">
+<div class="w-3 h-3 rounded-full bg-rose-500/40"></div>
+<div class="w-3 h-3 rounded-full bg-amber-500/40"></div>
+<div class="w-3 h-3 rounded-full bg-emerald-500/40"></div>
+</div>
+<div class="flex items-center gap-2 font-semibold text-slate-300">
+<span class="w-2 h-2 rounded-full bg-sakura-500"></span>
+          Anime Vault <span class="text-slate-500 font-mono text-[11px]">v2.8.4</span>
+</div>
+<div class="h-3.5 w-[1px] bg-obsidian-700 mx-1"></div>
+<span class="text-slate-400">Tsuihou sareta Tensei Juukishi wa Game Chishiki de Musou suru</span>
+</div>
+<div class="flex items-center gap-5">
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-obsidian-800 text-[11px] font-mono border border-obsidian-700/50">
+<span class="text-emerald-400 font-medium">257.98 GB free</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">E:\</span>
+</div>
+<div class="text-slate-400">Hamza Ramzan</div>
+</div>
+</header>
+<!-- END: BackgroundDesktopAppHeader -->
+<!-- BEGIN: BackgroundWorkspaceView -->
+<!-- Simulated background library view -->
+<div class="flex-1 p-8 grid grid-cols-5 gap-6 filter blur-[2px] opacity-25 select-none pointer-events-none">
+<div class="col-span-1 space-y-3">
+<div class="h-8 bg-obsidian-800 rounded-lg w-3/4"></div>
+<div class="h-4 bg-obsidian-800 rounded w-1/2"></div>
+<div class="h-4 bg-obsidian-800 rounded w-2/3"></div>
+<div class="h-4 bg-obsidian-800 rounded w-1/3"></div>
+</div>
+<div class="col-span-4 grid grid-cols-4 gap-4">
+<div class="h-64 rounded-xl bg-obsidian-800 border border-obsidian-700"></div>
+<div class="h-64 rounded-xl bg-obsidian-800 border border-obsidian-700"></div>
+<div class="h-64 rounded-xl bg-obsidian-800 border border-obsidian-700"></div>
+<div class="h-64 rounded-xl bg-obsidian-800 border border-obsidian-700"></div>
+</div>
+</div>
+<!-- END: BackgroundWorkspaceView -->
+<!-- BEGIN: ModalOverlayBackdrop -->
+<div class="fixed inset-0 z-50 bg-obsidian-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 transition-all duration-300" data-purpose="modal-backdrop">
+<!-- BEGIN: EditSeasonNumbersModal -->
+<section aria-labelledby="modal-title" aria-modal="true" class="relative w-full max-w-[590px] rounded-2xl bg-obsidian-800 border border-obsidian-700 shadow-modal-elevation overflow-hidden flex flex-col noise-bg" data-purpose="edit-season-numbers-dialog" role="dialog">
+<!-- Subtle Top Edge Highlight -->
+<div class="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-sakura-500/50 to-transparent"></div>
+<!-- Atmospheric Kanji Watermark in background of header ("詳細" = Details / Sequence Specification) -->
+<div aria-hidden="true" class="kanji-watermark absolute top-3 right-14 text-6xl md:text-7xl font-black text-sakura-500/[0.08] tracking-widest pointer-events-none select-none z-0">
+          詳細
+        </div>
+<!-- BEGIN: ModalHeader -->
+<header class="relative z-10 px-7 pt-6 pb-4 flex items-start justify-between">
+<div class="space-y-1">
+<h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5" id="modal-title">
+              Edit season numbers
+            </h1>
+<p class="text-sm text-slate-400 font-normal">
+              Choose which release is S1, S2, S3 and so on.
+            </p>
+</div>
+<!-- Close Button with Esc Hint -->
+<button aria-label="Close dialog" class="group relative inline-flex items-center justify-center w-8 h-8 rounded-full bg-obsidian-750 border border-obsidian-600/80 text-slate-400 hover:text-white hover:bg-obsidian-700 hover:border-sakura-500/50 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-sakura-500/40" type="button">
+<svg class="w-4 h-4 transition-transform group-hover:rotate-90 duration-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="sr-only">Close (Esc)</span>
+</button>
+</header>
+<!-- END: ModalHeader -->
+<!-- BEGIN: ModalBodyContent -->
+<div class="relative z-10 px-7 py-3 space-y-4">
+<!-- Card Item 1: On-Disk Library Release -->
+<article class="group rounded-xl bg-obsidian-850/80 border border-obsidian-700/80 hover:border-obsidian-600 p-4 transition-all duration-200 shadow-sm" data-purpose="season-item-card">
+<!-- Header & Badge row -->
+<div class="flex items-start justify-between gap-3 mb-2">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 tracking-wide uppercase">
+                    On Disk
+                  </span>
+<span class="text-[11px] text-slate-400 font-mono">12 files • 1080p HEVC</span>
+</div>
+<h2 class="text-[15px] font-bold text-slate-100 leading-snug tracking-tight">
+                  The Exiled Heavy Knight Knows How to Game the System
+                </h2>
+</div>
+</div>
+<!-- Monospace Folder Path Badge -->
+<div class="flex items-center gap-1.5 text-slate-400 bg-obsidian-950/60 rounded-md px-2.5 py-1.5 border border-obsidian-700/50 mb-3.5">
+<svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<p class="font-mono text-xs text-slate-300 truncate select-all" title="E:\Anime Library\Tsuihou sareta Tensei Juukishi wa Game Chishiki de Musou suru\Season 01">
+                E:\Anime Library\Tsuihou sareta Tensei Juukishi wa Game Chishiki de Musou suru\Season 01
+              </p>
+</div>
+<!-- Season Stepper Row -->
+<div class="flex items-center justify-between pt-1">
+<label class="text-sm font-medium text-slate-300 select-none" for="season-num-1">
+                Season number
+              </label>
+<!-- Tactile Stepper Unit -->
+<div class="flex items-center h-10 bg-obsidian-900 border border-obsidian-600 rounded-lg overflow-hidden focus-within:border-sakura-500 focus-within:ring-1 focus-within:ring-sakura-500 transition-colors">
+<input class="w-14 h-full bg-transparent border-0 text-center font-mono font-bold text-base text-white focus:ring-0 p-0" id="season-num-1" max="99" min="1" name="season_number_item_1" type="number" value="1"/>
+<!-- Tactile Vertical Stepper Controls -->
+<div class="flex flex-col border-l border-obsidian-700/80 divide-y divide-obsidian-700/80 bg-obsidian-800">
+<button aria-label="Increase season number" class="h-5 w-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-obsidian-700 transition" onclick="document.getElementById('season-num-1').stepUp()" type="button">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button aria-label="Decrease season number" class="h-5 w-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-obsidian-700 transition" onclick="document.getElementById('season-num-1').stepDown()" type="button">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Card Item 2: Downloads Ingestion Queue -->
+<article class="group rounded-xl bg-obsidian-850/80 border border-obsidian-700/80 hover:border-obsidian-600 p-4 transition-all duration-200 shadow-sm" data-purpose="season-item-card">
+<!-- Header & Badge row -->
+<div class="flex items-start justify-between gap-3 mb-2">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sakura-500/10 text-sakura-400 border border-sakura-500/25 tracking-wide uppercase">
+                    Downloaded Queue
+                  </span>
+<span class="text-[11px] text-slate-400 font-mono">Pending ingestion</span>
+</div>
+<h2 class="text-[15px] font-bold text-slate-100 leading-snug tracking-tight">
+                  Season 01
+                </h2>
+</div>
+</div>
+<!-- Monospace Folder Path Badge -->
+<div class="flex items-center gap-1.5 text-slate-400 bg-obsidian-950/60 rounded-md px-2.5 py-1.5 border border-obsidian-700/50 mb-3.5">
+<svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<p class="font-mono text-xs text-slate-300 truncate select-all" title="C:\Users\Hamza Ramzan\Downloads\AnimeVault\The Exiled Heavy Knight Knows How to Game the System-5526922719\Season 01">
+                C:\Users\Hamza Ramzan\Downloads\AnimeVault\The Exiled Heavy Knight Knows How to Game the System-5526922719\Season 01
+              </p>
+</div>
+<!-- Season Stepper Row -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex flex-col">
+<label class="text-sm font-medium text-slate-300 select-none" for="season-num-2">
+                  Season number
+                </label>
+<span class="text-[11px] text-slate-500">Assign duplicate index for part split</span>
+</div>
+<!-- Tactile Stepper Unit -->
+<div class="flex items-center h-10 bg-obsidian-900 border border-obsidian-600 rounded-lg overflow-hidden focus-within:border-sakura-500 focus-within:ring-1 focus-within:ring-sakura-500 transition-colors">
+<input class="w-14 h-full bg-transparent border-0 text-center font-mono font-bold text-base text-white focus:ring-0 p-0" id="season-num-2" max="99" min="1" name="season_number_item_2" type="number" value="1"/>
+<!-- Tactile Vertical Stepper Controls -->
+<div class="flex flex-col border-l border-obsidian-700/80 divide-y divide-obsidian-700/80 bg-obsidian-800">
+<button aria-label="Increase season number" class="h-5 w-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-obsidian-700 transition" onclick="document.getElementById('season-num-2').stepUp()" type="button">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button aria-label="Decrease season number" class="h-5 w-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-obsidian-700 transition" onclick="document.getElementById('season-num-2').stepDown()" type="button">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Informational Notice Box -->
+<div class="rounded-lg bg-obsidian-950/40 border border-obsidian-700/50 p-3.5 flex items-start gap-2.5" data-purpose="safety-notice">
+<svg class="w-4 h-4 text-sakura-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<p class="text-[12.5px] leading-relaxed text-slate-400">
+              Only season labels change. Files, folder names, provider release links and episode history stay in place. Repeated numbers can be used for parts of the same season.
+            </p>
+</div>
+<!-- Confirmation Checkbox -->
+<div class="pt-1 pb-1">
+<label class="group flex items-center gap-3 cursor-pointer select-none">
+<div class="relative flex items-center">
+<input class="peer h-4.5 w-4.5 rounded border-obsidian-600 bg-obsidian-900 text-sakura-500 focus:ring-sakura-500/30 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer transition" id="confirm-labels" type="checkbox"/>
+</div>
+<span class="text-[13px] font-medium text-slate-300 group-hover:text-slate-200 transition-colors">
+                I reviewed these season labels
+              </span>
+</label>
+</div>
+</div>
+<!-- END: ModalBodyContent -->
+<!-- BEGIN: ModalActionsFooter -->
+<footer class="relative z-10 px-7 py-5 mt-2 bg-obsidian-850/60 border-t border-obsidian-700/80 flex items-center justify-end gap-3">
+<!-- Secondary Action -->
+<button class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:text-white bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-500/20 active:scale-[0.98]" type="button">
+            Cancel
+          </button>
+<!-- Primary CTA Button with Sakura Glow -->
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-sakura-500 to-sakura-600 hover:from-sakura-400 hover:to-sakura-500 shadow-sakura-btn hover:shadow-sakura-btn-hover active:scale-[0.98] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-sakura-400/50" type="button">
+            Save numbering
+          </button>
+</footer>
+<!-- END: ModalActionsFooter -->
+</section>
+<!-- END: EditSeasonNumbersModal -->
+</div>
+<!-- END: ModalOverlayBackdrop -->
+<!-- BEGIN: DesktopTelemetryBar -->
+<!-- Status footer in app backdrop -->
+<footer class="h-7 border-t border-obsidian-700/60 bg-obsidian-950 px-4 flex items-center justify-between text-[11px] text-slate-500 filter blur-[1px] opacity-35 select-none mt-auto">
+<div class="flex items-center gap-4">
+<span>Ready</span>
+<span>Tracker: Connected</span>
+</div>
+<div>Indexed: 4,821 episodes</div>
+</footer>
+<!-- END: DesktopTelemetryBar -->
+</div>
+<!-- END: DesktopAppWindow -->
+<!-- BEGIN: InteractiveHandlers -->
+<script data-purpose="simple-interactions">
+    // Optional helper script for keyboard accessibility (Escape to dismiss simulation)
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const dialog = document.querySelector('[data-purpose="edit-season-numbers-dialog"]');
+        if (dialog) {
+          dialog.classList.add('scale-95', 'opacity-80');
+          setTimeout(() => {
+            dialog.classList.remove('scale-95', 'opacity-80');
+          }, 150);
+        }
+      }
+    });
+  </script>
+<!-- END: InteractiveHandlers -->
+</body></html>

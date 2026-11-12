@@ -18,6 +18,9 @@ class SettingsSwitch(QCheckBox):
 
     def paintEvent(self, event):
         colors = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
+        if self.property('animevaultTwilightSwitch'):
+            from app.ui.home_style import colors as theme_colors
+            c=theme_colors();colors=dict(accent_secondary=c['coral'],bg_card_alt=c['raised'],text_muted=c['muted'],bg_primary=c['bg'],border_focus=c['coral'])
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setBrush(QColor(colors["accent_secondary"] if self.isChecked() else colors["bg_card_alt"]))

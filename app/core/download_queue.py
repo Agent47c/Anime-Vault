@@ -7,8 +7,32 @@ from app.core import downloads as service
 STATUSES=('Queued','Downloading','Paused','Stopped','Completed','Failed','Incomplete or missing files')
 
 
+def bulk_action(command,identifiers,cancelled=lambda:False):
+    """Reuse durable per-job controls; never remove files in a bulk operation."""
+    if command not in ('pause','clear_completed'):raise ValueError('Unknown queue-wide action.')
+    done=0;errors=[]
+    for identifier in dict.fromkeys(identifiers):
+        if cancelled():errors.append('Stopped before the next entry; remaining entries kept.');break
+        item=None
+        try:
+            with service._lock:
+                item=next((i for i in service.jobs() if i['id']==identifier),None)
+                if item is None:continue
+                if command=='clear_completed':
+                    if status(item)!='Completed':continue
+                    action(identifier,'remove')
+                else:
+                    seeding=status(item)=='Completed' and (item.get('upload_rate') or 0)>0
+                    if item.get('engine')!='builtin' or not (status(item) in ('Downloading','Queued') or seeding):continue
+                    action(identifier,'pause')
+                done+=1
+        except Exception as error:errors.append(f"{item.get('title',identifier) if item else identifier} ({identifier}): {error}")
+    return f'{done} queue entries '+('cleared; all files kept.' if command=='clear_completed' else 'paused.')+(' Needs attention: '+'; '.join(errors) if errors else '')
+
+
 def status(item):
     if item.get('integrity_missing'): return 'Incomplete or missing files'
+    if item.get('library_moved') and item.get('indexed'):return 'Completed'
     value=item.get('status','').lower()
     if item.get('desired') in ('cancelled','stopped'): return 'Stopped'
     if 'missingfiles' in value:return 'Incomplete or missing files' if item.get('completed_once') or item.get('indexed') else 'Failed'
@@ -47,6 +71,9 @@ def snapshot():
 def scan_exclusions():
     from app import db
     roots=json.loads(db.get_state('downloads.unverified_roots','[]'))
+    roots+=json.loads(db.get_state('library.removed_roots','[]'))
+    library=service.library_root()
+    if library:roots.append(str(Path(library)/'.animevault-downloads'))
     for item in service.jobs():
         if not item.get('indexed') and item.get('status')!='Indexed':
             roots.extend(path for path in (item.get('root'),item.get('observed_destination')) if path)
@@ -54,7 +81,7 @@ def scan_exclusions():
 
 
 def retry_external(item):
-    """Explicitly retry in a fresh native folder; never attach to external partials."""
+    """Migrate a legacy queue row in place; keep its old partial files untouched."""
     if item.get('indexed') or item.get('completed_once'):
         raise ValueError('This completed entry is kept as history. Add a new release explicitly if needed.')
     source=item.get('source_ref') or item.get('magnet')
@@ -77,25 +104,25 @@ def retry_external(item):
     roots=json.loads(db.get_state('downloads.unverified_roots','[]'))
     if item.get('root'):db.set_state('downloads.unverified_roots',json.dumps(sorted(set(roots+[item['root']]))))
     original=dict(item)
-    item.update(desired='cancelled',status='Stopped — external client removed; files kept')
-    service._save_jobs(items)
-    before={row['id'] for row in items}
+    import re
+    from contextlib import closing
+    config=service.settings();title=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',item['title']).strip(' .')[:100] or 'Anime'
+    root=Path(config['destination']).resolve()/(title+'-'+item['id'][:10])
+    with closing(db.get_connection()) as conn,conn:
+        conn.execute('INSERT OR IGNORE INTO library_series(franchise_id) VALUES (?)',(item['fid'],))
+        series_id=conn.execute('SELECT id FROM library_series WHERE franchise_id=?',(item['fid'],)).fetchone()[0]
+    item.update(engine='builtin',series_id=series_id,legacy_destination=original.get('destination'),root=str(root),destination=str(root/(f"Season {item['season']:02}" if item.get('season') else 'Episodes')),desired='running',selection_confirmed=True,selected_files=None,indexed=False,submission_confirmed=False,status='Fetching torrent metadata',source_ref=source)
+    from app.core.builtin_torrents import engine
     try:
-        service.add_download(item['fid'],source,item.get('season') or 0,context=context)
+        adapter=engine(config);params=adapter.prepare(item,source)
+        if any(other['id']!=item['id'] and other.get('torrent_identity')==item['torrent_identity'] and other.get('desired')!='cancelled' for other in items):raise ValueError('This torrent already has another native entry. Use that entry instead.')
     except Exception as error:
-        current=service.jobs()
-        if not any(row['id'] not in before for row in current):
-            restored=next(row for row in current if row['id']==item['id'])
-            restored.update(original)
-            restored['status']='Needs review: Native retry failed: '+str(error)
-            service._save_jobs(current)
-        raise
-    finally:
-        current=service.jobs()
-        for added in current:
-            if added['id'] not in before:added['replaces_external']=item['id']
-        service._save_jobs(current)
-    return 'Added to Anime Vault in a new folder. Choose files when metadata is ready. Existing files were kept.'
+        item.clear();item.update(original,status='Needs review: Native retry failed: '+str(error));service._save_jobs(items);raise
+    service._save_jobs(items)
+    try:adapter.attach(item,params);item['submission_confirmed']=True
+    except Exception as error:item['status']='Needs review: '+str(error);raise
+    finally:service._save_jobs(items)
+    return 'Existing entry converted to Anime Vault and started. Previous files were kept.'
 
 
 def action(identifier,command):
@@ -104,12 +131,13 @@ def action(identifier,command):
     with service._lock:
         items=service.jobs();item=next((i for i in items if i['id']==identifier),None)
         if item is None: raise ValueError('Download entry no longer exists.')
+        if item.get('library_moved') and command not in ('remove','stop'):raise ValueError('These files are in the library. Open their anime details to play or repair them.')
         if item.get('engine')!='builtin':
             if command=='retry': return retry_external(item)
             if command not in ('remove','stop'):
                 raise ValueError('This entry belongs to the removed external client. Use Retry to create an Anime Vault download.')
         if command in ('resume','retry'):
-            item.pop('retry_after',None);service._save_jobs(items)
+            item.pop('retry_after',None);item['selection_confirmed']=True;service._save_jobs(items)
         builtin=item.get('engine')=='builtin'
         if builtin:
             if command in ('retry','resume'):
@@ -124,6 +152,7 @@ def action(identifier,command):
                     service._save_jobs(items)
                     from app.core.builtin_torrents import engine
                     engine(service.settings()).recheck(item)
+                    item['submission_confirmed']=True;service._save_jobs(items)
                 service.control_builtin(identifier,'pause' if command=='stop' else 'resume' if command=='retry' else command)
         # Legacy entries are local history only; no external API requests.
         items=service.jobs();item=next(i for i in items if i['id']==identifier)
@@ -146,6 +175,7 @@ def recycle_files(identifier):
     """Explicit file deletion is separate from removing a queue entry."""
     with service._lock:
         item=next(i for i in service.jobs() if i['id']==identifier)
+        if item.get('library_moved'):raise ValueError('These files are in the library. Use Delete files in anime details to review them.')
         root=Path(item['root'])
         destination=Path(item['destination'])
         if root.is_symlink() or root.is_junction() or destination.is_symlink() or destination.is_junction() or root.resolve()!=destination.resolve().parent:

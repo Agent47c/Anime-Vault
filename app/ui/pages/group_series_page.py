@@ -80,7 +80,7 @@ class GroupModel(QAbstractListModel):
         if role==Qt.UserRole:return row
         if role==Qt.UserRole+1:return row['_search']
         if role==Qt.ToolTipRole:return row['display_title']+'\n'+row['_search']
-        if role==Qt.SizeHintRole:return QSize(250,88)
+        if role==Qt.SizeHintRole:return QSize(250,120)
     def flags(self,index):return Qt.ItemIsEnabled|Qt.ItemIsSelectable|Qt.ItemIsUserCheckable
     def setData(self,index,value,role=Qt.EditRole):
         if role!=Qt.CheckStateRole or not index.isValid():return False
@@ -91,13 +91,20 @@ class GroupModel(QAbstractListModel):
 
 
 class GroupReview(DrawerDialog):
+    centered_workflow=True
+    full_page=True
+    workflow_width=720
     grouped=pyqtSignal(int)
     def __init__(self,plan,parent=None):
         super().__init__(parent);self.plan=plan
         body,self.confirm=chrome(self,'Confirm series grouping','Review the entries that will appear under one anime card.','統合','Confirm grouping',self.apply)
-        body.addWidget(text('Main card: '+plan['title'],'workflow_row_title'))
+        self.setObjectName('group_review');self.setMinimumWidth(480);self.resize(720,860)
+        anchor=text('★  Main card: '+plan['title'],'group_anchor');body.addWidget(anchor)
         for row in plan['records']:
-            frame,box=card();box.addWidget(text(row['display_title'],'workflow_row_title'))
+            frame,box=card();primary=row['id']==plan['target'];frame.setProperty('primary',primary)
+            line=QHBoxLayout();line.addWidget(text(row['display_title'],'workflow_row_title'),1)
+            badge=text('★ Primary container' if primary else 'Will merge under parent','group_badge');badge.setWordWrap(False)
+            line.addWidget(badge);box.addLayout(line)
             box.addWidget(text('Main series' if row['id']==plan['target'] else 'Season / arc entry'))
             import json
             try:media=json.loads(row.get('metadata_json') or '{}')
@@ -108,6 +115,11 @@ class GroupReview(DrawerDialog):
         self.reviewed=QCheckBox('These entries belong to the same anime');body.addWidget(self.reviewed)
         self.confirm.setEnabled(False);self.reviewed.toggled.connect(self.confirm.setEnabled)
         body.addStretch()
+        self.reviewed.setCursor(Qt.PointingHandCursor)
+        self.refresh_home_style()
+    def refresh_home_style(self):
+        from app.ui.review_reference_style import grouping_style
+        self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(grouping_style())
     def apply(self):
         if self.reviewed.isChecked():start(self,lambda:series_grouping.apply(self.plan),self.applied)
     def applied(self,fid):self.grouped.emit(fid);self.accept()
@@ -125,8 +137,8 @@ class GroupSeriesPage(QDialog):
         heading=text('Group seasons and arcs','download_heading');box.addWidget(heading)
         box.addWidget(text('Click an anime to select and include it. Check additional season entries to include them; uncheck to remove them. The highlighted anime is the main series.'))
         row=QHBoxLayout();self.search=QLineEdit();self.search.setPlaceholderText('Search English, Romaji or Japanese titles');self.search.setClearButtonEnabled(True)
-        row.addWidget(self.search,1);row.addWidget(button('Search',self.filter));box.addLayout(row)
-        self.search.returnPressed.connect(self.filter);self.search.textChanged.connect(self.filter)
+        row.addWidget(self.search,1);row.addWidget(button('Search',self.submit_search));box.addLayout(row)
+        self.search.returnPressed.connect(self.submit_search);self.search.textChanged.connect(self.filter)
         self.model=GroupModel(self);self.proxy=QSortFilterProxyModel(self);self.proxy.setSourceModel(self.model)
         self.proxy.setFilterRole(Qt.UserRole+1);self.proxy.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.list=QListView();self.list.setObjectName('group_series_choices');self.list.setModel(self.proxy);self.list.setIconSize(QSize(44,66));self.list.setUniformItemSizes(True)
@@ -138,6 +150,9 @@ class GroupSeriesPage(QDialog):
         self.review=button('Review grouping',self.review_group,True);self.review.setEnabled(False);box.addWidget(self.review,0,Qt.AlignRight)
         box.addWidget(button('Reset manual grouping for this series',self.reset),0,Qt.AlignLeft)
         start(self,lambda:load_choices(fid),self.loaded)
+        self.setObjectName('group_series_screen')
+        from app.ui.five_screen_style import qss
+        self.setStyleSheet(qss('group_series_screen'));self.list.setIconSize(QSize(58,80));self.list.setCursor(Qt.PointingHandCursor)
     def loaded(self,result):
         rows,images=result;self.model.beginResetModel();self.model.rows=rows
         self.model.icons={fid:QIcon(QPixmap.fromImage(image)) for fid,image in images.items()};self.model.endResetModel()
@@ -145,6 +160,10 @@ class GroupSeriesPage(QDialog):
     def filter(self,*_):
         self.proxy.setFilterFixedString(self.search.text().strip())
         if not self.proxy.rowCount():self.status.setText('No matching series. Try another title. Existing selections are kept.')
+    def submit_search(self,*_):
+        self.filter()
+        from app.ui.search_navigation import focus_results
+        focus_results(self,self.list if self.proxy.rowCount() else self.status)
     def highlight(self,current,previous):
         if current.isValid():self.target=current.data(Qt.UserRole)['id']
         self.update_summary()

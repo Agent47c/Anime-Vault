@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "background": "#14121d", "error-container": "#93000a", "on-surface-variant": "#dfbfc2", "surface-container-highest": "#36333f", "error": "#ffb4ab", "on-secondary-container": "#ffb86c", "tertiary-container": "#9c96b1", "outline-variant": "#584143", "inverse-surface": "#e6e0f0", "surface-variant": "#36333f", "inverse-primary": "#b0284b", "on-primary-fixed-variant": "#8f0935", "on-background": "#e6e0f0", "secondary": "#ffb86c", "surface-container-high": "#2b2834", "primary-fixed": "#ffd9dd", "outline": "#a78a8c", "tertiary-fixed-dim": "#c9c3df", "on-surface": "#e6e0f0", "on-error": "#690005", "on-tertiary-fixed": "#1c192e", "on-primary": "#670023", "primary": "#ffb2bc", "surface-container": "#201e2a", "on-tertiary-container": "#332f45", "surface": "#14121d", "secondary-fixed-dim": "#ffb86c", "on-primary-fixed": "#400012", "on-secondary-fixed-variant": "#683c00", "on-secondary": "#492900", "on-primary-container": "#6a0024", "primary-fixed-dim": "#ffb2bc", "surface-container-lowest": "#0f0d17", "secondary-fixed": "#ffdcbc", "tertiary": "#c9c3df", "on-error-container": "#ffdad6", "primary-container": "#ff6584", "surface-dim": "#14121d", "surface-tint": "#ffb2bc", "on-tertiary": "#312d44", "tertiary-fixed": "#e6defc", "surface-container-low": "#1c1a25", "secondary-container": "#794700", "on-tertiary-fixed-variant": "#48445b", "on-secondary-fixed": "#2c1600", "surface-bright": "#3a3744", "inverse-on-surface": "#312f3b" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "2rem", "gutter-compact": "0.75rem", "space-xs": "0.25rem", "gutter": "1.25rem", "space-xl": "2.5rem", "margin-compact": "1.25rem", "space-md": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem" }, "fontFamily": { "display": [ "Plus Jakarta Sans" ], "label-code-md": [ "JetBrains Mono" ], "headline-lg": [ "Plus Jakarta Sans" ], "body-sm": [ "Plus Jakarta Sans" ], "body-lg": [ "Plus Jakarta Sans" ], "label-code-lg": [ "JetBrains Mono" ], "body-md": [ "Plus Jakarta Sans" ], "label-code-sm": [ "JetBrains Mono" ], "headline-md": [ "Plus Jakarta Sans" ], "headline-sm": [ "Plus Jakarta Sans" ] }, "fontSize": { "display": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-code-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" } ], "body-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "label-code-lg": [ "14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "500" } ], "body-md": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "label-code-sm": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "headline-md": [ "22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 left-0 right-0 z-50 px-gutter pt-space-xs"><div class="h-16 w-full mx-auto flex items-center justify-between px-space-md bg-surface-container/90 backdrop-blur-2xl rounded-full shadow-[0_12px_32px_-4px_rgba(10,8,16,0.65)]"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center"><span class="material-symbols-outlined text-primary-container text-[20px]">filter_vintage</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface leading-none">ANIME VAULT</span><span class="font-label-code-sm text-label-code-sm text-primary tracking-widest leading-none pt-0.5">TWILIGHT SAKURA</span></div></div><div class="h-6 w-px bg-surface-container-highest mx-space-xs"></div><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_16px_rgba(255,101,132,0.35)]"><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="library" href="#">Library</a><a class="relative px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all flex items-center gap-space-xs" data-path="updates" href="#"><span>Updates</span><span class="px-1.5 py-0.2 rounded-full bg-secondary-container text-on-secondary-container font-label-code-sm text-label-code-sm font-medium">3</span></a><a class="relative px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all flex items-center gap-space-xs" data-path="downloads" href="#"><span>Downloads</span><span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-primary font-label-code-sm text-label-code-sm font-medium">2</span></a><a aria-current="page" class="px-space-md py-1.5 rounded-full transition-all bg-primary-container text-on-primary-container font-semibold shadow-[0_0_16px_rgba(255,101,132,0.35)]" data-path="organizer" href="#">Organizer</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="storage" href="#">Storage</a><a class="px-space-md py-1.5 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="settings" href="#">Settings</a></nav></div><div class="flex items-center gap-space-sm"><div class="flex items-center bg-surface-container-lowest/80 px-space-md py-1.5 rounded-full gap-space-sm"><span class="material-symbols-outlined text-outline text-[18px]">search</span><span class="font-body-sm text-body-sm text-outline pr-space-xs">Search media, titles, studio...</span><kbd class="font-label-code-sm text-label-code-sm bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded shadow-sm">Ctrl+K</kbd></div><div class="flex items-center bg-surface-container-lowest/60 px-space-md py-1.5 rounded-full gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">hard_drive</span><div class="flex items-center gap-space-xs"><span class="font-label-code-sm text-label-code-sm text-on-surface font-semibold">1.8 / 4.0 TB</span><div class="w-12 h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-secondary rounded-full w-[45%]"></div></div></div></div><button aria-label="Quick settings" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-on-surface transition-colors"><span class="material-symbols-outlined text-[18px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-2.5rem)]"><div class="flex flex-col w-full px-gutter py-space-md pb-24 text-on-surface">
+<!-- Back navigation & Breadcrumb -->
+<div class="flex items-center justify-between gap-space-md mb-space-md">
+<div class="flex items-center gap-space-sm">
+<a class="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-on-surface" data-path="organizer" href="#">
+<span class="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-0.5">arrow_back</span>
+<span class="font-body-sm text-body-sm font-medium">Back to Organizer</span>
+</a>
+<span class="font-label-code-sm text-label-code-sm text-outline-variant">/</span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant uppercase tracking-wider">Maintenance</span>
+<span class="font-label-code-sm text-label-code-sm text-outline-variant">/</span>
+<span class="font-label-code-sm text-label-code-sm text-primary font-semibold">Review Duplicate Files</span>
+</div>
+<div class="hidden sm:flex items-center gap-space-xs font-label-code-sm text-label-code-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-secondary">verified_user</span>
+<span>Deduplication Engine: v3.4.1 (Strict Bitwise)</span>
+</div>
+</div>
+<!-- Header Banner with Japanese Watermark -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg mb-space-lg shadow-sm">
+<!-- Japanese Watermark Kanji -->
+<div class="absolute right-4 -top-6 select-none pointer-events-none opacity-5 text-[140px] font-bold text-primary font-display leading-none">
+      複製
+    </div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="max-w-3xl">
+<div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-code-sm text-label-code-sm uppercase tracking-widest mb-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+          Hash Parity Audit
+        </div>
+<h1 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight mb-space-xs">
+          Review &amp; Clean Duplicate Files
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Check candidate files by exact byte size and SHA-256 cryptographic hash. Retain one pristine copy while safely staging confirmed identical copies to the OS Recycle Bin.
+        </p>
+</div>
+<!-- Quick Hash Metric Graphic -->
+<div class="flex items-center gap-space-md bg-surface-container px-space-md py-space-sm rounded-lg self-start md:self-auto">
+<div class="w-10 h-10 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[22px]">data_saver_on</span>
+</div>
+<div>
+<div class="font-label-code-sm text-label-code-sm text-on-surface-variant uppercase">Potential Recovery</div>
+<div class="font-headline-sm text-headline-sm font-bold text-secondary">24.8 GB</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Control & Scanning Strip -->
+<div class="flex flex-col gap-space-md bg-surface-container p-space-md rounded-xl mb-space-md shadow-sm">
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<!-- Action triggers -->
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-2 rounded-full bg-primary-container text-on-primary-container font-body-md text-body-md font-semibold inline-flex items-center gap-space-xs shadow-[0_0_16px_rgba(255,101,132,0.35)] hover:bg-primary transition-all" id="btnCheckDuplicates">
+<span class="material-symbols-outlined text-[18px]">search_check</span>
+<span>Check Duplicate Files Now</span>
+</button>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high text-on-surface hover:bg-surface-bright font-body-md text-body-md font-medium inline-flex items-center gap-space-xs transition-colors" id="btnStopScan">
+<span class="material-symbols-outlined text-[18px] text-outline">stop_circle</span>
+<span>Stop Scan</span>
+</button>
+</div>
+<!-- Status Pills -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-tertiary-fixed font-label-code-sm text-label-code-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
+<span>Status: SHA-256 Hash Verification Complete</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-container/20 text-primary font-label-code-sm text-label-code-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">difference</span>
+<span>14 Groups</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface-variant font-label-code-sm text-label-code-sm">
+<span>28 Redundant Files</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container/40 text-secondary font-label-code-sm text-label-code-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">delete_sweep</span>
+<span>Reclaimable: 24.8 GB</span>
+</div>
+</div>
+</div>
+<!-- Search & Sort Bar -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-sm pt-space-xs">
+<div class="relative w-full sm:w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">filter_alt</span>
+<input class="w-full bg-surface-container-lowest pl-9 pr-4 py-1.5 rounded-lg text-on-surface placeholder:text-outline font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary-container" id="filterInput" placeholder="Filter by anime title or filename..." type="text"/>
+</div>
+<div class="flex items-center gap-space-sm w-full sm:w-auto justify-end">
+<label class="font-label-code-sm text-label-code-sm text-on-surface-variant whitespace-nowrap" for="sortSelect">Sort by:</label>
+<div class="relative">
+<select class="appearance-none bg-surface-container-lowest text-on-surface font-body-sm text-body-sm pl-3 pr-8 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-container cursor-pointer" id="sortSelect">
+<option value="largest">Largest Waste First ▼</option>
+<option value="smallest">Smallest Waste First ▲</option>
+<option value="title">Anime Title (A–Z)</option>
+<option value="duplicates">Most Duplicate Copies</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[16px]">arrow_drop_down</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Safety Guideline Callout Card -->
+<div class="flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-low mb-space-lg shadow-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container/40 flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-secondary text-[20px]">shield</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="font-label-code-sm text-label-code-sm font-semibold text-secondary uppercase tracking-wide">
+        Failsafe Deduplication Protocol
+      </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong class="text-on-surface font-medium">Safety Notice:</strong> Exactly one verified copy is automatically locked as <span class="text-primary font-medium">Retained Master</span> and protected from accidental deletion. Only verified redundant copies with identical SHA-256 signatures are selectable. Flagged files are staged to the operating system's Recycle Bin and can be restored if needed.
+      </p>
+</div>
+</div>
+<!-- Main Duplicate Trees / Groups -->
+<div class="flex flex-col gap-space-lg" id="duplicateGroupsList">
+<!-- GROUP 1: Jujutsu Kaisen -->
+<div class="duplicate-group bg-surface-container rounded-xl overflow-hidden shadow-sm" data-title="Jujutsu Kaisen — S02E17 (Thunderclap, Part 2)">
+<!-- Group Header -->
+<div class="p-space-md bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-7 h-7 rounded-md bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[18px]">movie</span>
+</div>
+<div class="min-w-0">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface truncate">
+              Jujutsu Kaisen — S02E17 (Thunderclap, Part 2)
+            </h2>
+<div class="flex flex-wrap items-center gap-space-xs mt-0.5">
+<span class="font-label-code-sm text-label-code-sm text-outline font-mono truncate max-w-xs md:max-w-md" title="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855">
+                SHA-256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+              </span>
+<span class="text-outline-variant font-label-code-sm text-label-code-sm">•</span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant">Size: 1.42 GB</span>
+<span class="text-outline-variant font-label-code-sm text-label-code-sm">•</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">2 identical copies</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-code-sm text-label-code-sm px-2.5 py-0.5 rounded-full bg-secondary-container/20 text-secondary font-medium">
+            Redundant: 1.42 GB
+          </span>
+</div>
+</div>
+<!-- Rows Table/Tree -->
+<div class="flex flex-col">
+<!-- Master Copy Row (Protected) -->
+<div class="flex items-center justify-between p-space-md bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary select-none" title="Master copy cannot be deleted">lock</span>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-tertiary-container/30 text-tertiary-fixed inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  Retained Master
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant font-mono">1080p HEVC</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Bitrate: 8.4 Mbps</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Modified: Oct 28, 2024</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface font-mono truncate select-all">
+                D:\Anime\TV\Jujutsu Kaisen\Season 2\Jujutsu_Kaisen_S02E17_1080p.mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder_open</span>
+<span>Open</span>
+</button>
+</div>
+</div>
+<!-- Duplicate Candidate Row (Selected) -->
+<div class="flex items-center justify-between p-space-md bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<input aria-label="Select JJK duplicate copy" checked="" class="dup-checkbox w-4 h-4 rounded text-primary-container bg-surface-container-lowest focus:ring-0 focus:ring-offset-0 cursor-pointer accent-primary-container" data-bytes="1524678656" data-size="1.42" type="checkbox"/>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-primary-container/20 text-primary inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+                  Duplicate Copy
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">+1.42 GB Reclaim</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Bitrate: 8.4 Mbps</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Download Cache</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface-variant font-mono truncate select-all">
+                E:\Anime Library\JJK_Season2_Downloads\JJK_17_Copy.mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder</span>
+<span>Open Folder</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+<span>Inspect Media</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- GROUP 2: Frieren: Beyond Journey's End -->
+<div class="duplicate-group bg-surface-container rounded-xl overflow-hidden shadow-sm" data-title="Frieren: Beyond Journey's End — Episode 28">
+<!-- Group Header -->
+<div class="p-space-md bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-7 h-7 rounded-md bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[18px]">movie</span>
+</div>
+<div class="min-w-0">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface truncate">
+              Frieren: Beyond Journey's End — Episode 28
+            </h2>
+<div class="flex flex-wrap items-center gap-space-xs mt-0.5">
+<span class="font-label-code-sm text-label-code-sm text-outline font-mono truncate max-w-xs md:max-w-md" title="8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4">
+                SHA-256: 8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4
+              </span>
+<span class="text-outline-variant font-label-code-sm text-label-code-sm">•</span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant">Size: 890 MB</span>
+<span class="text-outline-variant font-label-code-sm text-label-code-sm">•</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">2 identical copies</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-code-sm text-label-code-sm px-2.5 py-0.5 rounded-full bg-secondary-container/20 text-secondary font-medium">
+            Redundant: 890 MB
+          </span>
+</div>
+</div>
+<!-- Rows Table/Tree -->
+<div class="flex flex-col">
+<!-- Master Copy Row -->
+<div class="flex items-center justify-between p-space-md bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary select-none" title="Master copy cannot be deleted">lock</span>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-tertiary-container/30 text-tertiary-fixed inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  Retained Master
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant font-mono">1080p AVC</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Bitrate: 5.6 Mbps</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Modified: Mar 22, 2024</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface font-mono truncate select-all">
+                D:\Anime\TV\Frieren\Frieren_E28_Final.mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder_open</span>
+<span>Open</span>
+</button>
+</div>
+</div>
+<!-- Duplicate Candidate Row -->
+<div class="flex items-center justify-between p-space-md bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<input aria-label="Select Frieren duplicate copy" checked="" class="dup-checkbox w-4 h-4 rounded text-primary-container bg-surface-container-lowest focus:ring-0 focus:ring-offset-0 cursor-pointer accent-primary-container" data-bytes="933232640" data-size="0.89" type="checkbox"/>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-primary-container/20 text-primary inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+                  Duplicate Copy
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">+890 MB Reclaim</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Torrent Staging</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface-variant font-mono truncate select-all">
+                D:\Downloads\Anime\Frieren_Ep28_[SubsPlease].mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder</span>
+<span>Open Folder</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+<span>Inspect Media</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- GROUP 3: Bleach: Thousand-Year Blood War -->
+<div class="duplicate-group bg-surface-container rounded-xl overflow-hidden shadow-sm" data-title="Bleach: Thousand-Year Blood War — Ep 05">
+<!-- Group Header -->
+<div class="p-space-md bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-7 h-7 rounded-md bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[18px]">movie</span>
+</div>
+<div class="min-w-0">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface truncate">
+              Bleach: Thousand-Year Blood War — Ep 05
+            </h2>
+<div class="flex flex-wrap items-center gap-space-xs mt-0.5">
+<span class="font-label-code-sm text-label-code-sm text-outline font-mono truncate max-w-xs md:max-w-md" title="c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2">
+                SHA-256: c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2
+              </span>
+<span class="text-outline-variant font-label-code-sm text-label-code-sm">•</span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant">Size: 1.15 GB</span>
+<span class="text-outline-variant font-label-code-sm text-label-code-sm">•</span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">3 identical copies</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-code-sm text-label-code-sm px-2.5 py-0.5 rounded-full bg-secondary-container/20 text-secondary font-medium">
+            Redundant: 2.30 GB
+          </span>
+</div>
+</div>
+<!-- Rows Table/Tree -->
+<div class="flex flex-col">
+<!-- Master Copy Row -->
+<div class="flex items-center justify-between p-space-md bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary select-none" title="Master copy cannot be deleted">lock</span>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-tertiary-container/30 text-tertiary-fixed inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  Retained Master
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-on-surface-variant font-mono">1080p HEVC</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Bitrate: 7.1 Mbps</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Library Master</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface font-mono truncate select-all">
+                E:\Anime Library\Bleach TYBW\S03E05.mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder_open</span>
+<span>Open</span>
+</button>
+</div>
+</div>
+<!-- Duplicate Candidate 1 (Unchecked) -->
+<div class="flex items-center justify-between p-space-md bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<input aria-label="Select Bleach Unsorted duplicate copy" class="dup-checkbox w-4 h-4 rounded text-primary-container bg-surface-container-lowest focus:ring-0 focus:ring-offset-0 cursor-pointer accent-primary-container" data-bytes="1234803097" data-size="1.15" type="checkbox"/>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-primary-container/20 text-primary inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+                  Duplicate Copy
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">+1.15 GB Reclaim</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• Unsorted Folder</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface-variant font-mono truncate select-all">
+                E:\Anime Library\Unsorted\Bleach_05_dup.mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder</span>
+<span>Open Folder</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+<span>Inspect Media</span>
+</button>
+</div>
+</div>
+<!-- Duplicate Candidate 2 (Unchecked / External Backup drive) -->
+<div class="flex items-center justify-between p-space-md bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-md min-w-0 pr-space-sm">
+<div class="w-8 flex items-center justify-center shrink-0">
+<input aria-label="Select Bleach Backup duplicate copy" class="dup-checkbox w-4 h-4 rounded text-primary-container bg-surface-container-lowest focus:ring-0 focus:ring-offset-0 cursor-pointer accent-primary-container" data-bytes="1234803097" data-size="1.15" type="checkbox"/>
+</div>
+<div class="min-w-0 flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 rounded font-label-code-sm text-label-code-sm font-semibold bg-primary-container/20 text-primary inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+                  Duplicate Copy
+                </span>
+<span class="font-label-code-sm text-label-code-sm text-secondary font-medium">+1.15 GB Reclaim</span>
+<span class="font-label-code-sm text-label-code-sm text-outline">• F:\ External Backup Volume</span>
+</div>
+<div class="font-label-code-md text-label-code-md text-on-surface-variant font-mono truncate select-all">
+                F:\Backup\Anime\Bleach_S3_E5.mkv
+              </div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">folder</span>
+<span>Open Folder</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-label-code-sm text-label-code-sm inline-flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+<span>Inspect Media</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Floating Execution Bar (Sticky above global shell footer) -->
+<aside aria-label="Duplicate cleanup actions" class="fixed bottom-12 left-0 right-0 z-30 px-gutter pointer-events-none">
+<div class="max-w-7xl mx-auto w-full bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_12px_36px_-4px_rgba(10,8,16,0.85)] p-space-sm sm:px-space-lg sm:py-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm pointer-events-auto">
+<!-- Left state count -->
+<div class="flex items-center gap-space-md w-full sm:w-auto justify-between sm:justify-start">
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input class="w-4 h-4 rounded text-primary-container bg-surface-container-lowest focus:ring-0 focus:ring-offset-0 cursor-pointer accent-primary-container" id="selectAllSafeCheckbox" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface font-medium">Select all safe duplicate copies</span>
+</label>
+<div class="h-4 w-px bg-surface-container-highest hidden sm:block"></div>
+<div class="flex items-center gap-2">
+<span class="font-label-code-sm text-label-code-sm px-2 py-0.5 rounded bg-surface-container-highest text-primary font-semibold" id="selectedCountBadge">
+            2 selected
+          </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+            Reclaimable: <strong class="text-secondary font-mono font-semibold" id="reclaimableText">2.31 GB</strong>
+</span>
+</div>
+</div>
+<!-- Right action triggers -->
+<div class="flex items-center gap-space-sm w-full sm:w-auto justify-end">
+<button class="px-space-md py-2 rounded-full bg-surface-container hover:bg-surface-bright text-on-surface font-body-md text-body-md font-medium transition-colors" id="btnCancel">
+          Cancel
+        </button>
+<button class="px-space-lg py-2 rounded-full bg-primary-container text-on-primary-container font-body-md text-body-md font-semibold inline-flex items-center gap-space-xs shadow-[0_0_20px_rgba(255,101,132,0.45)] hover:bg-primary transition-all active:scale-[0.99]" id="btnExecuteRecycle">
+<span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+<span id="executeButtonLabel">Move 2 Selected Copies to Recycle Bin (2.31 GB)</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+<script>
+  (function initDuplicateManager() {
+    const checkboxes = Array.from(document.querySelectorAll('.dup-checkbox'));
+    const selectAll = document.getElementById('selectAllSafeCheckbox');
+    const selectedCountBadge = document.getElementById('selectedCountBadge');
+    const reclaimableText = document.getElementById('reclaimableText');
+    const executeButtonLabel = document.getElementById('executeButtonLabel');
+    const filterInput = document.getElementById('filterInput');
+    const groupCards = Array.from(document.querySelectorAll('.duplicate-group'));
+    const btnExecute = document.getElementById('btnExecuteRecycle');
+
+    function updateMetrics() {
+      let count = 0;
+      let totalGB = 0;
+
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          count++;
+          totalGB += parseFloat(cb.getAttribute('data-size') || 0);
+        }
+      });
+
+      const formattedSize = totalGB >= 1 ? `${totalGB.toFixed(2)} GB` : `${Math.round(totalGB * 1024)} MB`;
+
+      selectedCountBadge.textContent = `${count} selected`;
+      reclaimableText.textContent = formattedSize;
+
+      if (count === 0) {
+        executeButtonLabel.textContent = 'No Copies Selected';
+        btnExecute.disabled = true;
+        btnExecute.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        executeButtonLabel.textContent = `Move ${count} Selected ${count === 1 ? 'Copy' : 'Copies'} to Recycle Bin (${formattedSize})`;
+        btnExecute.disabled = false;
+        btnExecute.classList.remove('opacity-50', 'pointer-events-none');
+      }
+
+      selectAll.checked = (count === checkboxes.length);
+      selectAll.indeterminate = (count > 0 && count < checkboxes.length);
+    }
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', updateMetrics);
+    });
+
+    if (selectAll) {
+      selectAll.addEventListener('change', () => {
+        checkboxes.forEach(cb => {
+          cb.checked = selectAll.checked;
+        });
+        updateMetrics();
+      });
+    }
+
+    // Filter functionality
+    if (filterInput) {
+      filterInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        groupCards.forEach(card => {
+          const title = (card.getAttribute('data-title') || '').toLowerCase();
+          const paths = card.innerText.toLowerCase();
+          if (title.includes(query) || paths.includes(query)) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      });
+    }
+
+    // Action button feedback
+    if (btnExecute) {
+      btnExecute.addEventListener('click', () => {
+        const originalText = executeButtonLabel.textContent;
+        executeButtonLabel.textContent = 'Moving to Recycle Bin...';
+        btnExecute.classList.add('animate-pulse');
+        setTimeout(() => {
+          btnExecute.classList.remove('animate-pulse');
+          alert('Selected redundant copies were successfully staged to the OS Recycle Bin.');
+          updateMetrics();
+        }, 800);
+      });
+    }
+
+    // Initial metrics run
+    updateMetrics();
+  })();
+</script></main><footer class="fixed bottom-0 left-0 right-0 h-10 z-40 bg-surface-container-lowest/95 backdrop-blur-md px-gutter flex items-center justify-between shadow-[0_-4px_16px_rgba(10,8,16,0.4)]"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span><span class="font-label-code-sm text-label-code-sm text-on-surface-variant">DAEMON:</span><span class="font-label-code-sm text-label-code-sm text-primary font-medium uppercase">Active &amp; Watching</span></div><div class="h-3 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-outline text-[14px]">inventory_2</span><span class="font-label-code-sm text-label-code-sm text-on-surface-variant">230 anime indexed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-outline text-[14px]">dns</span><span class="font-label-code-sm text-label-code-sm text-on-surface font-medium">257.98 GB free</span><span class="font-label-code-sm text-label-code-sm text-outline">•</span><span class="font-label-code-sm text-label-code-sm text-outline">E:\</span></div><div class="h-3 w-px bg-surface-container-highest"></div><div class="flex items-center gap-1"><span class="material-symbols-outlined text-primary text-[14px]">sync</span><span class="font-label-code-sm text-label-code-sm text-on-surface-variant">Synced 2m ago</span></div></div></footer></body></html>

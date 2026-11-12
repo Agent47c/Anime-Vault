@@ -11,17 +11,28 @@ _lock = threading.RLock()
 _closing = False
 DEFAULTS = {
             'source':'https://nyaa.si/?q={query}&f=0&c=0_0','group':'ASW','quality':'1080p',
-            'destination':str(Path.home()/'Downloads'/'AnimeVault'),'enabled':False,'start_paused':True,
+            'destination':str(Path.home()/'Downloads'/'AnimeVault'),'enabled':False,'start_paused':False,
             'engine':'builtin','download_limit_kib':0,'upload_limit_kib':0,'seed_completed':False}
 
 
 def settings():
     config={**DEFAULTS, **json.loads(db.get_state('downloads.settings','{}'))}
+    if config['destination']==DEFAULTS['destination']:
+        root=library_root()
+        if root:config['destination']=str(Path(root)/'.animevault-downloads')
     # Old connection settings cannot select an external engine after upgrading.
     config['engine']='builtin'
+    config['start_paused']=False  # Confirmed submissions start without a second file-selection gate.
     for key in ('url','username','secret'):
         config.pop(key,None)
     return config
+
+
+def library_root():
+    preferred=db.get_state('merge_destination')
+    if preferred and Path(preferred).is_absolute():return preferred
+    roots=db.get_watched_directories()
+    return roots[0]['folder_path'] if len(roots)==1 else None
 
 
 def validate_url(value, local=False):
@@ -38,6 +49,7 @@ def validate_url(value, local=False):
 def save_settings(config,new_password=None):
     with _lock:
         config={**settings(),**config}
+        config['start_paused']=False
         if config['engine'] not in ('qbittorrent','builtin'):
             raise ValueError('Anime Vault uses its built-in downloader.')
         config['engine']='builtin'
@@ -177,9 +189,10 @@ def poll(cancelled=lambda:False):
                 try:
                     snapshot=adapter.snapshot(item)
                     item['submission_confirmed']=True
-                    if snapshot.get('files'):item['download_files']=[dict(name=e['name'],size=e['size']) for e in snapshot['files']]
+                    if snapshot.get('files'):item['download_files']=[dict(name=e['name'],size=e['size'],priority=e.get('priority',1)) for e in snapshot['files']]
                     item.update({k:v for k,v in snapshot.items() if k not in ('files','complete')})
                     if snapshot.get('complete') and not item.get('indexed'):
+                        item['download_files']=[dict(name=e['name'],size=e['size'],priority=e.get('priority',0)) for e in snapshot['files']]
                         files=_completed_files(item,{'save_path':item['destination']},snapshot['files'])
                         _index_completed(item,files)
                         item['indexed']=True;changed=True
@@ -243,8 +256,8 @@ def _add_builtin(fid,source,season,origin,config,context=None,source_identity=No
     target=root/(f'Season {season:02}' if season else 'Episodes')
     item={'id':identifier,'engine':'builtin','origin':origin,'fid':fid,'series_id':series_id,'title':series['display_title'],
           'root':str(root),'destination':str(target),'status':'Fetching torrent metadata','progress':0,
-          'created':time.time(),'season':season,'desired':'running' if not config['start_paused'] else 'paused',
-          'selection_confirmed':not config['start_paused'],'selected_files':None,'submission_confirmed':False,
+          'created':time.time(),'season':season,'desired':'running',
+          'selection_confirmed':True,'selected_files':None,'submission_confirmed':False,
           'source_ref':source,'source_identity':source_identity}
     _apply_download_context(item,context)
     from app.core.builtin_torrents import engine
@@ -270,10 +283,11 @@ def builtin_files(identifier):
         if _closing: raise ValueError('Anime Vault is closing.')
         if not settings()['enabled']: raise ValueError('Enable and save downloads first.')
         items=jobs();item=next(j for j in items if j['id']==identifier and j.get('engine')=='builtin')
+        if item.get('library_moved'):raise ValueError('These files have moved to the library. Use the anime details page.')
         from app.core.builtin_torrents import engine
         files=engine(settings()).snapshot(item)['files']
         if files:
-            item['download_files']=[dict(name=e['name'],size=e['size']) for e in files];_save_jobs(items)
+            item['download_files']=[dict(name=e['name'],size=e['size'],priority=e.get('priority',1)) for e in files];_save_jobs(items)
         return files
 
 
@@ -306,8 +320,7 @@ def control_builtin(identifier,action,selected=None):
                 known=set(item['episode_keys'])&mapped
                 if known:item['episode_keys']=sorted(known)
         elif action=='resume':
-            if not item.get('selection_confirmed'):
-                raise ValueError('Choose files first, then start the download.')
+            item['selection_confirmed']=True
             item['desired']='running'
         else:
             item['desired']='cancelled' if action=='cancel' else 'paused'

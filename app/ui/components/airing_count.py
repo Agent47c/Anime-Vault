@@ -7,6 +7,11 @@ from app.ui.refresh import refresh_pixmap, refresh_image_exists
 
 
 class _ReleasePreview(QFrame):
+    def refresh_home_style(self):
+        # Theme scopes can restyle top-level tools on Show. Retain the popup's
+        # own row geometry instead of inheriting general button padding.
+        if hasattr(self,'_preview_stylesheet') and self.styleSheet()!=self._preview_stylesheet:
+            self.setStyleSheet(self._preview_stylesheet)
     def enterEvent(self, event):
         self.parentWidget()._close_timer.stop()
         super().enterEvent(event)
@@ -52,18 +57,34 @@ class AiringCount(QPushButton):
         preview.setObjectName("airing_preview")
         preview.setAttribute(Qt.WA_ShowWithoutActivating)
         preview.setFocusPolicy(Qt.NoFocus)
+        from app.ui.home_style import colors,px
+        c=colors()
+        preview.setProperty('animevaultOwnScaledStyle',True)
+        preview.setStyleSheet(f'''
+            QFrame#airing_preview {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;}}
+            QWidget#airing_preview_content, QScrollArea#airing_preview_scroll, QScrollArea#airing_preview_scroll > QWidget {{background:{c['panel']};border:none;}}
+            QPushButton#airing_preview_item {{background:{c['raised']};border:1px solid {c['line']};border-radius:10px;padding:0;min-height:{px(76)-2}px;max-height:{px(76)-2}px;}}
+            QPushButton#airing_preview_item:hover {{border-color:{c['coral']};border-left:3px solid {c['coral']};}}
+            QPushButton#airing_preview_item QLabel {{background:transparent;border:none;color:{c['text']};font-family:'Plus Jakarta Sans';font-size:{px(13)}px;}}
+            QLabel#airing_preview_title {{font-weight:600;}}
+            QPushButton#airing_preview_item QLabel#airing_preview_meta {{color:{c['muted']};font-family:'JetBrains Mono';font-size:{px(11)}px;}}
+        ''')
+        preview._preview_stylesheet=preview.styleSheet()
+        screen=self.screen().availableGeometry()
+        popup_width=min(px(380),screen.width()-24)
         layout = QVBoxLayout(preview)
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(10)
         content = QWidget()
         content.setObjectName("airing_preview_content")
         rows = QVBoxLayout(content)
-        rows.setContentsMargins(0, 0, 0, 0)
+        rows.setContentsMargins(0, 0, 0, 0);rows.setAlignment(Qt.AlignTop)
         rows.setSpacing(8)
         for entry in self.entries:
             item = QPushButton()
             item.setObjectName("airing_preview_item")
-            item.setMinimumSize(314, 64)
+            item.setMinimumWidth(0)
+            item.setFixedHeight(px(76))
             item.setFocusPolicy(Qt.NoFocus)
             item.setCursor(Qt.PointingHandCursor)
             item.clicked.connect(lambda checked=False, release=entry: self._choose(release))
@@ -71,43 +92,55 @@ class AiringCount(QPushButton):
             row.setContentsMargins(8, 6, 8, 6)
             row.setSpacing(10)
             poster = QLabel()
-            poster.setFixedSize(32, 48)
+            poster.setFixedSize(px(32), px(48))
             poster.setObjectName("airing_preview_poster")
             cover = entry.get("cover")
             if cover and refresh_image_exists(COVERS_DIR / cover):
                 poster.setPixmap(refresh_pixmap(COVERS_DIR / cover).scaled(
-                    32, 48, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation))
+                    px(32), px(48), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation))
             row.addWidget(poster)
             words = entry["title"].split()
             short = " ".join(words[:8]) + ("\u2026" if len(words) > 8 else "")
             title = QLabel()
             title.setObjectName("airing_preview_title")
-            title.setFixedWidth(240)
+            text_width=popup_width-px(32)-64
+            title.setFixedWidth(text_width)
             title.setTextFormat(Qt.PlainText)
             title.ensurePolished()
-            title.setText(title.fontMetrics().elidedText(short, Qt.ElideRight, 240))
+            title.setText(title.fontMetrics().elidedText(short, Qt.ElideRight, text_width))
+            title.setToolTip(entry['title'])
             details = QVBoxLayout()
             details.setSpacing(4)
+            details.setContentsMargins(0,0,0,0)
+            details.setAlignment(Qt.AlignVCenter)
             details.addWidget(title)
-            note = QLabel(f"EP {entry['episode']} / {entry['time']}")
-            note.setObjectName("subheading")
+            note = QLabel(f"EP {entry['episode']} / {entry['time']}"+(' · '+entry['download_label'] if entry.get('download_label') else ''))
+            note.setObjectName("airing_preview_meta")
+            note.setFixedWidth(text_width)
+            note.setToolTip(note.text())
+            note.setText(note.fontMetrics().elidedText(note.text(),Qt.ElideRight,text_width))
             details.addWidget(note)
             row.addLayout(details)
             for child in item.findChildren(QLabel):
                 child.setAttribute(Qt.WA_TransparentForMouseEvents)
             rows.addWidget(item)
+            title.ensurePolished();title.setText(title.fontMetrics().elidedText(short,Qt.ElideRight,text_width))
+            note.ensurePolished();note.setText(note.fontMetrics().elidedText(note.toolTip(),Qt.ElideRight,text_width))
         scroll = QScrollArea()
         scroll.setObjectName("airing_preview_scroll")
         scroll.setFrameShape(QFrame.NoFrame)
         scroll.setWidgetResizable(True)
         scroll.setWidget(content)
-        scroll.setFixedWidth(330)
-        scroll.setFixedHeight(min(420, content.sizeHint().height() + 4))
+        scroll.setFixedWidth(popup_width-16)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        content.layout().activate()
+        visible_rows=min(3,len(self.entries))
+        required=visible_rows*px(76)+rows.spacing()*max(0,visible_rows-1)
+        scroll.setFixedHeight(min(screen.height()-48,required))
         layout.addWidget(scroll)
-        preview.adjustSize()
+        preview.setFixedSize(popup_width,scroll.height()+16)
         owner = getattr(self, "hover_owner", self)
         point = owner.mapToGlobal(QPoint(0, owner.height() + 6))
-        screen = self.screen().availableGeometry()
         x = max(screen.left(), min(point.x(), screen.right() - preview.width()))
         y = point.y() if point.y() + preview.height() <= screen.bottom() else owner.mapToGlobal(QPoint()).y() - preview.height() - 6
         preview.move(x, max(screen.top(), y))

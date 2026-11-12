@@ -29,7 +29,7 @@ def extend_settings(page):
         table.setItem(row,0,QTableWidgetItem(name));table.setItem(row,1,QTableWidgetItem(url))
     for source in download_discovery.sources(): add_source(source['name'],source['url'])
     box.addWidget(table)
-    source_status=QLabel('The extension needs permission for the source you select. Nyaa-style tables and generic magnet rows are supported.');source_status.setWordWrap(True);box.addWidget(source_status)
+    source_status=QLabel('The extension needs permission for the source you select. Nyaa-style tables and generic magnet rows are supported. Prefer HTTPS: plain HTTP exposes search queries to network observers.');source_status.setWordWrap(True);box.addWidget(source_status)
     box.addWidget(page._button('Add source',lambda:add_source()))
     box.addWidget(page._button('Remove selected source',lambda:table.removeRow(table.currentRow()) if table.currentRow()>=0 else None))
     def save_sources():
@@ -98,7 +98,7 @@ def extend_settings(page):
         host=page.window()
         if hasattr(host,'_on_nav_clicked'): host._on_nav_clicked(1)
     box.addWidget(page._button('Open organizer and preview file changes',open_organizer))
-    col=page._tab_layouts['Scanning & Organization'];col.insertWidget(col.count()-1,panel)
+    col=page._tab_layouts['Naming & Organization'];col.insertWidget(col.count()-1,panel)
 
     panel,box=page._panel('Playback, audio and subtitles')
     controls=[]

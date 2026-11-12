@@ -288,6 +288,8 @@ def record_play(conn, path, event='PLAYED'):
 
 
 def last_path():
+    snapshot=db.current_refresh_view()
+    if snapshot is not None and 'last_episode_path' in snapshot:return snapshot['last_episode_path']
     with closing(db.get_connection()) as conn:
         row = conn.execute("SELECT l.path,f.availability FROM file_locations l JOIN physical_files f ON f.id=l.file_id JOIN app_state a ON a.key='last_file_id' AND l.file_id=CAST(a.value AS INTEGER)").fetchone()
         if row and row['availability'] not in ('RECYCLED','REPLACED'):
@@ -330,9 +332,13 @@ def relocate(conn, source, target):
         updated = [Path(target).resolve() if path_key(path) == path_key(source) else path for path in paths]
         if updated == paths:
             continue
-        common = Path(os.path.commonpath([str(path.parent) for path in updated]))
+        try:common = Path(os.path.commonpath([str(path.parent) for path in updated]))
+        except ValueError:common=Path(season['season_folder_path'])
+        def relative_or_absolute(path):
+            try:return os.path.relpath(path,common).replace('\\','/')
+            except ValueError:return str(path)
         conn.execute('UPDATE seasons SET season_folder_path=?,video_files_json=?,scan_root=NULL WHERE id=?',
-                     (str(common), json.dumps([os.path.relpath(path, common).replace('\\', '/') for path in updated]), season['id']))
+                       (str(common), json.dumps([relative_or_absolute(path) for path in updated]), season['id']))
         franchise = conn.execute('SELECT root_folder_path FROM franchises WHERE id=?', (season['franchise_id'],)).fetchone()
         old_root = franchise[0] if franchise else None
         # Keep the existing series root while any owned files remain under it.

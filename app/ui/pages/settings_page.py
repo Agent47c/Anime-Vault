@@ -57,6 +57,39 @@ class SettingsPage(QWidget):
         super().__init__(parent)
         self._scan_worker = None
         self._setup_ui()
+        from app.ui.settings_style import apply_layout
+        apply_layout(self);self.refresh_home_style()
+
+    def _show_settings_section(self,index):
+        if not 0<=index<len(self.section_targets):return
+        self.settings_scroll=self.tabs.widget(index)
+        for n,button in enumerate(self.section_buttons):button.setChecked(n==index)
+        if index==3:self._load_player_icons()
+
+    def _load_player_icons(self):
+        if getattr(self,'_player_icons_requested',False):return
+        self._player_icons_requested=True
+        from app.core.player_icons import cached_icons
+        from app.ui.io_task import IOTask,track
+        from PyQt5.QtGui import QIcon
+        from PyQt5.QtCore import QSize
+        worker=IOTask(cached_icons);self._player_icons_worker=worker;track(worker)
+        def loaded(paths):
+            from PyQt5 import sip
+            if sip.isdeleted(self):return
+            for value,button in self.player_cards:
+                if value in paths:button.setIcon(QIcon(paths[value]));button.setIconSize(QSize(32,32))
+        worker.succeeded.connect(loaded);worker.finished.connect(worker.deleteLater);worker.start()
+
+    def refresh_home_style(self):
+        from app.ui.settings_style import qss
+        self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(qss())
+        if hasattr(self,'download_config'):
+            from app.ui.home_style import colors,px
+            c=colors();panel='#1c1a27' if QApplication.instance().property('animevaultTheme')!='light' and not QApplication.instance().property('animevaultHighContrast') else c['panel']
+            self.download_config.setStyleSheet(f"QDialog#workflow_drawer, QDialog#workflow_drawer QWidget#workflow_body, QDialog#workflow_drawer QWidget#workflow_field {{background:{panel};color:{c['text']};border:none;}} QDialog#workflow_drawer QLabel {{font-size:{px(14)}px;background:transparent;color:{c['text']};}} QDialog#workflow_drawer QLineEdit, QDialog#workflow_drawer QComboBox {{font-size:{px(14)}px;}}")
+        for switch in self.findChildren(SettingsSwitch):switch.setProperty('animevaultTwilightSwitch',True);switch.update()
+        for card in getattr(self,'theme_cards',[]):card.update()
 
     preferences_changed = pyqtSignal()
 
@@ -64,7 +97,7 @@ class SettingsPage(QWidget):
         title=panel.property('settings_section')
         categories={
             'Appearance and accessibility':'Appearance & Accessibility','Application behavior':'Appearance & Accessibility','About':'Appearance & Accessibility',
-            'Metadata and AniList':'Scanning & Organization','Scanning and organization':'Scanning & Organization','Library roots and scanning':'Scanning & Organization',
+            'Metadata and AniList':'Metadata & AniList','Scanning and organization':'Scanning & Organization','Library roots and scanning':'Scanning & Organization',
             'Watched list import':'Watchers & Import Lists','Media player':'Media Player','Database and backup':'Database & Backup','Downloads':'Downloads & Sources'}
         column=self._tab_layouts[categories[title]]
         column.insertWidget(column.count()-1,panel)
@@ -159,7 +192,7 @@ class SettingsPage(QWidget):
         self.tabs.setElideMode(Qt.ElideNone)
         self.tabs.setAccessibleName("Settings categories")
         self._tab_layouts = {}
-        for name in ("Appearance & Accessibility", "Scanning & Organization", "Watchers & Import Lists", "Media Player", "Downloads & Sources", "Database & Backup"):
+        for name in ("Appearance & Accessibility", "Scanning & Organization", "Watchers & Import Lists", "Media Player", "Downloads & Sources", "Database & Backup", "Naming & Organization", "Metadata & AniList"):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             scroll.setFrameShape(QFrame.NoFrame)
@@ -172,7 +205,7 @@ class SettingsPage(QWidget):
             column.addStretch()
             self._tab_layouts[name] = column
             scroll.setWidget(content)
-            caption={'Appearance & Accessibility':'Appearance','Scanning & Organization':'Scanning','Watchers & Import Lists':'Watchers & Lists','Media Player':'Media Player','Downloads & Sources':'Downloads & Sources','Database & Backup':'Database & Backup'}[name]
+            caption={'Appearance & Accessibility':'Appearance','Scanning & Organization':'Scanning','Watchers & Import Lists':'Watchers & Lists','Media Player':'Media Player','Downloads & Sources':'Downloads & Sources','Database & Backup':'Database & Backup','Naming & Organization':'Naming & Organization','Metadata & AniList':'Metadata & AniList'}[name]
             index = self.tabs.addTab(scroll, caption.replace('&','&&'))
             self.tabs.setTabToolTip(index, name)
         layout.addWidget(self.tabs, 1)
@@ -185,6 +218,16 @@ class SettingsPage(QWidget):
         self.theme_combo.currentIndexChanged.connect(self._on_theme_changed)
         self._row(box, "Theme", "Follow Windows or choose a fixed appearance", self.theme_combo)
         self._toggle(box, "Compact library", "Show the compact list instead of the poster grid", "compact_library")
+        self.search_results_focus_switch=self._toggle(box, 'Focus search results automatically',
+            'Move focus and scroll to results after Search or Enter. Typing keeps focus in the search field.', 'search_results_focus')
+        self.search_results_focus_switch.setAccessibleName('Focus search results automatically')
+        self.release_position=QComboBox()
+        for label,value in [('Above hero banner','above_hero'),('Above broadcast schedule','above_schedule'),('Above All anime','above_all')]:self.release_position.addItem(label,value)
+        self.release_position.setCurrentIndex(max(0,self.release_position.findData(db.get_state('home.release_position','above_all'))))
+        def release_position_changed():
+            db.set_state('home.release_position',self.release_position.currentData());self.preferences_changed.emit()
+        self.release_position.currentIndexChanged.connect(release_position_changed)
+        self._row(box,'New seasons and episodes','Choose where this section appears on Home',self.release_position)
         self._toggle(box, "Reduce motion", "Turn off hover and transition animations", "reduce_motion")
         size_row = QWidget()
         size_layout = QHBoxLayout(size_row)
@@ -209,13 +252,13 @@ class SettingsPage(QWidget):
 
         panel, box = self._panel("Media player")
         self.player_combo = QComboBox()
-        for label, value in (("Windows default", "default"), ("VLC", "vlc"), ("MPV", "mpv"), ("MPC-HC", "mpc-hc"), ("Custom executable", "custom")):
+        for label, value in (("Windows default", "default"), ("VLC", "vlc"), ("MPV", "mpv"), ("MPC-HC", "mpc-hc"), ("PotPlayer", "potplayer"), ("Custom executable", "custom")):
             self.player_combo.addItem(label, value)
         self.player_combo.setCurrentIndex(max(0, self.player_combo.findData(get_media_player_type())))
         self._row(box, "Default player", "Used by Resume and Play episode", self.player_combo)
         self.custom_path_edit = QLineEdit(get_custom_player_path() or "")
         self.custom_path_edit.setPlaceholderText("Player executable path")
-        self.custom_path_edit.textChanged.connect(set_custom_player_path)
+        self.custom_path_edit.editingFinished.connect(lambda:set_custom_player_path(self.custom_path_edit.text()))
         path_control = QWidget()
         path_layout = QHBoxLayout(path_control)
         path_layout.setContentsMargins(0, 0, 0, 0)
@@ -423,7 +466,7 @@ class SettingsPage(QWidget):
             self.player_status.setText("No external players found in standard paths.")
             QMessageBox.information(
                 self, "Not Found",
-                "No VLC, MPV, or MPC-HC installations were found in standard directories. "
+                "No VLC, MPV, MPC-HC or PotPlayer installations were found in standard directories. "
                 "You can specify a custom executable path."
             )
 

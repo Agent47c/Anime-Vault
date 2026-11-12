@@ -15,6 +15,10 @@ class FilterPill(QPushButton):
         text = QColor("#111827" if active else colors["text_primary"] if hovered else colors["text_secondary"])
         border = QColor(colors["text_primary"])
         border.setAlpha(0 if active else 31 if QApplication.instance().property("animevaultTheme") != "light" else 36)
+        if self.property('homePill'):
+            from app.ui.home_style import colors as home_colors
+            c=home_colors();background=QColor(c['coral'] if active else c['raised'] if hovered else c['panel'])
+            text=QColor(c['on_coral'] if active else c['text']);border=QColor(c['line'])
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.TextAntialiasing)

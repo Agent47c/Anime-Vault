@@ -106,7 +106,7 @@ class RematchDialog(DrawerDialog):
             self._start_search(initial_query)
 
     def _setup_ui(self):
-        body, self.apply_btn = chrome(self, "Choose anime match" if self.selection_only else "Rematch anime",
+        body, self.apply_btn = chrome(self, "Choose anime match" if self.selection_only else "Rematch Anime Metadata",
             "Search AniList and replace the linked metadata only", "\u7167\u5408",
             "Choose match" if self.selection_only else "Apply match", self._apply_match)
         self.apply_btn.setEnabled(False)
@@ -141,6 +141,7 @@ class RematchDialog(DrawerDialog):
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(8)
         self.search_input = QLineEdit()
+        self.search_input.setClearButtonEnabled(True)
         self.search_input.setPlaceholderText("English, Romaji or Japanese title")
         self.search_input.returnPressed.connect(self._on_search_clicked)
         row.addWidget(self.search_input, 1)
@@ -171,13 +172,19 @@ class RematchDialog(DrawerDialog):
         self.status_lbl = text("Select a match" if self.selection_only else "Select one or more releases")
         body.addWidget(self.status_lbl)
         body.addStretch()
+        if not self.selection_only:
+            self.setObjectName('metadata_rematch')
+            from app.ui.five_screen_style import qss
+            self.setStyleSheet(qss('metadata_rematch'))
 
     def _on_search_clicked(self):
         query = self.search_input.text().strip()
         if query:
-            self._start_search(query)
+            self._start_search(query,focus_results=True)
 
-    def _start_search(self, query: str):
+    def _start_search(self, query: str,focus_results=False):
+        self._focus_after_search=focus_results
+        self._submitted_search_query=query
         self._search_generation += 1
         self.apply_btn.setEnabled(False)
         self.results_container.setEnabled(False)
@@ -219,7 +226,7 @@ class RematchDialog(DrawerDialog):
             self._search_worker = None
             query, self._queued_search = self._queued_search, None
             if query and not self._search_closed:
-                self._start_search(query)
+                self._start_search(query,focus_results=getattr(self,'_focus_after_search',False))
 
     def _search_results(self, results):
         if not self._search_closed and self.sender().generation == self._search_generation:
@@ -247,6 +254,7 @@ class RematchDialog(DrawerDialog):
             empty.setStyleSheet("color: #b0b3c2; font-size: 13px; padding: 20px;")
             empty.setAlignment(Qt.AlignCenter)
             self.results_layout.addWidget(empty)
+            self._focus_search_results()
             return
 
         self._update_selection_status()
@@ -255,6 +263,12 @@ class RematchDialog(DrawerDialog):
         for media in results:
             card = self._create_result_card(media, query_norm)
             self.results_layout.addWidget(card)
+        self._focus_search_results()
+
+    def _focus_search_results(self):
+        if getattr(self,'_focus_after_search',False) and self.search_input.text().strip()==getattr(self,'_submitted_search_query',''):
+            from app.ui.search_navigation import focus_results
+            focus_results(self,self.results_container)
 
     def _on_search_error(self, err_msg: str):
         self.results_container.setEnabled(True)
@@ -276,10 +290,11 @@ class RematchDialog(DrawerDialog):
         single = self.continuous_episodes or self.selection_only
         result.setMinimumHeight(94 if single else 132)
         choice = QRadioButton() if single else QCheckBox()
+        choice.setCursor(Qt.PointingHandCursor)
         choice.setChecked(media["id"] in self.selections)
         self.selection_group.addButton(choice)
         row.addWidget(choice)
-        thumb = thumbnail(anilist_client.resolve_display_title(media), media.get("_preview_cover"))
+        thumb = thumbnail(anilist_client.resolve_display_title(media), media.get("_preview_cover"),44 if self.selection_only else 78,66 if self.selection_only else 112)
         row.addWidget(thumb)
         info = QVBoxLayout()
         info.setSpacing(4)
@@ -298,6 +313,11 @@ class RematchDialog(DrawerDialog):
         subtitle.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
         subtitle.setObjectName("workflow_hint")
         info.addWidget(subtitle)
+        synopsis=media.get('description') or ''
+        if synopsis:
+            from app.ui.pages.detail_modal import format_synopsis
+            excerpt=text(format_synopsis(synopsis)[:400]+('…' if len(synopsis)>400 else ''))
+            info.addWidget(excerpt)
         local = QComboBox()
         local.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         local.addItem("Metadata only", None)

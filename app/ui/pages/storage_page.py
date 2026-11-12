@@ -84,6 +84,7 @@ class StorageTable(QTableWidget):
 
 class StoragePage(QWidget):
     data_changed = pyqtSignal()
+    refresh_requested = pyqtSignal()
     filter_requested = pyqtSignal(str)
     anime_clicked = pyqtSignal(int)
 
@@ -132,7 +133,7 @@ class StoragePage(QWidget):
         row.addLayout(titles, 1)
         self.rescan_btn = self._button("Refresh storage")
         self.rescan_btn.setProperty("accent", True)
-        self.rescan_btn.clicked.connect(self.refresh)
+        self.rescan_btn.clicked.connect(self.refresh_requested.emit)
         row.addWidget(self.rescan_btn, 0, Qt.AlignVCenter)
         layout.addWidget(header)
 
@@ -236,7 +237,8 @@ class StoragePage(QWidget):
     def refresh(self):
         stats = db.get_library_stats()
         anime_bytes = stats.get("total_bytes", 0)
-        disk = disk_snapshot()
+        snapshot=db.current_refresh_view()
+        disk = snapshot['disk'] if snapshot and 'disk' in snapshot else disk_snapshot()
         total, used, free = disk["total"], disk["used"], disk["free"]
         self.drive_label.setText("Library drive " + disk["label"] if total else "Library storage")
         self.free_big_label.setText(format_bytes(free) if total else "Unavailable")
@@ -267,7 +269,7 @@ class StoragePage(QWidget):
             self._text_cell(row, 1, f"{len(seasons)} seasons \u00b7 {size}\n{files:,} files")
             watch = {"WATCHED": "Watched", "WATCHING": "Watching", "PLAN_TO_WATCH": "Plan to watch", "DROPPED": "Dropped"}.get(record.get("watch_status"), (record.get("watch_status") or "Not set").replace("_", " ").title())
             self._text_cell(row, 2, watch)
-            health, detail, tone = self._health(record, seasons)
+            health, detail, tone = snapshot['storage_health'][record['id']] if snapshot and record['id'] in snapshot.get('storage_health',{}) else self._health(record, seasons)
             self._text_cell(row, 3, health, detail, tone)
             self._text_cell(row, 4, size if record.get("watch_status") == "WATCHED" else "\u2014")
             actions = QWidget()
@@ -287,9 +289,10 @@ class StoragePage(QWidget):
 
     @staticmethod
     def _health(record, seasons):
-        inventory = episode_inventory(seasons, continuous=db.uses_continuous_episodes(record))
+        continuous=db.uses_continuous_episodes(record)
+        inventory = episode_inventory(seasons, continuous=continuous)
         results = list(inventory["seasons"].values())
-        missing = len(inventory["missing_episodes"]) if db.uses_continuous_episodes(record) else sum(len(r["missing_episodes"]) for r in results)
+        missing = len(inventory["missing_episodes"]) if continuous else sum(len(r["missing_episodes"]) for r in results)
         repeats = sum(len(r["duplicate_episodes"]) for r in results)
         detail = f"Episode gaps: {missing}; repeated episode numbers: {repeats}. Repeated numbers may be different versions, not identical files."
         if missing:
@@ -342,5 +345,5 @@ class StoragePage(QWidget):
             return
         seasons = db.get_seasons_for_franchise(franchise_id)
         dialog = DeleteConfirmDialog(franchise, seasons, self)
-        dialog.deletion_confirmed.connect(lambda fid, info: (self.refresh(), self.data_changed.emit()))
+        dialog.deletion_confirmed.connect(lambda fid, info:self.data_changed.emit())
         dialog.exec_()

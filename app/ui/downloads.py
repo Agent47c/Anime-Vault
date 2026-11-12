@@ -12,6 +12,7 @@ from app.ui.io_task import IOTask,track,start
 
 class DownloadMonitor(QObject):
     changed=pyqtSignal()
+    snapshot_ready=pyqtSignal(object)
     status=pyqtSignal(str)
 
     def __init__(self):
@@ -25,8 +26,10 @@ class DownloadMonitor(QObject):
 
     def check(self):
         config=service.settings()
-        self.timer.setInterval(3000 if any(j.get('engine')=='builtin' and j.get('desired')!='cancelled' for j in service.jobs()) else 15000)
-        if self.closing or self.worker or not config['enabled'] or not any(j['status']!='Indexed' or (j.get('engine')=='builtin' and j.get('desired')!='cancelled') for j in service.jobs()):
+        items=service.jobs()
+        if not self.closing:self.snapshot_ready.emit(items)
+        self.timer.setInterval(3000 if any(j.get('engine')=='builtin' and j.get('desired')!='cancelled' for j in items) else 15000)
+        if self.closing or self.worker or not config['enabled'] or not any(j['status']!='Indexed' or (j.get('engine')=='builtin' and j.get('desired')!='cancelled') for j in items):
             return
         worker=IOTask(lambda:service.poll(worker.isInterruptionRequested))
         self.worker=worker
@@ -38,6 +41,7 @@ class DownloadMonitor(QObject):
 
     def _ready(self,result):
         items,changed=result
+        self.snapshot_ready.emit(items)
         self.status.emit('Downloads checked')
         if changed: self.changed.emit()
 
@@ -81,8 +85,7 @@ class DownloadsDrawer(DrawerDialog):
         body.addWidget(button('Open Chrome extension folder',lambda:QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(__file__).resolve().parents[2]/'browser-extension')))))
         self.enabled=QCheckBox('Enable downloads')
         self.enabled.setChecked(config['enabled']);body.addWidget(self.enabled)
-        self.paused=QCheckBox('Choose files before starting downloads')
-        self.paused.setChecked(config['start_paused']);body.addWidget(self.paused)
+        body.addWidget(text('Confirmed downloads start automatically. Choose files remains available as an optional queue action.'))
         self.controls={}
         for name,label in [('destination','Download destination'),('source','Website search URL — use {query}'),('group','Release group (optional)'),('quality','Quality (optional)')]:
             control=QLineEdit(str(config[name]));control.setAccessibleName(label)
@@ -148,14 +151,14 @@ class DownloadsDrawer(DrawerDialog):
         monitor().status.connect(self.status.setText)
 
     def _config(self):
-        return {**{name:control.text().strip() for name,control in self.controls.items()},'enabled':self.enabled.isChecked(),'start_paused':self.paused.isChecked(),
+        return {**{name:control.text().strip() for name,control in self.controls.items()},'enabled':self.enabled.isChecked(),'start_paused':False,
                 'engine':self.engine.currentData(),'download_limit_kib':self.download_limit.value(),'upload_limit_kib':self.upload_limit.value(),'seed_completed':self.seed.isChecked()}
 
     def reload_settings(self):
         config=service.settings()
         self.engine.setCurrentIndex(0);self.engine.setEnabled(False)
         for key,control in self.controls.items():control.setText(str(config[key]))
-        self.enabled.setChecked(config['enabled']);self.paused.setChecked(config['start_paused'])
+        self.enabled.setChecked(config['enabled'])
         self.seed.setChecked(config['seed_completed']);self.download_limit.setValue(config['download_limit_kib']);self.upload_limit.setValue(config['upload_limit_kib'])
         self.extension_id.setText(db.get_state('chrome.capture_extension',''))
         self._engine_changed()
@@ -206,7 +209,7 @@ class DownloadsDrawer(DrawerDialog):
 
     def _added(self,path):
         self.source.clear()
-        message='Added. Choose Files when metadata is ready to start the transfer. ' if self.paused.isChecked() else 'Download added. '
+        message='Download started. '
         self.status.setText(message+'Destination: '+path)
         self._render();monitor().check()
 

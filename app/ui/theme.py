@@ -214,7 +214,7 @@ QPushButton#clear_search { background: transparent; border: none; border-radius:
 QPushButton#clear_search:hover { background: $bg_card_alt; color: $text_primary; }
 QFrame#storage_panel { background: $bg_card; border: 1px solid $border; border-radius: 18px; }
 QWidget#storage_content { background: $bg_primary; }
-QWidget#storage_page QLabel#storage_heading { font-size: 34px; font-weight: 800; }
+QWidget#storage_page QLabel#storage_heading { font-size: 24px; font-weight: 800; }
 QWidget#storage_page QLabel#storage_panel_title { font-size: 18px; font-weight: 700; }
 QWidget#storage_page QLabel#storage_secondary { font-size: 16px; color: $text_secondary; }
 QWidget#storage_page QLabel#storage_free { font-size: 44px; font-weight: 800; color: $red_text; }
@@ -242,8 +242,8 @@ QPushButton#hero_resume_button:pressed { background: $accent; color: $on_red; }
 QFrame#settings_panel { background: $bg_card; border: 1px solid $border; border-radius: 16px; }
 QWidget#settings_content { background: $bg_primary; }
 QWidget#settings_row { background: transparent; }
-QWidget#settings_page QLabel#settings_heading { font-size: 34px; font-weight: 800; }
-QLabel#download_heading { font-size: 34px; font-weight: 800; color: $text_primary; }
+QWidget#settings_page QLabel#settings_heading { font-size: 24px; font-weight: 800; }
+QLabel#download_heading { font-size: 24px; font-weight: 800; color: $text_primary; }
 QWidget#downloads_page, QDialog#release_search_page { background: $bg_primary; }
 QTabWidget#settings_tabs::pane { border: none; border-top: 1px solid $border; background: $bg_primary; }
 QTabWidget#settings_tabs QTabBar { font-size: 14px; font-weight: 600; }
@@ -314,7 +314,7 @@ QFrame#workflow_card QWidget, QFrame#result_card QWidget { background: transpare
 QFrame#workflow_card QPushButton { background: $bg_card_alt; border: 1px solid $border; }
 QWidget#merge_content { background: $bg_primary; }
 QFrame#merge_panel { background: $bg_card; border: 1px solid $border; border-radius: 16px; }
-QWidget#merge_page QLabel#merge_heading { font-size: 28px; font-weight: 800; }
+QWidget#merge_page QLabel#merge_heading { font-size: 24px; font-weight: 800; }
 QWidget#merge_page QLabel#merge_panel_title { font-size: 16px; font-weight: 700; }
 QWidget#merge_page QLabel#merge_row_title { font-size: 13px; font-weight: 600; }
 QWidget#merge_page QLabel#merge_hint { font-size: 13px; color: $text_secondary; }
@@ -370,6 +370,8 @@ def build_qss(theme="dark", scale=1.0):
         palette, on_indigo="#FFFFFF" if theme == "light" else "#0B0C10",
         chevron=(Path(__file__).parent / "assets" / f"chevron-{theme if theme in COLORS else 'dark'}.svg").as_posix()
     )
+    from app.ui.button_system import rules
+    stylesheet+=rules(c=dict(panel=palette['bg_card'],raised=palette['bg_card_alt'],text=palette['text_primary'],muted=palette['text_muted'],line=palette['border'],coral=palette['accent'],on_coral='#FFFFFF'),scale=1)
     return re.sub(r"(font-size:\s*)(\d+)px",
                   lambda match: f"{match[1]}{round(int(match[2]) * scale)}px", stylesheet)
 
@@ -740,6 +742,7 @@ def apply_theme(app: QApplication, theme: str = "dark"):
     app.setProperty("animevaultDecorations", prefs.enabled("decorations") and not contrast)
     app.setProperty("animevaultHighContrast", contrast)
     app.setProperty("animevaultScale", scale)
+    app.setProperty('animevaultReducedMotion',prefs.reduced_motion())
     stylesheet = build_qss(theme, scale)
     if contrast:
         palette = app.style().standardPalette()
@@ -753,6 +756,7 @@ def apply_theme(app: QApplication, theme: str = "dark"):
         app._appearance_timer = QTimer(app)
         app._appearance_timer.setInterval(3000)
         def follow_windows():
+            app.setProperty('animevaultReducedMotion',prefs.reduced_motion())
             requested_theme = app.property("animevaultRequestedTheme")
             expected = "light" if prefs.windows_light_theme() else "dark"
             system_contrast = prefs.enabled("high_contrast") or prefs.system_high_contrast()

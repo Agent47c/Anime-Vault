@@ -51,6 +51,12 @@ DB_PATH = DATA_DIR / "library.db"
 COVERS_DIR = DATA_DIR / "covers"
 EXPORTS_DIR = DATA_DIR / "exports"
 
+FRANCHISE_FIELDS=frozenset('anilist_id mal_id display_title title_en title_romaji title_native synopsis genres is_adult cover_filename banner_filename metadata_json watch_status storage_state total_size_bytes user_rating user_notes is_custom needs_review raw_import_name has_new_update update_details root_folder_path created_at last_checked_at'.split())
+SEASON_FIELDS=frozenset('franchise_id anilist_id season_number relation_type title_display title_romaji episodes_total airing_status next_airing_ep next_airing_at watch_status season_folder_path size_bytes video_files_json storage_state scan_root episode_start episode_end numbering_source local_scan_key'.split())
+
+def validate_fields(fields,allowed):
+    if not set(fields)<=allowed:raise ValueError('Unsupported database field')
+
 
 def _ensure_dirs():
     """Create data directories if they don't exist."""
@@ -146,7 +152,6 @@ def get_connection() -> sqlite3.Connection:
     _ensure_dirs()
     conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA synchronous = NORMAL")
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -165,6 +170,9 @@ def init_db():
         if name not in season_columns:
             conn.execute(f"ALTER TABLE seasons ADD COLUMN {name} {kind}")
     conn.commit()
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_seasons_franchise ON seasons(franchise_id,season_number)')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_franchises_status ON franchises(watch_status,storage_state)')
+    conn.commit()
     from app.core.identity import migrate
     migrate(conn)
     from app.core.scan_state import migrate as migrate_scanning
@@ -176,6 +184,8 @@ def init_db():
 # app_state helpers
 # ---------------------------------------------------------------------------
 def get_state(key: str, default: Optional[str] = None) -> Optional[str]:
+    snapshot=current_refresh_view()
+    if snapshot is not None and 'state' in snapshot:return snapshot['state'].get(key,default)
     conn = get_connection()
     row = conn.execute("SELECT value FROM app_state WHERE key = ?", (key,)).fetchone()
     conn.close()
@@ -320,6 +330,9 @@ def get_all_franchises(
     conn = get_connection()
     query = "SELECT * FROM franchises WHERE 1=1"
     params = []
+    hidden=json.loads(get_state('library.removed_ids','[]'))
+    if hidden:
+        query+=' AND id NOT IN ('+','.join('?' for _ in hidden)+')';params.extend(hidden)
 
     if search:
         query += " AND (display_title LIKE ? OR title_romaji LIKE ? OR title_native LIKE ?)"
@@ -346,7 +359,8 @@ def get_all_franchises(
         "watch_status": "watch_status",
     }
     col = sort_map.get(sort_by, "display_title COLLATE NOCASE")
-    query += f" ORDER BY {col} {sort_order}"
+    order='DESC' if str(sort_order).upper()=='DESC' else 'ASC'
+    query += f" ORDER BY {col} {order}"
 
     rows = conn.execute(query, params).fetchall()
     conn.close()
@@ -361,6 +375,7 @@ def delete_franchise(fid: int):
 
 
 def update_franchise_field(fid: int, field: str, value: Any):
+    validate_fields([field],FRANCHISE_FIELDS)
     """Update a single field on a franchise."""
     conn = get_connection()
     conn.execute(f"UPDATE franchises SET {field} = ? WHERE id = ?", (value, fid))
@@ -524,6 +539,10 @@ def upsert_season(data: Dict[str, Any]) -> int:
 
 
 def get_seasons_for_franchise(fid: int) -> List[Dict[str, Any]]:
+    snapshot=current_refresh_view()
+    if snapshot is not None and 'season_rows' in snapshot:
+        rows=[dict(row) for row in snapshot['season_rows'] if row['franchise_id']==fid]
+        return sorted(rows,key=lambda s:((10000 if s.get('relation_type')=='SEASON' and not s.get('season_number') else s.get('season_number') or 0),s.get('relation_type') or ''))
     conn = get_connection()
     rows = conn.execute(
         "SELECT * FROM seasons WHERE franchise_id = ? ORDER BY CASE WHEN relation_type='SEASON' AND (season_number=0 OR season_number IS NULL) THEN 10000 ELSE season_number END, relation_type",
@@ -587,6 +606,7 @@ def delete_season(sid: int):
 
 
 def update_season_field(sid: int, field: str, value: Any):
+    validate_fields([field],SEASON_FIELDS)
     conn = get_connection()
     conn.execute(f"UPDATE seasons SET {field} = ? WHERE id = ?", (value, sid))
     conn.commit()
@@ -613,7 +633,26 @@ def mark_season_removed(sid: int):
 # Statistics helpers
 # ---------------------------------------------------------------------------
 def get_library_stats() -> Dict[str, Any]:
+    snapshot=current_refresh_view()
+    if snapshot is not None and 'stats' in snapshot:return dict(snapshot['stats'])
     conn = get_connection()
+    hidden = json.loads(get_state('library.removed_ids', '[]'))
+    if hidden:
+        records = get_all_franchises()
+        total_size = sum(r.get('total_size_bytes') or 0 for r in records)
+        placeholders = ','.join('?' for _ in hidden)
+        rows = conn.execute("SELECT video_files_json FROM seasons WHERE storage_state != 'WATCHED_REMOVED' AND franchise_id NOT IN ("+placeholders+")", hidden).fetchall()
+        total_files = 0
+        for row in rows:
+            try: total_files += len(json.loads(row['video_files_json'] or '[]'))
+            except (ValueError, TypeError): pass
+        conn.close()
+        return dict(total_franchises=len(records), on_disk=sum(r.get('storage_state')=='ON_DISK' for r in records),
+                    partially_on_disk=sum(r.get('storage_state')=='PARTIALLY_ON_DISK' for r in records),
+                    watched_removed=sum(r.get('storage_state')=='WATCHED_REMOVED' for r in records),
+                    watched_count=sum(r.get('watch_status')=='WATCHED' for r in records),
+                    total_size_bytes=total_size, total_bytes=total_size, total_files_indexed=total_files,
+                    potential_reclaim_bytes=sum((r.get('total_size_bytes') or 0) for r in records if r.get('watch_status')=='WATCHED' and r.get('storage_state') in ('ON_DISK','PARTIALLY_ON_DISK')))
     total = conn.execute("SELECT COUNT(*) as c FROM franchises").fetchone()["c"]
     on_disk = conn.execute(
         "SELECT COUNT(*) as c FROM franchises WHERE storage_state = 'ON_DISK'"
@@ -859,7 +898,8 @@ def get_series_library(**filters):
 
 
 def get_series(fid):
-    return next((entry for entry in get_series_library() if fid in entry["series_member_ids"]), get_franchise(fid))
+    found=next((entry for entry in get_series_library() if fid in entry["series_member_ids"]),None)
+    return found if found is not None else get_franchise(fid)
 
 
 def uses_continuous_episodes(series):

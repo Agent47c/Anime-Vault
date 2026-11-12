@@ -57,8 +57,7 @@ class MagnetReview(DrawerDialog):
         field(body,'Season folder',self.season)
         config=downloads.settings()
         body.addWidget(review_text('Destination: '+config['destination']))
-        paused_hint='Fetches metadata first. Choose files in Downloads to start.'
-        body.addWidget(review_text(paused_hint if config['start_paused'] else 'Starts downloading immediately after you confirm.'))
+        body.addWidget(review_text('Starts downloading immediately after you confirm.'))
         body.addWidget(review_text('After completion, verified videos are indexed under this anime. Existing library files stay in place.'))
         self.status=review_text('Confirm the anime and season before sending.')
         body.addWidget(self.status)
@@ -87,7 +86,7 @@ class MagnetReview(DrawerDialog):
         monitor().check()
         host=self.window()
         if hasattr(host,'statusBar'):
-            host.statusBar().showMessage('Download added. Open Downloads to choose files and track progress.',10000)
+            host.statusBar().showMessage('Download started. Open Downloads to track progress.',10000)
         self.accept()
 
     def reject(self):

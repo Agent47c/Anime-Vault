@@ -31,7 +31,13 @@ def series_root(media):
         prequels = [edge.get("node") or {} for edge in (cursor.get("relations") or {}).get("edges", []) if edge.get("relationType") == "PREQUEL" and (edge.get("node") or {}).get("format") in formats]
         if len(prequels) != 1 or prequels[0].get("id") in visited:
             break
-        earlier = client.get_anime_by_id(prequels[0]["id"])
+        earlier=None
+        cached=db.get_franchise_by_anilist_id(prequels[0]['id'])
+        if cached:
+            try:entry=json.loads(cached.get('metadata_json') or '{}')
+            except (ValueError,TypeError):entry={}
+            if entry.get('id')==prequels[0]['id'] and entry.get('title') and 'relations' in entry:earlier=entry
+        if not earlier:earlier = client.get_anime_by_id(prequels[0]["id"])
         if not earlier:
             raise ValueError('Could not verify the earlier season for "'+client.resolve_display_title(media)+'". Retry when AniList is available.')
         cursor = earlier

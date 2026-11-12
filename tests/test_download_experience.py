@@ -192,8 +192,8 @@ class ExperienceTests(unittest.TestCase):
 
     def test_settings_categories_and_download_preferences_persist(self):
         from app.ui.pages.settings_page import SettingsPage
-        page=SettingsPage();self.assertEqual(page.tabs.count(),6)
-        self.assertEqual(len(page._tab_layouts),6)
+        page=SettingsPage();self.assertEqual(page.tabs.count(),8)
+        self.assertEqual(len(page._tab_layouts),8)
         page.download_config.engine.setCurrentIndex(page.download_config.engine.findData('builtin'))
         page.download_config.controls['destination'].setText(self.temp.name)
         downloads.save_settings(page.download_config._config())

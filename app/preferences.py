@@ -9,6 +9,7 @@ DEFAULTS = {
     "import_auto": True, "import_review": True, "import_ignore_duplicates": True,
     "import_rematch_existing": True,
     "folder_watchers": False, "list_watchers": False,
+    "search_results_focus": True,
 }
 
 

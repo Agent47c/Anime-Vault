@@ -27,6 +27,10 @@ branch protection. Avoid force-pushing `main` and do not move released tags.
 
 ## Privacy and safety
 
+Maintainer-authorized direct pushes still require the same validation and staged
+privacy review. Do not bypass a server-side branch rule or force-push shared
+history. An owner-requested source snapshot does not certify a finished release.
+
 Do not commit `.env`, databases, watch lists, cache files, logs, exports or media.
 Use invented names and temporary paths in new tests. Inspect `git diff --cached`
 before committing. Do not enable administrator mode as an installation requirement.

@@ -35,8 +35,8 @@ def digest(path, cancelled):
 
 
 def find_duplicates(cancelled=lambda: False, progress=lambda text: None):
-    from app.core.identity import sync_inventory
-    sync_inventory()
+    # Reviewing duplicates reads the saved inventories. An uncancellable full
+    # identity sync here delayed Stop before any duplicate checking began.
     buckets = defaultdict(list)
     seen = set()
     errors = []
@@ -90,6 +90,29 @@ def find_duplicates(cancelled=lambda: False, progress=lambda text: None):
                 files.sort(key=lambda file: file["path"].casefold())
                 groups.append({"hash": checksum, "files": files})
     return groups, errors
+
+def save_review(result):
+    """Keep the last three completed reviews; cancelled scans never replace them."""
+    import time
+    previous=json.loads(db.get_state('duplicates.review_history','[]'))
+    previous.insert(0,{'time':time.time(),'result':result})
+    db.set_state('duplicates.review_history',json.dumps(previous[:3]))
+
+def load_review(cancelled=lambda:False,progress=lambda text:None):
+    history=json.loads(db.get_state('duplicates.review_history','[]'))
+    if not history:return [],['No saved duplicate review. Check the drive first.']
+    groups,errors=history[0]['result'];valid=[];errors=list(errors)
+    for group in groups:
+        unchanged=True
+        for file in group['files']:
+            if cancelled():raise InterruptedError('Stopped')
+            progress('Checking saved location: '+file['path'])
+            try:
+                if signature(Path(file['path']))!=tuple(file['signature']):raise ValueError('File changed')
+            except (OSError,ValueError):
+                errors.append('Missing, moved or changed — check the drive: '+file['path']);unchanged=False
+        if unchanged:valid.append(group)
+    return valid,errors
 
 
 def delete_duplicate(group, candidate, cancelled=lambda: False):

@@ -114,6 +114,10 @@ class Regressions(unittest.TestCase):
         contents = button.style().subElementRect(QStyle.SE_PushButtonContents, option, button)
         self.assertGreaterEqual(contents.width(), button.fontMetrics().horizontalAdvance("10"))
         dialog._set_rating(10)
+        from app.ui.user_edits import user_edits
+        from PyQt5.QtTest import QTest
+        user_edits().flush()
+        while user_edits().worker is not None:QTest.qWait(10)
         self.assertEqual(db.get_franchise(self.fid)["user_rating"], 10)
         self.assertIn("padding: 0", button.styleSheet())
         dialog.hide()

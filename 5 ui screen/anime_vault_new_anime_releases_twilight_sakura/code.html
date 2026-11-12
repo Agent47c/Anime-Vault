@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault - New Anime Releases</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              canvas: '#14121d',
+              card: '#1c1a27',
+              cardHover: '#232032',
+              border: '#2c283e',
+              borderLight: '#393450',
+              coral: '#ff6584',
+              coralHover: '#ff4f73',
+              purpleAccent: '#705df2',
+              textMuted: '#948fa3',
+              textDim: '#656075'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+<!-- Phosphor Icons for Crisp Desktop UI Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<!-- Custom Scoped Styles -->
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2c283e;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff6584;
+    }
+  </style>
+<style data-purpose="glow-effects">
+    .glow-coral {
+      box-shadow: 0 0 20px -3px rgba(255, 101, 132, 0.28);
+    }
+    .active-dropdown-item {
+      background: linear-gradient(90deg, rgba(255, 101, 132, 0.18) 0%, rgba(112, 93, 242, 0.18) 100%);
+      border-left: 3px solid #ff6584;
+    }
+  </style>
+</head>
+<body class="bg-vault-canvas text-gray-100 font-sans antialiased min-h-screen flex flex-col select-none overflow-x-hidden">
+<!-- BEGIN: ApplicationWindowHeader -->
+<header class="bg-[#100e18] border-b border-vault-border/80 sticky top-0 z-50 px-4 py-2 flex flex-col gap-2" data-purpose="window-titlebar-navigation">
+<!-- Top System Bar & Main Nav -->
+<div class="flex items-center justify-between gap-4">
+<!-- Left: Logo & Global Nav -->
+<div class="flex items-center space-x-7">
+<!-- Logo Branding -->
+<div class="flex items-center space-x-2.5 cursor-pointer">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-vault-coral to-vault-purpleAccent flex items-center justify-center shadow-lg shadow-vault-coral/20">
+<i class="ph-bold ph-film-strip text-lg text-white"></i>
+</div>
+<div>
+<span class="font-bold text-base tracking-wide text-white">Anime<span class="text-vault-coral">Vault</span></span>
+<span class="text-[10px] ml-1.5 px-1.5 py-0.5 rounded bg-vault-border text-vault-textMuted uppercase font-semibold">Pro v3.4</span>
+</div>
+</div>
+<!-- Global Navigation Items -->
+<nav aria-label="Main Navigation" class="hidden md:flex items-center space-x-1">
+<a class="px-3 py-1.5 rounded-md text-sm text-vault-textMuted hover:text-white hover:bg-vault-border/50 transition" href="#">Library</a>
+<a class="px-3 py-1.5 rounded-md text-sm font-medium text-white bg-vault-card border border-vault-border flex items-center gap-2 shadow-sm" href="#">
+<span>Updates</span>
+<span class="bg-vault-coral text-white text-[11px] font-bold px-1.5 py-0.2 rounded-full leading-tight">21</span>
+</a>
+<a class="px-3 py-1.5 rounded-md text-sm text-vault-textMuted hover:text-white hover:bg-vault-border/50 transition" href="#">Downloads</a>
+<a class="px-3 py-1.5 rounded-md text-sm text-vault-textMuted hover:text-white hover:bg-vault-border/50 transition" href="#">Organizer</a>
+<a class="px-3 py-1.5 rounded-md text-sm text-vault-textMuted hover:text-white hover:bg-vault-border/50 transition" href="#">Storage</a>
+<a class="px-3 py-1.5 rounded-md text-sm text-vault-textMuted hover:text-white hover:bg-vault-border/50 transition" href="#">Settings</a>
+</nav>
+</div>
+<!-- Right: Search, Storage Status & Profile -->
+<div class="flex items-center space-x-4">
+<!-- Quick Find Search Bar -->
+<div class="relative w-64 hidden lg:block">
+<i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-vault-textMuted text-sm"></i>
+<input class="w-full bg-[#171522] text-xs text-gray-200 pl-9 pr-8 py-2 rounded-lg border border-vault-border focus:border-vault-coral focus:ring-1 focus:ring-vault-coral outline-none placeholder-vault-textDim" placeholder="Quick search (Ctrl + K)..." type="text"/>
+<kbd class="absolute right-2.5 top-2 text-[10px] bg-vault-border/60 text-vault-textMuted px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
+</div>
+<!-- NVMe Capacity Monitor -->
+<div class="hidden xl:flex items-center space-x-2.5 px-3 py-1.5 rounded-lg bg-[#181624] border border-vault-border text-xs" title="Main Storage Directory: /mnt/nvme-pool01/Anime">
+<i class="ph-bold ph-hard-drive text-vault-coral text-base"></i>
+<div>
+<div class="flex items-center justify-between text-[11px] gap-2">
+<span class="text-vault-textMuted">NVMe Pool:</span>
+<span class="font-medium text-gray-200">257.98 GB free</span>
+</div>
+<div class="w-24 bg-vault-border h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-gradient-to-r from-vault-coral to-vault-purpleAccent h-full rounded-full" style="width: 78%"></div>
+</div>
+</div>
+</div>
+<!-- Window System Actions -->
+<div class="flex items-center space-x-1.5 text-vault-textMuted border-l border-vault-border pl-3">
+<button class="w-7 h-7 rounded hover:bg-vault-border/60 flex items-center justify-center hover:text-white text-xs transition" title="Minimize">
+<i class="ph ph-minus"></i>
+</button>
+<button class="w-7 h-7 rounded hover:bg-vault-border/60 flex items-center justify-center hover:text-white text-xs transition" title="Maximize">
+<i class="ph ph-square"></i>
+</button>
+<button class="w-7 h-7 rounded hover:bg-red-500/80 flex items-center justify-center hover:text-white text-xs transition" title="Close">
+<i class="ph ph-x"></i>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- END: ApplicationWindowHeader -->
+<!-- BEGIN: SubNavigationBar -->
+<div class="border-b border-vault-border bg-[#181624]/60 px-6 py-2.5 flex items-center justify-between" data-purpose="sub-header-controls">
+<!-- Breadcrumb / Back button -->
+<a class="inline-flex items-center space-x-2 text-xs font-medium text-vault-textMuted hover:text-vault-coral transition group" href="#">
+<i class="ph-bold ph-arrow-left text-sm group-hover:-translate-x-0.5 transition-transform"></i>
+<span>Back to Updates</span>
+</a>
+<!-- Top Right Action Button (As present in Image 11) -->
+<div class="flex items-center space-x-3">
+<span class="text-xs text-vault-textDim hidden sm:inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Metadata Feed Active
+      </span>
+<button class="bg-[#1f1c2d] hover:bg-vault-coral hover:text-white text-gray-200 px-4 py-1.5 rounded-lg border border-vault-border hover:border-vault-coral font-medium text-xs flex items-center gap-2 transition duration-150 shadow-sm cursor-pointer" data-purpose="check-updates-trigger">
+<i class="ph-bold ph-arrows-clockwise text-sm"></i>
+<span>Check updates</span>
+</button>
+</div>
+</div>
+<!-- END: SubNavigationBar -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 max-w-[1780px] w-full mx-auto px-6 py-6 flex flex-col space-y-6" data-purpose="releases-main-view">
+<!-- Header & Interactive Dropdown Filter Section (Reconstructed directly from Image 11) -->
+<section class="space-y-4" data-purpose="filter-and-heading">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+<span>New anime releases</span>
+<span class="text-xs bg-vault-border/80 text-vault-coral font-mono px-2 py-0.5 rounded-md border border-vault-border">Spring 2025</span>
+</h1>
+<p class="text-xs text-vault-textMuted mt-1">
+          Discover newly broadcasted episodes and announced releases synced with your local library status.
+        </p>
+</div>
+<!-- Controls Row: Dropdown & Context Banner -->
+<div class="flex flex-col lg:flex-row lg:items-start gap-4 relative">
+<!-- Replicating the Open Dropdown from Image 11 -->
+<div class="relative w-72 z-40" data-purpose="dropdown-filter-container">
+<!-- Dropdown Trigger Box -->
+<div class="w-full bg-[#1b1928] border border-vault-border hover:border-vault-borderLight rounded-t-lg px-3.5 py-2.5 flex items-center justify-between text-xs text-white cursor-pointer shadow-sm">
+<div class="flex items-center space-x-2">
+<i class="ph-bold ph-calendar text-vault-coral"></i>
+<span class="font-medium">Released in the last 30 days</span>
+</div>
+<i class="ph-bold ph-caret-up text-xs text-vault-textMuted"></i>
+</div>
+<!-- Dropdown Open Menu Popover -->
+<div class="w-full bg-[#1b1928] border-x border-b border-vault-border rounded-b-lg shadow-2xl py-1 text-xs space-y-0.5" data-purpose="dropdown-options-list">
+<!-- Active Option -->
+<button class="w-full text-left px-3.5 py-2.5 active-dropdown-item font-medium text-white flex items-center justify-between group">
+<span class="flex items-center gap-2">
+<i class="ph-fill ph-check-circle text-vault-coral text-sm"></i>
+                Released in the last 30 days
+              </span>
+<span class="text-[10px] text-vault-coral/80 bg-vault-coral/10 px-1.5 py-0.2 rounded font-mono">18</span>
+</button>
+<!-- Upcoming Option -->
+<button class="w-full text-left px-3.5 py-2.5 hover:bg-[#242135] text-gray-300 hover:text-white flex items-center justify-between transition">
+<span class="flex items-center gap-2">
+<i class="ph ph-clock text-vault-textMuted"></i>
+                Upcoming in the next 90 days
+              </span>
+<span class="text-[10px] text-vault-textDim bg-vault-border/50 px-1.5 py-0.2 rounded font-mono">42</span>
+</button>
+<!-- Pending Option -->
+<button class="w-full text-left px-3.5 py-2.5 hover:bg-[#242135] text-gray-400 hover:text-white flex items-center justify-between transition">
+<span class="flex items-center gap-2">
+<i class="ph ph-hourglass-simple text-vault-textMuted"></i>
+                Announced &amp; Pending Confirmation
+              </span>
+<span class="text-[10px] text-vault-textDim bg-vault-border/50 px-1.5 py-0.2 rounded font-mono">9</span>
+</button>
+</div>
+</div>
+<!-- Context Informational Banner (from Image 11: "...ation is kept; try again later." complete sentence) -->
+<div class="flex-1 bg-[#1a1827]/70 border border-vault-border/80 rounded-lg p-3 text-xs text-vault-textMuted flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<i class="ph-bold ph-info text-vault-coral text-base flex-shrink-0"></i>
+<span>Schedule information is kept locally cached; checking updates refreshes broadcast times and tracker hashes.</span>
+</div>
+<div class="flex items-center space-x-3 text-[11px] text-vault-textDim">
+<span>Last checked: <strong class="text-vault-textMuted font-mono">14 mins ago</strong></span>
+<span class="h-3 w-px bg-vault-border"></span>
+<a class="text-vault-coral hover:underline" href="#">Force full scrape</a>
+</div>
+</div>
+</div>
+</section>
+<!-- BEGIN: AnimeCardGrid -->
+<section class="space-y-4" data-purpose="anime-releases-cards-grid">
+<!-- Section Stats / Filter Badges -->
+<div class="flex items-center justify-between text-xs text-vault-textMuted pb-1 border-b border-vault-border/40">
+<div class="flex items-center space-x-4">
+<span class="font-medium text-gray-300">Showing <span class="text-vault-coral font-bold">1–8</span> of 38 releases</span>
+<span class="inline-flex items-center gap-1.5 bg-[#1a1727] px-2.5 py-1 rounded-full border border-vault-border">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span> 5 In Library
+          </span>
+<span class="inline-flex items-center gap-1.5 bg-[#1a1727] px-2.5 py-1 rounded-full border border-vault-border">
+<span class="w-2 h-2 rounded-full bg-amber-400"></span> 2 Missing Episodes
+          </span>
+<span class="inline-flex items-center gap-1.5 bg-[#1a1727] px-2.5 py-1 rounded-full border border-vault-border">
+<span class="w-2 h-2 rounded-full bg-vault-coral"></span> 1 Tracked Only
+          </span>
+</div>
+<!-- View Toggle & Sort -->
+<div class="flex items-center space-x-2">
+<span class="text-vault-textDim">Sort:</span>
+<select class="bg-vault-card border border-vault-border text-xs text-gray-300 rounded px-2.5 py-1 focus:ring-vault-coral focus:border-vault-coral">
+<option>Latest Air Date (Descending)</option>
+<option>Broadcast Progress</option>
+<option>Alphabetical</option>
+<option>Missing Files First</option>
+</select>
+</div>
+</div>
+<!-- Release Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-4 gap-5">
+<!-- Card 1: One Piece -->
+<article class="bg-vault-card border border-vault-border hover:border-vault-coral/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="One Piece: Egghead Arc" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQVsl8C77VJSFiP7GWUuinvedLH5zVwhPa2DUa79KtxlNOn9GPZw1yBxKmn9gcasssnAqIjm0xZq5oiaMS1MDg4_Jpoa-oBzBYKinPjK3LVRSyyamHkjEqLXweXOLi_PtiPsoaeIYxTw8ZWp26Qd6952X8JKCiD3PR_CjjOSnQf64xH89Uoo4y4iSNyW34JI36G7szTjzC7yY-JcF5RD5BDRipxqTuLmUNQaQv0kM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<!-- Status Badge -->
+<span class="absolute top-2.5 left-2.5 bg-emerald-500/90 text-white font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> In Library
+            </span>
+<!-- Air Timing Tag -->
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-gray-200 text-[11px] px-2 py-0.5 rounded border border-white/10">
+              Episode 1124 aired yesterday
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>Fuji TV • Weekly</span>
+<span class="text-vault-coral font-medium">1080p HEVC</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">One Piece: Egghead Island Arc</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Next: Episode 1125 airing in 4 days</p>
+</div>
+<!-- Quick Actions -->
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-emerald-400 font-mono">1124 / 1124 synced</span>
+<button class="bg-vault-border hover:bg-vault-coral text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition" title="Play latest episode">
+<i class="ph-fill ph-play text-[10px]"></i>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 2: Solo Leveling S2 (Missing episode example) -->
+<article class="bg-vault-card border border-vault-border hover:border-amber-500/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="Solo Leveling: Arise from the Shadow" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzb4Uq3bnWHFQNPXcepMhE2wKpTjT5BhvNBWDrma6VVhZK8Ryx_n6Dusr_eVCZhtmK9qquRAT0DBfF70b9UUfmN5qyTxm_-YuQlfmXkM_KsRCsEr2hCdsDG1_s7jCKGWYRGPYrJNmy_KJaXHrct9vHQX2w4ZBBmF00ku6qK-DMLKIKtmKUPbc3rC4wO3KHlZjb-qkMibAzNTVfAI6QOLJwQK1O6PWzkRmqwnRrT1A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<!-- Missing Aired Badge -->
+<span class="absolute top-2.5 left-2.5 bg-amber-500 text-black font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<i class="ph-bold ph-warning-circle"></i> Missing Aired Episode
+            </span>
+<!-- Air Timing Tag -->
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-amber-300 text-[11px] px-2 py-0.5 rounded border border-amber-500/20">
+              Episode 8 aired 6 hours ago
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>Tokyo MX • A-1 Pictures</span>
+<span class="text-amber-400 font-medium font-mono">Ep 8 Missing</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Solo Leveling Season 2: -Arise from the Shadow-</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Local: Ep 1-7 stored in SSD Vault</p>
+</div>
+<!-- Quick Actions -->
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-amber-400 font-mono">7 / 8 available</span>
+<button class="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition" title="Start automated torrent/indexer grab">
+<i class="ph-bold ph-download-simple text-xs"></i>
+<span>Download Missing</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 3: Dandadan -->
+<article class="bg-vault-card border border-vault-border hover:border-vault-coral/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="Dandadan" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3XvCTglWKXUTUWYtiZHWElOX5AYxRfOU7KoyQLnNHDiemNLpCu5mxryeZBHDsaiW_4iGqn41JkYOs5SgkvJOAPdDiDsu2Ks3N2UIP_tEXF9hZr4_y-yzX7_g7oI8eSvqzoNZarxpXS4OG2FDs5RGsfdVD_y9E0xLr3omQbb-NGFHltan9aSQiX2bWOIJmQIfaV542zz_AEl0RWEHoVr7JoHluyA8-cZ_vaqCmLVM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<span class="absolute top-2.5 left-2.5 bg-emerald-500/90 text-white font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-white"></span> In Library
+            </span>
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-gray-200 text-[11px] px-2 py-0.5 rounded border border-white/10">
+              Season 1 Finished Broadcast
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>Science SARU</span>
+<span class="text-vault-purpleAccent font-medium">Batch Complete</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Dandadan</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Season 2 announced for Oct 2025</p>
+</div>
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-emerald-400 font-mono">12 / 12 synced</span>
+<button class="bg-vault-border hover:bg-vault-coral text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+<i class="ph-fill ph-play text-[10px]"></i>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 4: Frieren: Beyond Journey's End S2 (Tracked Only) -->
+<article class="bg-vault-card border border-vault-border hover:border-vault-coral/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="Frieren S2" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDKizNDEyx3xfwS_37uLnQUBj4Zy4MMkC3p5Qujl3CGeKC7faTjKGYP20Ip-amjiAec0qWRmc7VSb2JEmqrOpXDPUDpYIbxc0NMKJH14t8ohKtEnu99t_dfsm7-Dg9M6LtRh9zb-Zgpa6caJFEp6yHt7KR-xvcTeLvC9uyC4bMJzmTxt1fuNEtSFqupAWzJ4IQ6V4nQOTYiaPfb3L8tPExbXdHFheE9B22l71wQ60"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<!-- Tracked Tag -->
+<span class="absolute top-2.5 left-2.5 bg-vault-purpleAccent text-white font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<i class="ph-bold ph-bookmarks"></i> Tracked Only
+            </span>
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-vault-coral text-[11px] px-2 py-0.5 rounded border border-vault-coral/30">
+              Broadcast Teaser Dropped
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>Madhouse • Production</span>
+<span class="text-vault-textMuted font-medium">Pending Date</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Sousou no Frieren Season 2</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Auto-grab rule configured for 1080p</p>
+</div>
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-vault-textDim font-mono">0 / 0 expected</span>
+<button class="bg-[#242135] hover:bg-vault-border text-gray-300 hover:text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+<i class="ph-bold ph-gear text-xs"></i>
+<span>Rule Settings</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 5: Re:Zero Season 3 -->
+<article class="bg-vault-card border border-vault-border hover:border-vault-coral/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="Re:Zero - Starting Life in Another World Season 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnD-3b1UMjsaCBH3NoCUXUmmBY2B3xmZQj17l18nxRTV_FdL0TpbhX6DBqslGDRV32Z-BsTZJmyRR9a8PYu3Aq4x1ZNnanDZbGWruV2eGJ_4gSq9AmmdDV_tqKciwfRU6XJ_beYGgjFao4EfiCYjb9uOt8DfaMq-JkQQX8WQWDfuslthGjkrPa6MbbN8VTX9C_AODaiFlU9i7yxUr4TX4nlCO6k66fPy_mTOq2T6k"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<span class="absolute top-2.5 left-2.5 bg-emerald-500/90 text-white font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-white"></span> In Library
+            </span>
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-gray-200 text-[11px] px-2 py-0.5 rounded border border-white/10">
+              Episode 16 aired 2 days ago
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>White Fox • Attack Arc</span>
+<span class="text-vault-coral font-medium">Dual Audio</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Re:Zero -Starting Life in Another World- S3</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Ep 17 airing in 5 days</p>
+</div>
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-emerald-400 font-mono">16 / 16 synced</span>
+<button class="bg-vault-border hover:bg-vault-coral text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+<i class="ph-fill ph-play text-[10px]"></i>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 6: Apothecary Diaries Season 2 -->
+<article class="bg-vault-card border border-vault-border hover:border-vault-coral/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="The Apothecary Diaries Season 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1suTWEhh608Ye2GBQEieeTfrkoGjn_7HEcUB3JV4VP750GHPkhP5sBprpdRlzIBvImtz_JUR3vwl82Nwu2EcauEbTYqpnDJX3GT2GVCU91g8oBUDcJ5UONf1ycQ4QNTXaPj3IDNYPaikekDui4aV5hn5uaypRP4JzaPs6Yl0UDlRBN5PhGuaBP4fJNVF7td7K6KxYOwP52-1MbIo9sQ7ttG_c45TTkR74yoJ_kSI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<span class="absolute top-2.5 left-2.5 bg-emerald-500/90 text-white font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-white"></span> In Library
+            </span>
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-gray-200 text-[11px] px-2 py-0.5 rounded border border-white/10">
+              Episode 9 aired 3 days ago
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>OLM / TOHO</span>
+<span class="text-vault-coral font-medium">10-bit x265</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Kusuriya no Hitorigoto 2nd Season</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Ep 10 airing in 4 days</p>
+</div>
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-emerald-400 font-mono">9 / 9 synced</span>
+<button class="bg-vault-border hover:bg-vault-coral text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+<i class="ph-fill ph-play text-[10px]"></i>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 7: Blue Lock vs. U-20 Japan (Missing Ep) -->
+<article class="bg-vault-card border border-vault-border hover:border-amber-500/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="Blue Lock Season 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGaINxVE7gzEiRHz7L0xMsBczfsjHQytGECknywAOoAgXfBjifZG-jbhYrU5QMYGc2T2N8bykEc4ZgRAvk73bp2mE7k7wHh5nhfUB29EPQLMn9LNqvL33FEsZeADTPF9wkJYHa3P8WW6Y12NqxvFMoXRSC3g6GUVCKsSLbHMB7t3qLbJd2Xz-Gm5TX0VspvDQjTpOyLYDv7CBh88yfZqKNwrAiXBZH6Opb6Yae2rc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<span class="absolute top-2.5 left-2.5 bg-amber-500 text-black font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<i class="ph-bold ph-warning-circle"></i> Missing Aired Episode
+            </span>
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-amber-300 text-[11px] px-2 py-0.5 rounded border border-amber-500/20">
+              Episode 14 aired yesterday
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>8bit • Sports</span>
+<span class="text-amber-400 font-medium font-mono">Ep 14 Missing</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Blue Lock vs. U-20 Japan</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Season climax broadcast completed</p>
+</div>
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-amber-400 font-mono">13 / 14 available</span>
+<button class="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+<i class="ph-bold ph-download-simple text-xs"></i>
+<span>Download Missing</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 8: Sakamoto Days -->
+<article class="bg-vault-card border border-vault-border hover:border-vault-coral/60 transition duration-200 rounded-xl overflow-hidden flex flex-col group shadow-lg" data-purpose="anime-release-card">
+<div class="relative h-56 bg-zinc-900 overflow-hidden">
+<img alt="Sakamoto Days" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD_Sl8BLOL3hzCxdO_smm6FRS_zo_gM8-fp7TpAyvL3Pea4t05zODIarcsOVIvo0s6BgV4iJVBSERaX3DcS7R4vbl-GaHdEfnfXAFZJ5mfoILW_YlOz8VW6StH6hcQke_o1JmPPN0CnDeVkvPLUWjp8vw0h_dSLVy_z0XLRAwn5F2GCZrJ1mt9Mruf4KWbU0Y6HVYqLyHvg2b2Ts3JwnXa0Cf3AB_B2FegBx1D7CU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-card via-vault-card/20 to-transparent"></div>
+<span class="absolute top-2.5 left-2.5 bg-emerald-500/90 text-white font-semibold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-md flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-white"></span> In Library
+            </span>
+<span class="absolute bottom-2.5 left-2.5 bg-black/75 text-gray-200 text-[11px] px-2 py-0.5 rounded border border-white/10">
+              Episode 8 aired 5 days ago
+            </span>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+<div>
+<div class="flex items-center justify-between text-[11px] text-vault-textDim mb-1">
+<span>TMS Entertainment</span>
+<span class="text-vault-coral font-medium">1080p Web-DL</span>
+</div>
+<h2 class="text-sm font-bold text-white group-hover:text-vault-coral transition line-clamp-1">Sakamoto Days (Cour 1)</h2>
+<p class="text-xs text-vault-textMuted mt-1 line-clamp-1">Ep 9 broadcast scheduled Saturday</p>
+</div>
+<div class="pt-2 border-t border-vault-border/60 flex items-center justify-between">
+<span class="text-[11px] text-emerald-400 font-mono">8 / 8 synced</span>
+<button class="bg-vault-border hover:bg-vault-coral text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+<i class="ph-fill ph-play text-[10px]"></i>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- END: AnimeCardGrid -->
+<!-- BEGIN: PaginationAndActions -->
+<!-- Direct reproduction of Previous, Next, and Back buttons shown in bottom area of Image 11 -->
+<section class="pt-4 pb-2 border-t border-vault-border/80 flex flex-col sm:flex-row items-center justify-between gap-4" data-purpose="pagination-footer-controls">
+<!-- Left Controls: Previous & Next Pagination -->
+<div class="flex items-center space-x-2">
+<button class="bg-[#1b1929] hover:bg-vault-card border border-vault-border hover:border-vault-borderLight text-gray-400 hover:text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5 disabled:opacity-40 cursor-not-allowed" disabled="">
+<i class="ph-bold ph-caret-left text-xs"></i>
+<span>Previous</span>
+</button>
+<button class="bg-[#1b1929] hover:bg-[#252238] border border-vault-border hover:border-vault-coral/50 text-gray-200 hover:text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer">
+<span>Next</span>
+<i class="ph-bold ph-caret-right text-xs"></i>
+</button>
+<span class="text-xs text-vault-textDim ml-3">Page <span class="text-vault-coral font-semibold">1</span> of 6</span>
+</div>
+<!-- Right Control: Back Action as positioned in Image 11 -->
+<div>
+<button class="bg-[#1b1929] hover:bg-vault-coral hover:text-white border border-vault-border hover:border-vault-coral text-gray-300 text-xs px-5 py-2 rounded-lg font-medium transition cursor-pointer flex items-center gap-2">
+<i class="ph-bold ph-arrow-u-up-left"></i>
+<span>Back</span>
+</button>
+</div>
+</section>
+<!-- END: PaginationAndActions -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: DesktopStatusBar -->
+<footer class="bg-[#0e0c15] border-t border-vault-border/60 px-5 py-1.5 text-[11px] text-vault-textDim flex flex-wrap items-center justify-between" data-purpose="application-status-bar">
+<div class="flex items-center space-x-4">
+<span class="flex items-center gap-1.5 text-gray-400">
+<i class="ph-fill ph-hard-drive text-vault-coral"></i>
+<span>Root: /Volumes/MediaVault/Anime</span>
+</span>
+<span class="h-3 w-px bg-vault-border"></span>
+<span class="text-emerald-400 flex items-center gap-1">
+<i class="ph-bold ph-broadcast"></i> RSS Feeds Healthy (4 Connected)
+      </span>
+</div>
+<div class="flex items-center space-x-4">
+<span>Auto-refresh in <strong class="text-gray-300 font-mono">46:12</strong></span>
+<span class="h-3 w-px bg-vault-border"></span>
+<span class="hover:text-vault-coral cursor-pointer transition">Twilight Sakura Theme</span>
+<span class="h-3 w-px bg-vault-border"></span>
+<span class="text-vault-textMuted font-mono">AnimeVault Desktop 3.4.1-rc</span>
+</div>
+</footer>
+<!-- END: DesktopStatusBar -->
+</body></html>

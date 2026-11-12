@@ -25,7 +25,7 @@ class CalendarTests(unittest.TestCase):
         self.assertEqual(len(calendar.saved()), 2)
         self.assertEqual(next(r for r in calendar.saved() if r['episode'] == 11)['airingAt'], now+3600)
 
-    def test_two_full_weeks_include_past_days_and_navigation_uses_no_network(self):
+    def test_full_week_includes_past_days_and_week_navigation_uses_no_network(self):
         from app.ui.pages.library_page import LibraryPage
         sunday = datetime.now().replace(hour=12) + timedelta(days=6-datetime.now().weekday())
         monday = (sunday-timedelta(days=6)).replace(hour=19)
@@ -35,7 +35,7 @@ class CalendarTests(unittest.TestCase):
             clock.now.return_value = sunday
             clock.fromtimestamp.side_effect = datetime.fromtimestamp
             page = LibraryPage()
-            self.assertEqual(page.airing_week.count(), 14)
+            self.assertEqual(page.airing_week.count(), 7)
             first = page.airing_week.itemAt(0).widget()
             self.assertEqual(first.date, monday.date())
             self.assertEqual(first.release_button.entries[0]['episode'], 10)

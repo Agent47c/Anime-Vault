@@ -248,6 +248,7 @@ class TrustworthyScanningTests(unittest.TestCase):
         for n in range(18):
             db.upsert_franchise({'display_title':f'Example title {n}'})
         page=LibraryPage()
+        page._set_view_mode('grid')
         page.resize(1450,900)
         page.show()
         self.app.processEvents()
@@ -256,7 +257,8 @@ class TrustworthyScanningTests(unittest.TestCase):
             self.app.processEvents()
             cols=page._grid_columns
             first,last=page._cards[0],page._cards[cols-1]
-            available=page.page_scroll.viewport().width()-56
+            margins=page.page_scroll.widget().layout().contentsMargins()
+            available=page.page_scroll.viewport().width()-margins.left()-margins.right()
             self.assertEqual(sum(c.width() for c in page._cards[:cols])+20*(cols-1),available)
             self.assertLessEqual(abs(last.geometry().right()-(page.grid_container.width()-1)),1)
             self.assertAlmostEqual(first.POSTER_HEIGHT/first.width(),1.5,places=2)

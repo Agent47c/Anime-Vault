@@ -52,11 +52,10 @@ def _rate_limit():
     global _last_request_time
     with _request_lock:
         now = time.monotonic()
-        delay = _MIN_INTERVAL - (now - _last_request_time)
-        if delay > 0:
-            _wait(delay)
-        _check_cancelled()
-        _last_request_time = time.monotonic()
+        scheduled=max(now,_last_request_time+_MIN_INTERVAL)
+        _last_request_time=scheduled
+    if scheduled>now:_wait(scheduled-now)
+    _check_cancelled()
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +79,7 @@ query ($search: String, $page: Int, $perPage: Int) {
       isAdult
       format
       seasonYear
+      startDate { year month day }
       status
       episodes
       coverImage {
@@ -102,6 +102,8 @@ query ($search: String, $page: Int, $perPage: Int) {
             }
             format
             synonyms
+            seasonYear
+            startDate { year month day }
             status
             episodes
             isAdult
@@ -138,6 +140,8 @@ query ($id: Int) {
     isAdult
     format
     status
+    seasonYear
+    startDate { year month day }
     episodes
     coverImage {
       large
@@ -159,6 +163,8 @@ query ($id: Int) {
           }
           format
           synonyms
+          seasonYear
+          startDate { year month day }
           status
           episodes
           isAdult
@@ -181,8 +187,26 @@ query ($id: Int) {
 # ---------------------------------------------------------------------------
 # Core API functions
 # ---------------------------------------------------------------------------
+_last_error = threading.local()
+
+
+def last_error() -> Optional[str]:
+    """Return a concise reason for the latest failed GraphQL call on this thread."""
+    return getattr(_last_error, "message", None)
+
+
+def _set_last_error(message: Optional[str]):
+    _last_error.message = message
+
+
 def _graphql_request(query: str, variables: Dict) -> Optional[Dict]:
     """Execute a GraphQL request against AniList. Returns JSON data or None."""
+    # Issue: Previously any HTTP 400 (e.g. GraphQL variable/type mismatch),
+    # HTTP 429, GraphQL JSON errors, or network failure returned bare None with
+    # no diagnostic detail for callers like release_news.
+    # Fix: Record a sanitized per-thread reason in _last_error while keeping
+    # the None return contract expected by callers and existing tests.
+    _set_last_error(None)
     _rate_limit()
     try:
         resp = requests.post(
@@ -193,10 +217,35 @@ def _graphql_request(query: str, variables: Dict) -> Optional[Dict]:
         _check_cancelled()
         if resp.status_code == 429:
             # A later explicit refresh may retry; never recurse indefinitely.
+            _set_last_error("AniList rate limit reached (HTTP 429)")
             return None
-        resp.raise_for_status()
-        return resp.json().get("data")
+        try:
+            payload = resp.json()
+        except ValueError:
+            payload = None
+        detail = None
+        if isinstance(payload, dict) and payload.get("errors"):
+            first = payload["errors"][0] if isinstance(payload["errors"], list) and payload["errors"] else {}
+            msg = first.get("message") if isinstance(first, dict) else str(first)
+            if msg:
+                detail = " ".join(str(msg).split())[:200]
+        try:
+            resp.raise_for_status()
+        except requests.RequestException:
+            if detail:
+                _set_last_error(f"AniList error (HTTP {resp.status_code}): {detail}")
+            else:
+                _set_last_error(f"AniList returned HTTP {resp.status_code}")
+            return None
+        if not isinstance(payload, dict) or payload.get("data") is None:
+            _set_last_error(f"AniList error: {detail}" if detail else "AniList returned an empty response")
+            return None
+        return payload.get("data")
+    except requests.Timeout:
+        _set_last_error("Request to AniList timed out")
+        return None
     except requests.RequestException:
+        _set_last_error("Network request to AniList failed")
         return None
 
 
@@ -287,11 +336,11 @@ def extract_season_data(media: Dict, franchise_id: int,
 # ---------------------------------------------------------------------------
 # Poster / Cover download
 # ---------------------------------------------------------------------------
-def download_cover(media: Dict, franchise_id: int) -> Optional[str]:
+def download_cover(media: Dict, franchise_id: int, *, allow_network=True) -> Optional[str]:
     """Return a validated, provider/version-cached cover (legacy ID fallback)."""
     cover = media.get("coverImage") or {}
     url = cover.get("extraLarge") or cover.get("large") or cover.get("medium")
-    return _cached_artwork(media, 'cover', url, f"{franchise_id}.jpg")
+    return _cached_artwork(media, 'cover', url, f"{franchise_id}.jpg",allow_network=allow_network)
 
 
 def download_banner(media: Dict, franchise_id: int) -> Optional[str]:
@@ -302,9 +351,12 @@ _artwork_locks_guard = threading.Lock()
 _artwork_locks = {}
 
 
-def _cached_artwork(media, kind, url, legacy_filename):
+def _cached_artwork(media, kind, url, legacy_filename, *, allow_network=True):
     """Provider + URL version cache; missing artwork persists until URL changes."""
     if not media.get('id'):
+        if not allow_network:
+            from app.core.image_profiles import load_cached_image
+            return legacy_filename if (COVERS_DIR/legacy_filename).is_file() and not load_cached_image(COVERS_DIR/legacy_filename).isNull() else None
         return _download_artwork(url, legacy_filename)
     import hashlib
     from contextlib import closing
@@ -328,6 +380,7 @@ def _cached_artwork(media, kind, url, legacy_filename):
                 if not load_cached_image(COVERS_DIR / row['filename']).isNull():
                     return row['filename']
         filename = f"anilist-{media['id']}-{kind}-{version}.jpg"
+        if not allow_network:return None
         result = _download_artwork(url, filename) if url else None
         with closing(db.get_connection()) as conn, conn:
             conn.execute('INSERT OR REPLACE INTO artwork_assets VALUES (?,?,?,?,?,?)',
@@ -340,16 +393,43 @@ def _cached_artwork(media, kind, url, legacy_filename):
 def _download_artwork(url, filename):
     if not url:
         return None
+    from urllib.parse import urlsplit,urljoin
+    if urlsplit(url).scheme!='https':return None
     from PyQt5.QtGui import QImage
     COVERS_DIR.mkdir(parents=True, exist_ok=True)
+    try:(COVERS_DIR/filename).resolve().relative_to(COVERS_DIR.resolve())
+    except ValueError:return None
     temporary = None
+    resp = None
     try:
         _check_cancelled()
-        resp = requests.get(url, timeout=15)
+        for redirect in range(4):
+            if urlsplit(url).scheme!='https':return None
+            resp = requests.get(url, timeout=15,stream=True,allow_redirects=False)
+            if getattr(resp,'status_code',200) not in (301,302,303,307,308):break
+            location=resp.headers.get('Location');resp.close()
+            if not location or redirect==3:return None
+            url=urljoin(url,location)
         _check_cancelled()
         resp.raise_for_status()
         from app.core.image_profiles import repair_jpeg_profile
-        content=repair_jpeg_profile(resp.content)
+        limit=16*1024*1024
+        try:
+            length=(getattr(resp,'headers',{}) or {}).get('Content-Length')
+            if isinstance(length,(str,int)) and length and int(length)>limit:return None
+            if isinstance(resp,requests.Response) or callable(getattr(type(resp),'iter_content',None)):
+                parts=[];size=0
+                for block in resp.iter_content(64*1024):
+                    _check_cancelled();size+=len(block)
+                    if size>limit:return None
+                    parts.append(block)
+                raw=b''.join(parts)
+            else:raw=resp.content
+            if not isinstance(raw,bytes):return None
+            if len(raw)>limit:return None
+            content=repair_jpeg_profile(raw)
+        finally:
+            if hasattr(resp,'close'):resp.close()
         if QImage.fromData(content).isNull():
             return None
         destination = COVERS_DIR / filename
@@ -358,9 +438,10 @@ def _download_artwork(url, filename):
         temporary.write_bytes(content)
         temporary.replace(destination)
         return filename
-    except (requests.RequestException, OSError):
+    except (requests.RequestException, OSError, ValueError):
         return None
     finally:
+        if resp is not None and hasattr(resp,'close'):resp.close()
         if temporary is not None:
             try:
                 temporary.unlink(missing_ok=True)

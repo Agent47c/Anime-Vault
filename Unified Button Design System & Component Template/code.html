@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Vault — Unified Button Design System & Component Spec</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            serif: ['"Noto Serif"', 'serif'],
+          },
+          colors: {
+            sakura: {
+              300: '#ffa3b5',
+              400: '#ff809b',
+              500: '#ff6584', // Primary accent dark
+              600: '#f04369',
+              700: '#d6336c', // Primary accent light
+            },
+            dark: {
+              base: '#14121d',
+              surface: '#1c1a27',
+              container: '#232031',
+              high: '#2c293d',
+              border: '#36324a',
+              text: '#f3f2f8',
+              muted: '#9a96ab',
+            },
+            light: {
+              base: '#fff8f9',
+              surface: '#ffffff',
+              container: '#fff0f5',
+              high: '#fde5ed',
+              border: '#ebd4dd',
+              text: '#1c1720',
+              muted: '#786f7b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom button transition and interaction polish */
+    .btn-smooth {
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-smooth:active {
+      transform: scale(0.975);
+    }
+    .glass-dark {
+      background: rgba(28, 26, 39, 0.85);
+      backdrop-filter: blur(12px);
+    }
+    .glass-light {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="bg-[#0e0c15] text-[#e2e0ea] font-sans antialiased min-h-screen p-6 lg:p-10 selection:bg-sakura-500 selection:text-white">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto space-y-12">
+
+    <!-- Header Spec Section -->
+    <header class="border-b border-[#2a273b] pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div class="space-y-3">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sakura-500 to-sakura-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-sakura-500/20">
+            AV
+          </div>
+          <span class="text-xs uppercase tracking-widest font-mono text-sakura-400 font-semibold">Anime Vault Design System • V2.5</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-sakura-500/10 text-sakura-400 border border-sakura-500/20">Component Token: Button</span>
+        </div>
+        <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-white">Unified Button Design System</h1>
+        <p class="text-dark-muted max-w-3xl text-sm lg:text-base leading-relaxed">
+          Standardized visual hierarchy, spatial rhythm, tokenized sizing (<code class="font-mono text-sakura-300">Default 36px</code>, <code class="font-mono text-sakura-300">Large 44px</code>, <code class="font-mono text-sakura-300">Extra Large 52px</code>), and multi-state consistency across <strong class="text-white">Twilight Sakura (Dark)</strong> and <strong class="text-white">Sakura Paper (Light)</strong> modes.
+        </p>
+      </div>
+
+      <!-- Quick Metrics / Quick Anchors -->
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="#dark-spec" class="px-3.5 py-1.5 rounded-lg bg-dark-surface border border-dark-border text-xs font-medium hover:border-sakura-500/50 transition-colors text-gray-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-sakura-500"></span>
+          Twilight Sakura Spec
+        </a>
+        <a href="#light-spec" class="px-3.5 py-1.5 rounded-lg bg-[#fff0f5] border border-[#ebd4dd] text-xs font-medium text-[#786f7b] hover:text-[#d6336c] transition-colors flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#d6336c]"></span>
+          Sakura Paper Spec
+        </a>
+        <a href="#segmented-spec" class="px-3.5 py-1.5 rounded-lg bg-dark-high border border-dark-border text-xs font-medium text-gray-300 hover:text-white transition-colors">
+          Segmented Controls
+        </a>
+      </div>
+    </header>
+
+    <!-- SECTION 1: SIZE & GEOMETRY STANDARD (Directly Addressing Reference Screenshots) -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-wider text-sakura-400">Geometry & Scale Ratios</span>
+          <h2 class="text-xl font-bold text-white">1. Standard Size Tokens (Default, Large, Extra Large)</h2>
+        </div>
+        <div class="text-xs font-mono text-dark-muted">Referencing Screenshot 2026-11-11 184705.png & 184717.png</div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Default Size Card -->
+        <div class="bg-dark-surface border border-dark-border rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-dark-border/60 pb-3">
+            <div>
+              <span class="text-sm font-bold text-white">Default / Standard</span>
+              <p class="text-xs font-mono text-sakura-400">h-9 (36px) • text-xs/sm</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-dark-high text-dark-muted border border-dark-border">Primary UI Scale</span>
+          </div>
+          <div class="py-4 flex flex-col items-center justify-center gap-3 bg-dark-base rounded-lg border border-dark-border/40 min-h-[110px]">
+            <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-500 hover:bg-sakura-600 text-white text-xs font-semibold shadow-md shadow-sakura-500/20 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+              Choose backup folder
+            </button>
+            <span class="text-[11px] font-mono text-dark-muted">px-4 • radius: 8px • gap: 8px</span>
+          </div>
+          <ul class="text-xs text-dark-muted space-y-1.5 font-mono">
+            <li>• <strong class="text-gray-300">Height:</strong> 36px (2.25rem)</li>
+            <li>• <strong class="text-gray-300">Horizontal Padding:</strong> 16px (1rem)</li>
+            <li>• <strong class="text-gray-300">Typography:</strong> 12px / font-medium-semibold</li>
+            <li>• <strong class="text-gray-300">Usage:</strong> Tables, drawers, dialog footers, search bars</li>
+          </ul>
+        </div>
+
+        <!-- Large Size Card -->
+        <div class="bg-dark-surface border border-dark-border rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-dark-border/60 pb-3">
+            <div>
+              <span class="text-sm font-bold text-white">Large</span>
+              <p class="text-xs font-mono text-sakura-400">h-11 (44px) • text-sm</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-dark-high text-dark-muted border border-dark-border">Page CTAs</span>
+          </div>
+          <div class="py-4 flex flex-col items-center justify-center gap-3 bg-dark-base rounded-lg border border-dark-border/40 min-h-[110px]">
+            <button class="btn-smooth h-11 px-5 rounded-lg bg-sakura-500 hover:bg-sakura-600 text-white text-sm font-semibold shadow-md shadow-sakura-500/25 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Resume Episode 17
+            </button>
+            <span class="text-[11px] font-mono text-dark-muted">px-5 • radius: 10px • gap: 8px</span>
+          </div>
+          <ul class="text-xs text-dark-muted space-y-1.5 font-mono">
+            <li>• <strong class="text-gray-300">Height:</strong> 44px (2.75rem)</li>
+            <li>• <strong class="text-gray-300">Horizontal Padding:</strong> 20px (1.25rem)</li>
+            <li>• <strong class="text-gray-300">Typography:</strong> 14px / font-semibold</li>
+            <li>• <strong class="text-gray-300">Usage:</strong> Hero action triggers, modal primary confirms</li>
+          </ul>
+        </div>
+
+        <!-- Extra Large Size Card -->
+        <div class="bg-dark-surface border border-dark-border rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-dark-border/60 pb-3">
+            <div>
+              <span class="text-sm font-bold text-white">Extra Large</span>
+              <p class="text-xs font-mono text-sakura-400">h-13 (52px) • text-base</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-dark-high text-dark-muted border border-dark-border">Hero & Focus</span>
+          </div>
+          <div class="py-4 flex flex-col items-center justify-center gap-3 bg-dark-base rounded-lg border border-dark-border/40 min-h-[110px]">
+            <button class="btn-smooth h-13 px-6 rounded-xl bg-sakura-500 hover:bg-sakura-600 text-white text-base font-bold shadow-lg shadow-sakura-500/30 flex items-center gap-2.5">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Start Download Batch (4 Files)
+            </button>
+            <span class="text-[11px] font-mono text-dark-muted">px-6 • radius: 12px • gap: 10px</span>
+          </div>
+          <ul class="text-xs text-dark-muted space-y-1.5 font-mono">
+            <li>• <strong class="text-gray-300">Height:</strong> 52px (3.25rem)</li>
+            <li>• <strong class="text-gray-300">Horizontal Padding:</strong> 24px (1.5rem)</li>
+            <li>• <strong class="text-gray-300">Typography:</strong> 16px / font-bold</li>
+            <li>• <strong class="text-gray-300">Usage:</strong> Setup wizards, prominent hero launch buttons</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: TWILIGHT SAKURA (DARK MODE) COMPLETE SPECIFICATION -->
+    <section id="dark-spec" class="space-y-6 pt-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dark-border pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-3.5 h-3.5 rounded-full bg-sakura-500 shadow-sm shadow-sakura-500/50"></div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">2. Twilight Sakura (Dark Mode) Button Templates</h2>
+        </div>
+        <span class="text-xs font-mono text-sakura-400 bg-sakura-500/10 px-2.5 py-1 rounded border border-sakura-500/20">Canvas: #14121d • Surface: #1c1a27 • Accent: #ff6584</span>
+      </div>
+
+      <!-- Dark Mode Grid by Variants & States -->
+      <div class="bg-dark-base border border-dark-border rounded-2xl p-6 lg:p-8 space-y-8">
+
+        <!-- Variant 1: Primary (Sakura Coral Solid) -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded bg-sakura-500"></span>
+                Primary Action (Sakura Coral Solid)
+              </h3>
+              <p class="text-xs text-dark-muted">For highest-priority triggers: Save, Move files, Search releases, Resume playback.</p>
+            </div>
+            <code class="text-[11px] font-mono text-sakura-300 bg-dark-high px-2 py-1 rounded">bg-[#ff6584] hover:bg-[#f04369] text-white</code>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Normal -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Default</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-500 text-white text-xs font-semibold shadow-sm shadow-sakura-500/20 w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Hover -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Hover</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-600 text-white text-xs font-semibold shadow-md shadow-sakura-500/30 w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Active / Pressed -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Active / Press</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-700 scale-[0.97] text-white text-xs font-semibold w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Focus / Keynav -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Focused</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-500 text-white text-xs font-semibold ring-2 ring-sakura-300 ring-offset-2 ring-offset-dark-base w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Loading</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-600 text-white text-xs font-semibold w-full text-center flex items-center justify-center gap-1.5 cursor-wait">
+                <svg class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Saving...</span>
+              </button>
+            </div>
+
+            <!-- Disabled -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Disabled</span>
+              <button disabled class="h-9 px-4 rounded-lg bg-dark-high text-dark-muted text-xs font-semibold w-full text-center cursor-not-allowed opacity-60">
+                Save Entry
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variant 2: Secondary / Outlined Neutral (Surface Button) -->
+        <div class="space-y-4 pt-4 border-t border-dark-border/60">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded bg-dark-border"></span>
+                Secondary / Neutral Bordered (e.g. "Choose backup folder")
+              </h3>
+              <p class="text-xs text-dark-muted">For secondary options: Choose folder, Browse, Refresh metadata, Reset filters, Cancel.</p>
+            </div>
+            <code class="text-[11px] font-mono text-gray-300 bg-dark-high px-2 py-1 rounded">bg-[#1c1a27] border-[#36324a] text-[#f3f2f8]</code>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Normal -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Default</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-dark-surface hover:bg-dark-container border border-dark-border text-gray-200 text-xs font-medium w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Hover -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Hover</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-dark-container border border-sakura-500/50 text-white text-xs font-medium w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Active / Pressed -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Active / Press</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-dark-high border border-dark-border scale-[0.97] text-white text-xs font-medium w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Focus / Keynav -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Focused</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-dark-surface border border-sakura-400 text-white text-xs font-medium ring-2 ring-sakura-500/30 w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Loading</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-dark-container border border-dark-border text-gray-300 text-xs font-medium w-full text-center flex items-center justify-center gap-1.5 cursor-wait">
+                <svg class="animate-spin w-3.5 h-3.5 text-sakura-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Scanning...</span>
+              </button>
+            </div>
+
+            <!-- Disabled -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Disabled</span>
+              <button disabled class="h-9 px-4 rounded-lg bg-dark-surface/40 border border-dark-border/40 text-dark-muted text-xs font-medium w-full text-center cursor-not-allowed opacity-50">
+                Choose folder
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variant 3: Destructive (Recycle Bin / Delete) -->
+        <div class="space-y-4 pt-4 border-t border-dark-border/60">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded bg-rose-500"></span>
+                Destructive / Guarded Action (Recycle Bin & Safe Delete)
+              </h3>
+              <p class="text-xs text-dark-muted">For non-recoverable and guarded media cleanup actions.</p>
+            </div>
+            <code class="text-[11px] font-mono text-rose-300 bg-dark-high px-2 py-1 rounded">bg-rose-500/15 border-rose-500/30 text-rose-300</code>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- Normal -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Subtle Destructive</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-medium w-full flex items-center justify-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Delete Files...
+              </button>
+            </div>
+
+            <!-- Confirmed Solid Destructive -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Solid Destructive</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm shadow-rose-600/30 w-full flex items-center justify-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Move to Recycle Bin
+              </button>
+            </div>
+
+            <!-- Ghost / Subtle Secondary -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Ghost / Link</span>
+              <button class="btn-smooth h-9 px-3 rounded-lg text-dark-muted hover:text-white hover:bg-dark-container text-xs font-medium w-full text-center">
+                Cancel / Dismiss
+              </button>
+            </div>
+
+            <!-- Icon-Only Button -->
+            <div class="p-3 rounded-lg bg-dark-surface border border-dark-border/60 flex flex-col items-center gap-2">
+              <span class="text-[10px] font-mono uppercase text-dark-muted">Square Icon Tool</span>
+              <div class="flex items-center gap-2">
+                <button class="btn-smooth w-9 h-9 rounded-lg bg-dark-surface hover:bg-dark-container border border-dark-border text-gray-300 hover:text-white flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+                <button class="btn-smooth w-9 h-9 rounded-lg bg-sakura-500/10 hover:bg-sakura-500/20 border border-sakura-500/30 text-sakura-400 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 3: SAKURA PAPER (LIGHT / WHITE MODE) SPECIFICATION -->
+    <section id="light-spec" class="space-y-6 pt-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ebd4dd] pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-3.5 h-3.5 rounded-full bg-[#d6336c] shadow-sm shadow-[#d6336c]/40"></div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">3. Sakura Paper (Light Mode) Button Templates</h2>
+        </div>
+        <span class="text-xs font-mono text-[#d6336c] bg-[#fff0f5] px-2.5 py-1 rounded border border-[#ebd4dd]">Canvas: #fff8f9 • Surface: #ffffff • Accent: #d6336c</span>
+      </div>
+
+      <!-- Light Theme Container (Framed to show true light aesthetic) -->
+      <div class="bg-light-base border border-light-border rounded-2xl p-6 lg:p-8 space-y-8 text-light-text shadow-sm">
+
+        <!-- Light Variant 1: Primary Solid Crimson -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-[#1c1720] flex items-center gap-2">
+                <span class="w-2 h-2 rounded bg-sakura-700"></span>
+                Primary Action (Sakura Crimson Solid)
+              </h3>
+              <p class="text-xs text-light-muted">High-contrast primary triggers formatted for Japanese editorial light mode.</p>
+            </div>
+            <code class="text-[11px] font-mono text-[#d6336c] bg-white px-2 py-1 rounded border border-light-border">bg-[#d6336c] hover:bg-[#b02555] text-white</code>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Normal -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Default</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-700 hover:bg-sakura-600 text-white text-xs font-semibold shadow-sm shadow-sakura-700/20 w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Hover -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Hover</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-[#b02555] text-white text-xs font-semibold shadow-md shadow-sakura-700/30 w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Active / Pressed -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Active / Press</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-[#941d46] scale-[0.97] text-white text-xs font-semibold w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Focus / Keynav -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Focused</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-700 text-white text-xs font-semibold ring-2 ring-sakura-400 ring-offset-2 ring-offset-white w-full text-center">
+                Save Entry
+              </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Loading</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-sakura-700 text-white text-xs font-semibold w-full text-center flex items-center justify-center gap-1.5 cursor-wait">
+                <svg class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Saving...</span>
+              </button>
+            </div>
+
+            <!-- Disabled -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Disabled</span>
+              <button disabled class="h-9 px-4 rounded-lg bg-light-high text-light-muted text-xs font-semibold w-full text-center cursor-not-allowed opacity-60">
+                Save Entry
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Light Variant 2: Secondary / Outlined Crisp Paper -->
+        <div class="space-y-4 pt-4 border-t border-light-border">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-[#1c1720] flex items-center gap-2">
+                <span class="w-2 h-2 rounded bg-light-border"></span>
+                Secondary / Neutral Bordered (Light Surface)
+              </h3>
+              <p class="text-xs text-light-muted">Clean paper buttons with soft borders for folder selection and secondary options.</p>
+            </div>
+            <code class="text-[11px] font-mono text-[#786f7b] bg-white px-2 py-1 rounded border border-light-border">bg-white border-[#ebd4dd] text-[#1c1720]</code>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Normal -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Default</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-white hover:bg-light-container border border-light-border text-light-text text-xs font-medium w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Hover -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Hover</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-light-container border border-sakura-700/40 text-sakura-700 text-xs font-medium w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Active / Pressed -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Active / Press</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-light-high border border-light-border scale-[0.97] text-light-text text-xs font-medium w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Focus / Keynav -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Focused</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-white border border-sakura-700 text-sakura-700 text-xs font-medium ring-2 ring-sakura-700/20 w-full text-center">
+                Choose folder
+              </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Loading</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-light-container border border-light-border text-light-muted text-xs font-medium w-full text-center flex items-center justify-center gap-1.5 cursor-wait">
+                <svg class="animate-spin w-3.5 h-3.5 text-sakura-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Scanning...</span>
+              </button>
+            </div>
+
+            <!-- Disabled -->
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Disabled</span>
+              <button disabled class="h-9 px-4 rounded-lg bg-light-high/40 border border-light-border/40 text-light-muted text-xs font-medium w-full text-center cursor-not-allowed opacity-50">
+                Choose folder
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Light Variant 3: Destructive Redirection -->
+        <div class="space-y-4 pt-4 border-t border-light-border">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-[#1c1720] flex items-center gap-2">
+                <span class="w-2 h-2 rounded bg-red-600"></span>
+                Destructive & Caution (Sakura Paper Light)
+              </h3>
+              <p class="text-xs text-light-muted">Safe recycle bin actions with clear contrast against paper white surfaces.</p>
+            </div>
+            <code class="text-[11px] font-mono text-red-600 bg-white px-2 py-1 rounded border border-light-border">bg-red-50 text-red-700 border-red-200</code>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Subtle Destructive</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-medium w-full flex items-center justify-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Delete Files...
+              </button>
+            </div>
+
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Solid Destructive</span>
+              <button class="btn-smooth h-9 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-sm shadow-red-600/30 w-full flex items-center justify-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Move to Recycle Bin
+              </button>
+            </div>
+
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Ghost / Link</span>
+              <button class="btn-smooth h-9 px-3 rounded-lg text-light-muted hover:text-light-text hover:bg-light-container text-xs font-medium w-full text-center">
+                Cancel / Dismiss
+              </button>
+            </div>
+
+            <div class="p-3 rounded-lg bg-white border border-light-border flex flex-col items-center gap-2 shadow-xs">
+              <span class="text-[10px] font-mono uppercase text-light-muted">Square Icon Tool</span>
+              <div class="flex items-center gap-2">
+                <button class="btn-smooth w-9 h-9 rounded-lg bg-white hover:bg-light-container border border-light-border text-light-text flex items-center justify-center shadow-xs">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+                <button class="btn-smooth w-9 h-9 rounded-lg bg-[#fff0f5] hover:bg-[#fde5ed] border border-[#ebd4dd] text-sakura-700 flex items-center justify-center shadow-xs">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 4: SEGMENTED CONTROLS & PILL SWITCHERS (DIRECTLY SOLVING SCREENSHOT 12) -->
+    <section id="segmented-spec" class="space-y-6 pt-4">
+      <div class="flex items-center justify-between border-b border-dark-border pb-3">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-wider text-sakura-400">Pills, Tabs & Multi-Segments</span>
+          <h2 class="text-2xl font-bold text-white tracking-tight">4. Segmented Control Standard</h2>
+        </div>
+        <div class="text-xs font-mono text-dark-muted">Matching: [Default | Large | Extra large] Pill Groups</div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Dark Segmented Spec -->
+        <div class="bg-dark-base border border-dark-border rounded-xl p-6 space-y-6">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-white">Twilight Sakura (Dark) Segmented Group</span>
+            <span class="text-xs font-mono text-sakura-400">Outer container: p-1 bg-[#14121d] rounded-xl</span>
+          </div>
+
+          <!-- Live Segmented Example -->
+          <div class="p-6 bg-dark-surface rounded-xl border border-dark-border/60 flex flex-col items-center justify-center gap-4">
+            <div class="inline-flex p-1 bg-dark-base border border-dark-border rounded-xl gap-1">
+              <!-- Active Segment -->
+              <button class="btn-smooth px-4 py-1.5 rounded-lg bg-dark-surface border border-sakura-500/60 text-sakura-400 font-semibold text-xs shadow-sm flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-sakura-500"></span>
+                Default
+              </button>
+              <!-- Inactive Segment 1 -->
+              <button class="btn-smooth px-4 py-1.5 rounded-lg text-dark-muted hover:text-white hover:bg-dark-container text-xs font-medium">
+                Large
+              </button>
+              <!-- Inactive Segment 2 -->
+              <button class="btn-smooth px-4 py-1.5 rounded-lg text-dark-muted hover:text-white hover:bg-dark-container text-xs font-medium">
+                Extra large
+              </button>
+            </div>
+            <span class="text-[11px] font-mono text-dark-muted">Exact modern recreation of Screenshot 2026-11-11 184705.png</span>
+          </div>
+
+          <!-- Code Spec -->
+          <div class="p-4 rounded-lg bg-dark-surface border border-dark-border/40 font-mono text-xs space-y-1.5 text-gray-300">
+            <div class="text-sakura-400">// CSS / Tailwind Tokens:</div>
+            <div><span class="text-dark-muted">Container:</span> <code class="text-white">inline-flex p-1 bg-[#14121d] border border-[#36324a] rounded-xl gap-1</code></div>
+            <div><span class="text-dark-muted">Active Item:</span> <code class="text-sakura-300">bg-[#1c1a27] border border-[#ff6584]/60 text-[#ff6584] shadow-sm</code></div>
+            <div><span class="text-dark-muted">Inactive Item:</span> <code class="text-gray-300">text-[#9a96ab] hover:text-white hover:bg-[#232031]</code></div>
+          </div>
+        </div>
+
+        <!-- Light Segmented Spec -->
+        <div class="bg-light-base border border-light-border rounded-xl p-6 space-y-6 text-light-text">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-[#1c1720]">Sakura Paper (Light) Segmented Group</span>
+            <span class="text-xs font-mono text-sakura-700">Outer container: p-1 bg-[#fff0f5] rounded-xl</span>
+          </div>
+
+          <!-- Live Segmented Example -->
+          <div class="p-6 bg-white rounded-xl border border-light-border flex flex-col items-center justify-center gap-4 shadow-xs">
+            <div class="inline-flex p-1 bg-light-container border border-light-border rounded-xl gap-1">
+              <!-- Active Segment -->
+              <button class="btn-smooth px-4 py-1.5 rounded-lg bg-white border border-sakura-700/50 text-sakura-700 font-semibold text-xs shadow-xs flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-sakura-700"></span>
+                Default
+              </button>
+              <!-- Inactive Segment 1 -->
+              <button class="btn-smooth px-4 py-1.5 rounded-lg text-light-muted hover:text-light-text hover:bg-white/60 text-xs font-medium">
+                Large
+              </button>
+              <!-- Inactive Segment 2 -->
+              <button class="btn-smooth px-4 py-1.5 rounded-lg text-light-muted hover:text-light-text hover:bg-white/60 text-xs font-medium">
+                Extra large
+              </button>
+            </div>
+            <span class="text-[11px] font-mono text-light-muted">Light mode equivalent for font scaling & view options</span>
+          </div>
+
+          <!-- Code Spec -->
+          <div class="p-4 rounded-lg bg-white border border-light-border font-mono text-xs space-y-1.5 text-light-text">
+            <div class="text-sakura-700">// CSS / Tailwind Tokens:</div>
+            <div><span class="text-light-muted">Container:</span> <code class="text-[#1c1720]">inline-flex p-1 bg-[#fff0f5] border border-[#ebd4dd] rounded-xl gap-1</code></div>
+            <div><span class="text-light-muted">Active Item:</span> <code class="text-sakura-700">bg-white border border-[#d6336c]/50 text-[#d6336c] shadow-xs</code></div>
+            <div><span class="text-light-muted">Inactive Item:</span> <code class="text-light-muted">text-[#786f7b] hover:text-[#1c1720] hover:bg-white/60</code></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 5: READY-TO-COPY CODE SNIPPETS (DEVELOPER REFERENCE) -->
+    <section class="space-y-6 pt-4 border-t border-dark-border">
+      <div>
+        <span class="text-xs font-mono uppercase tracking-wider text-sakura-400">Implementation Standards</span>
+        <h2 class="text-2xl font-bold text-white tracking-tight">5. Copy-Paste HTML / Tailwind Classes</h2>
+        <p class="text-sm text-dark-muted">Drop these uniform classes across any Anime Vault screen to guarantee 100% aesthetic continuity.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Dark Snippet Box -->
+        <div class="bg-dark-surface border border-dark-border rounded-xl p-5 space-y-3 font-mono text-xs">
+          <div class="flex items-center justify-between text-sakura-400 border-b border-dark-border/60 pb-2">
+            <span class="font-bold">Twilight Sakura (Dark) Classes</span>
+            <span class="text-[10px] text-dark-muted">Tailwind CSS</span>
+          </div>
+          <div class="space-y-2 text-gray-300">
+            <div>
+              <span class="text-sakura-300">// Primary Button:</span>
+              <pre class="bg-dark-base p-2.5 rounded border border-dark-border mt-1 overflow-x-auto text-[11px] text-gray-200">h-9 px-4 rounded-lg bg-[#ff6584] hover:bg-[#f04369] active:scale-[0.975] text-white text-xs font-semibold shadow-sm shadow-[#ff6584]/20 transition-all</pre>
+            </div>
+            <div>
+              <span class="text-sakura-300">// Neutral Secondary (e.g. Choose backup folder):</span>
+              <pre class="bg-dark-base p-2.5 rounded border border-dark-border mt-1 overflow-x-auto text-[11px] text-gray-200">h-9 px-4 rounded-lg bg-[#1c1a27] hover:bg-[#232031] active:scale-[0.975] border border-[#36324a] hover:border-[#ff6584]/50 text-[#f3f2f8] text-xs font-medium transition-all</pre>
+            </div>
+            <div>
+              <span class="text-sakura-300">// Destructive Confirm:</span>
+              <pre class="bg-dark-base p-2.5 rounded border border-dark-border mt-1 overflow-x-auto text-[11px] text-gray-200">h-9 px-4 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-[0.975] text-white text-xs font-semibold shadow-sm shadow-rose-600/30 transition-all</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Light Snippet Box -->
+        <div class="bg-light-surface border border-light-border rounded-xl p-5 space-y-3 font-mono text-xs text-light-text">
+          <div class="flex items-center justify-between text-sakura-700 border-b border-light-border pb-2">
+            <span class="font-bold">Sakura Paper (Light) Classes</span>
+            <span class="text-[10px] text-light-muted">Tailwind CSS</span>
+          </div>
+          <div class="space-y-2 text-light-text">
+            <div>
+              <span class="text-sakura-700">// Primary Button:</span>
+              <pre class="bg-light-container p-2.5 rounded border border-light-border mt-1 overflow-x-auto text-[11px] text-light-text">h-9 px-4 rounded-lg bg-[#d6336c] hover:bg-[#b02555] active:scale-[0.975] text-white text-xs font-semibold shadow-sm shadow-[#d6336c]/25 transition-all</pre>
+            </div>
+            <div>
+              <span class="text-sakura-700">// Neutral Secondary (e.g. Choose backup folder):</span>
+              <pre class="bg-light-container p-2.5 rounded border border-light-border mt-1 overflow-x-auto text-[11px] text-light-text">h-9 px-4 rounded-lg bg-white hover:bg-[#fff0f5] active:scale-[0.975] border border-[#ebd4dd] hover:border-[#d6336c]/50 text-[#1c1720] text-xs font-medium transition-all</pre>
+            </div>
+            <div>
+              <span class="text-sakura-700">// Destructive Confirm:</span>
+              <pre class="bg-light-container p-2.5 rounded border border-light-border mt-1 overflow-x-auto text-[11px] text-light-text">h-9 px-4 rounded-lg bg-red-600 hover:bg-red-700 active:scale-[0.975] text-white text-xs font-semibold shadow-sm shadow-red-600/30 transition-all</pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer Summary Notice -->
+    <footer class="text-center pt-8 pb-4 border-t border-dark-border text-xs text-dark-muted font-mono">
+      Anime Vault UI Component System • Compliant with Section 18 UI Redesign Preservation Checklist & WCAG 2.1 AA Contrast Standards
+    </footer>
+
+  </div>
+
+</body>
+</html>

@@ -2,6 +2,9 @@
 import time
 import threading
 import unittest
+import json
+import sqlite3
+from pathlib import Path
 from unittest.mock import patch
 from PyQt5 import sip
 from PyQt5.QtCore import QTimer,QEvent,QCoreApplication
@@ -79,6 +82,68 @@ class DetailNavigationTests(unittest.TestCase):
         try:
             self.assertEqual(resolve.call_count,1);self.assertEqual(data['seasons'][0]['id'],sid)
             self.assertEqual(data['franchise']['id'],self.fid)
+        finally:data['snapshot']['connection'].close()
+
+    def test_many_seasons_do_not_clear_every_child_style_or_reapply_unchanged_theme(self):
+        from PyQt5.QtWidgets import QLabel
+        db.update_franchise_field(self.fid,'user_rating',10)
+        db.update_franchise_field(self.fid,'user_notes','Keep my notes')
+        for number in range(1,25):
+            db.upsert_season(dict(franchise_id=self.fid,season_number=number,title_display=f'Season {number}',relation_type='SEASON'))
+        host,library=self.host();host.resize(1450,900)
+        styles=[];original=QWidget.setStyleSheet
+        def record(widget,value):styles.append((widget,value));return original(widget,value)
+        loaded=[]
+        with patch.object(QWidget,'setStyleSheet',record):
+            dialog=DetailModal(self.fid,host,async_load=True);dialog.loaded.connect(lambda:loaded.append(True));navigate(dialog)
+            self.wait(lambda:bool(loaded));QTest.qWait(50)
+            self.assertLessEqual(sum(not value for _,value in styles),3)
+            styles.clear();dialog.refresh_home_style()
+            self.assertFalse(any(widget is dialog for widget,_ in styles))
+        self.assertEqual(len(dialog.seasons),24)
+        self.assertEqual(len(dialog.rating_buttons),10)
+        self.assertTrue(all(button.property('rated') for button in dialog.rating_buttons))
+        self.assertEqual(dialog.notes_edit.toPlainText(),'Keep my notes')
+        self.assertEqual(len([label for label in dialog.findChildren(QLabel) if label.objectName()=='detail_season_title']),24)
+        self.assertEqual(dialog.right_scroll.horizontalScrollBar().maximum(),0)
+        dialog.reject();self.wait(lambda:not running())
+
+    def test_on_disk_async_details_include_physical_files_and_history(self):
+        from app.core import identity
+        folder=Path(self.temp.name)/'Season 1';folder.mkdir()
+        path=folder/'S01E01.mkv';path.write_bytes(b'video')
+        sid=db.upsert_season(dict(franchise_id=self.fid,season_number=1,
+            title_display='Season 1',season_folder_path=str(folder),
+            video_files_json=json.dumps([path.name]),storage_state='ON_DISK'))
+        identity.sync_inventory(sid);identity.track_play(str(path))
+        data=prepare_details(self.fid)
+        try:
+            with db.refresh_view(data['snapshot']):
+                connection=db.get_connection()
+                self.assertEqual(connection.execute('SELECT COUNT(*) FROM physical_files').fetchone()[0],1)
+                self.assertEqual(connection.execute('SELECT COUNT(*) FROM episode_history').fetchone()[0],1)
+                self.assertEqual(identity.mapped_inventory_files(data['seasons'][0]),[path.name])
+            with self.assertRaises(sqlite3.OperationalError):
+                data['snapshot']['connection'].execute('DELETE FROM physical_files')
+        finally:data['snapshot']['connection'].close()
+        host,library=self.host();loaded=[]
+        with patch('app.ui.pages.detail_modal.QMessageBox.warning') as warning:
+            dialog=DetailModal(self.fid,host,async_load=True)
+            dialog.loaded.connect(lambda:loaded.append(True));navigate(dialog)
+            self.wait(lambda:bool(loaded) or warning.called)
+            warning.assert_not_called()
+            self.assertEqual(dialog.seasons[0]['season_folder_path'],str(folder))
+            self.assertEqual(dialog._prepared_resume[0],path)
+            dialog.reject();self.wait(lambda:not running())
+
+    def test_detail_read_view_is_consistent_and_does_not_block_writes(self):
+        data=prepare_details(self.fid)
+        try:
+            previous=data['franchise']['display_title']
+            db.update_franchise_field(self.fid,'display_title','Updated while loading')
+            with db.refresh_view(data['snapshot']):
+                self.assertEqual(db.get_franchise(self.fid)['display_title'],previous)
+            self.assertEqual(db.get_franchise(self.fid)['display_title'],'Updated while loading')
         finally:data['snapshot']['connection'].close()
 
     def test_refresh_worker_prepares_library_index_reused_by_ui(self):

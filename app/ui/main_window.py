@@ -241,6 +241,13 @@ class MainWindow(QMainWindow):
         from app.ui.downloads import monitor
         self._download_monitor = monitor()
         self._download_monitor.changed.connect(self._on_data_updated)
+        self._download_monitor.snapshot_ready.connect(self.library_page.apply_downloads)
+        self._download_monitor.snapshot_ready.connect(self._download_snapshot_changed)
+        from app.ui.playback import monitor as player_monitor,HomePlaybackKeys
+        self._playback_monitor=player_monitor();self._playback_monitor.changed.connect(self.library_page.apply_playback)
+        self._playback_monitor.notice.connect(self.library_page.shortcut_hint.setText)
+        self._home_playback_keys=HomePlaybackKeys(self,self._playback_monitor);QApplication.instance().installEventFilter(self._home_playback_keys)
+        QTimer.singleShot(0,self._playback_monitor.check)
         QTimer.singleShot(0,self._download_monitor.check)
         from app.ui.magnet_capture import MagnetInboxPump
         self._magnet_inbox = MagnetInboxPump(self)
@@ -279,7 +286,8 @@ class MainWindow(QMainWindow):
 
         # 1. Top Header Bar (Brand Sparkle + Center Search Bar + Window Controls)
         top_header = self._create_top_header()
-        root_layout.addWidget(top_header)
+        self.header_stack=QStackedWidget();self.header_stack.setFixedHeight(76);self.header_stack.addWidget(top_header)
+        root_layout.addWidget(self.header_stack)
         
 
         # 2. Main Body (Sidebar + Content Area)
@@ -288,7 +296,11 @@ class MainWindow(QMainWindow):
         body_layout.setSpacing(0)
 
         sidebar = self._create_sidebar()
+        self.sidebar=sidebar
         body_layout.addWidget(sidebar)
+        from app.ui.components.home_header import HomeHeader
+        self.home_header=HomeHeader(self);self.header_stack.addWidget(self.home_header)
+        self.header_stack.setCurrentWidget(self.home_header);self.home_header.arrange();sidebar.hide()
 
         # Stacked Pages Content Area
         self.stacked_widget = QStackedWidget()
@@ -316,6 +328,12 @@ class MainWindow(QMainWindow):
 
         # 3. Bottom Status Bar
         self.bottom_bar = self._create_bottom_bar()
+        # Keep the backend/status objects, but show metadata/index status where
+        # it belongs: beneath All anime, without a duplicate global footer.
+        self.library_page.service_status_row.addWidget(self.status_pill)
+        self.library_page.service_status_row.addWidget(self.scan_stats_label)
+        self.library_page.service_status_row.addStretch()
+        self.bottom_bar.hide()
         self.task_status_button = QPushButton()
         self.task_status_button.setObjectName("task_banner")
         self.task_status_button.setAccessibleName("View background task")
@@ -323,6 +341,8 @@ class MainWindow(QMainWindow):
         self.task_status_button.hide()
         root_layout.addWidget(self.task_status_button)
         root_layout.addWidget(self.bottom_bar)
+        from app.ui.components.refresh_progress import RefreshProgress
+        self.refresh_progress=RefreshProgress();root_layout.addWidget(self.refresh_progress)
         for scope in (self.title_bar, top_header, sidebar, self.bottom_bar, self.task_status_button, self.library_page, self.organizer_page, self.updates_page, self.storage_page, self.settings_page,self.downloads_page):
             scope.setProperty("animevaultThemeScope", True)
         self._task_timer = QTimer(self)
@@ -400,7 +420,7 @@ class MainWindow(QMainWindow):
 
         # Global Ctrl+K Shortcut
         shortcut = QShortcut(QKeySequence("Ctrl+K"), self)
-        shortcut.activated.connect(self.top_search_input.setFocus)
+        shortcut.activated.connect(lambda:MainWindow._focus_library_search(self))
 
         # Right Actions: Refresh + Add Anime
         right_actions = QHBoxLayout()
@@ -584,20 +604,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.api_status_label)
 
         # Center: Last scan info
-        self.scan_stats_label = QLabel("Last scan just now · 0 anime indexed")
-        self.scan_stats_label.setObjectName("shell_muted")
+        self.scan_stats_label = QLabel("0 anime indexed")
+        self.scan_stats_label.setObjectName("home_meta")
         layout.addWidget(self.scan_stats_label, 1)
 
         # Right: Online/Offline Badge
-        self.status_pill = ClickableLabel("Online · AniList & Jikan")
-        self.status_pill.setStyleSheet("""
-            background-color: rgba(34, 197, 94, 0.15);
-            color: #22c55e;
-            border-radius: 10px;
-            padding: 2px 10px;
-            font-size: 11px;
-            font-weight: 600;
-        """)
+        self.status_pill = ClickableLabel("AniList & Jikan · Status unchecked")
+        self.status_pill.setObjectName('library_connectivity')
         self.status_pill.setCursor(Qt.PointingHandCursor)
         self.status_pill.setToolTip("Click to recheck internet connection")
         self.status_pill.clicked.connect(self._initial_online_check)
@@ -648,6 +661,22 @@ class MainWindow(QMainWindow):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self._on_tray_activated)
         self.tray_icon.show()
+        self._reminder_busy=False
+        self._reminder_timer=QTimer(self);self._reminder_timer.setInterval(60000)
+        self._reminder_timer.timeout.connect(self._check_release_reminders);self._reminder_timer.start()
+        QTimer.singleShot(1000,self._check_release_reminders)
+
+    def _check_release_reminders(self):
+        if self._reminder_busy or getattr(self,'_shutdown_pending',False):return
+        from app.core.release_actions import due_reminders
+        from app.ui.io_task import IOTask,track
+        worker=IOTask(due_reminders);track(worker);self._reminder_busy=True
+        def ready(rows):
+            from PyQt5 import sip
+            if sip.isdeleted(self) or getattr(self,'_shutdown_pending',False):return
+            if rows:self.tray_icon.showMessage('Anime episode reminders','\n'.join(f"{r['title']} · Episode {r['episode']} is scheduled to air now." for r in rows[:5]))
+        def finished():self._reminder_busy=False;worker.deleteLater()
+        worker.succeeded.connect(ready);worker.finished.connect(finished);worker.start()
 
     def _generate_app_icon(self) -> QIcon:
         pixmap = QPixmap(64, 64)
@@ -682,53 +711,89 @@ class MainWindow(QMainWindow):
     # -----------------------------------------------------------------------
     def _on_nav_clicked(self, index: int):
         self._update_nav_selection(index)
-        self.stacked_widget.setCurrentIndex(index)
+        from app.ui.navigation import switch_tab
+        switch_tab(self, index)
 
         # Pages retain their rendered data. Refresh through data-change signals
         # or the explicit Refresh action, never by doing HDD I/O on a tab click.
 
+    def _open_update_changes(self, franchise_id):
+        from app.ui.navigation import switch_tab
+        self._update_nav_selection(2)
+        switch_tab(self, 2, restore=False)
+        groups = getattr(getattr(self.library_page, '_library_index', None), 'groups', ())
+        series = next((item for item in groups if item['id'] == franchise_id), {})
+        self.updates_page.show_changes(franchise_id, series.get('series_member_ids', ()), series.get('display_title'))
+
     def _update_nav_selection(self, active_index: int):
         self._active_nav_index = active_index
+        if hasattr(self,'home_header'):
+            shared=active_index in (0,1,2,3,4,5)
+            self.header_stack.setCurrentIndex(1 if shared else 0)
+            if shared:self.home_header.arrange()
+            else:self.header_stack.setFixedHeight(76)
+            self.sidebar.setVisible(not shared)
+            for index,button in self.home_header.tabs.items():
+                if button.property('active')!=(index==active_index):
+                    button.setProperty('active',index==active_index);button.update()
+            self.home_header.refresh_style()
         palette = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
         self.search_icon.setPixmap(icon("search", palette["text_muted"]).pixmap(22, 22))
         for frame, label, name, index in self.nav_buttons:
             active = index == active_index
-            frame.setProperty("active", active)
-            for widget in (frame, *frame.findChildren(QLabel)):
-                widget.style().unpolish(widget)
-                widget.style().polish(widget)
+            if frame.property('active')!=active:
+                frame.setProperty("active", active)
+                for widget in (frame, *frame.findChildren(QLabel)):
+                    widget.style().unpolish(widget)
+                    widget.style().polish(widget)
             label.setPixmap(icon(name, palette["red_text"] if active else palette["text_secondary"]).pixmap(22, 22))
 
     def _on_collection_clicked(self, watch_status: str):
-        self._on_nav_clicked(0)  # Go to library
+        from app.ui.navigation import switch_tab
+        self._update_nav_selection(0)
+        switch_tab(self, 0, restore=False)
         # Filter library page
         self.library_page._current_filter = watch_status
         self.library_page.activate_filter(watch_status)
 
+    def _focus_library_search(self):
+        target=self.home_header.search if hasattr(self,'home_header') and self.home_header.isVisible() else self.top_search_input
+        target.setFocus();target.selectAll()
+
     def _on_search_text_changed(self, text: str):
         # Forward search to library page
         if self.stacked_widget.currentIndex() != 0:
-            self._on_nav_clicked(0)
+            from app.ui.navigation import switch_tab
+            self._update_nav_selection(0)
+            switch_tab(self, 0, restore=False)
         self.library_page.set_search_query(text)
 
     def _connect_signals(self):
+        self.top_search_input.returnPressed.connect(self.library_page.focus_search_results)
         self.library_page.card_clicked.connect(self._open_detail_modal)
+        self.library_page.update_clicked.connect(self._open_update_changes)
+        self.library_page.context_action.connect(self._open_library_action)
         self.library_page.airing_clicked.connect(self._open_airing_detail)
         self.library_page.add_custom_clicked.connect(self._open_custom_entry_dialog)
         self.library_page.data_changed.connect(self._on_data_updated)
+        from app.ui.user_edits import user_edits
+        user_edits().changed.connect(self._on_user_fields_changed)
+        user_edits().failed.connect(self._user_edit_failed)
         self.organizer_page.data_changed.connect(self._on_data_updated)
         self.updates_page.refresh_requested.connect(lambda: self._start_refresh(allow_network=True, sync_internet=True))
         self.updates_page.card_clicked.connect(self._open_detail_modal)
         self.updates_page.data_changed.connect(self._on_data_updated)
+        self.updates_page.choices_changed.connect(self._on_update_choices_changed)
         self.settings_page.theme_changed.connect(self._on_theme_changed)
         self.settings_page.scan_completed.connect(self._on_data_updated)
         self.settings_page.preferences_changed.connect(self._apply_settings_preferences)
         self.storage_page.data_changed.connect(self._on_data_updated)
+        self.storage_page.refresh_requested.connect(lambda:self._start_refresh(allow_network=False))
         self.storage_page.filter_requested.connect(self._on_storage_filter_requested)
         self.storage_page.anime_clicked.connect(self._open_detail_modal)
 
         # Keyboard shortcuts
-        QShortcut(QKeySequence("Ctrl+F"), self).activated.connect(self.top_search_input.setFocus)
+        QShortcut(QKeySequence("Ctrl+F"), self).activated.connect(self._focus_library_search)
         QShortcut(QKeySequence("Ctrl+R"), self).activated.connect(self._request_refresh)
         QShortcut(QKeySequence("F5"), self).activated.connect(self._request_refresh)
         QShortcut(QKeySequence("Ctrl+I"), self).activated.connect(self._open_watched_import_dialog)
@@ -756,13 +821,28 @@ class MainWindow(QMainWindow):
         modal.loaded.connect(initial_ready)
         navigate(modal)
 
-    def _open_detail_modal(self, franchise_id: int):
+    def _open_library_action(self,franchise_id,action):
+        self._open_detail_modal(franchise_id,action)
+
+    def _open_detail_modal(self, franchise_id: int, initial_action=None):
         if not db.get_franchise(franchise_id):
             # An old card can be clicked while a rematch refresh is being applied.
             self._on_data_updated()
             return
         modal = DetailModal(franchise_id, parent=self,async_load=True)
         modal.data_changed.connect(self._on_data_updated)
+        if initial_action and initial_action!='details':
+            def ready():
+                modal.loaded.disconnect(ready)
+                if getattr(self.stacked_widget.currentWidget(),'workflow',None) is not modal:return
+                actions={'play':modal._resume_or_play,'episodes':modal._choose_episode,'edit':modal._edit_entry,
+                         'rematch':modal._on_rematch,'folder':modal._open_folder,'delete':modal._delete_all_files,
+                         'watched':lambda:modal._change_watch_status('WATCHED')}
+                if initial_action=='downloads':
+                    from app.ui.pages.release_search_page import open_release_search
+                    open_release_search(modal,franchise_id)
+                elif initial_action in actions:actions[initial_action]()
+            modal.loaded.connect(ready)
         navigate(modal)
 
     def _open_custom_entry_dialog(self):
@@ -775,6 +855,7 @@ class MainWindow(QMainWindow):
         self._update_nav_selection(self._active_nav_index)
 
     def _apply_settings_preferences(self):
+        self.library_page.apply_release_position()
         from app import preferences as prefs
         if hasattr(self, "_scan_schedule_timer"):
             self._scan_schedule_timer.stop()
@@ -813,7 +894,47 @@ class MainWindow(QMainWindow):
         if page in getattr(self, "_dirty_pages", set()):
             self._start_refresh(allow_network=False)
 
+    def _on_update_choices_changed(self, records):
+        # A notification choice does not require scanning disks, decoding artwork,
+        # or rebuilding the visible Updates page.
+        self._dirty_pages.update((self.library_page, self.storage_page))
+        self._unread_updates = len(self.updates_page._updates)
+        badge = self.findChild(QLabel, 'nav_badge_2')
+        if badge:
+            badge.setText(str(self._unread_updates));badge.setVisible(self._unread_updates > 0)
+        if hasattr(self, 'home_header'):
+            self.home_header.tabs[2].setText('Updates'+(f'  {self._unread_updates}' if self._unread_updates else ''))
+        for status, label in self.coll_counts.items():
+            delta = 0
+            for fid, record in records.items():
+                previous = record.get('_previous_watch_status')
+                if previous is not None:
+                    delta += int(record.get('watch_status') == status)-int(previous == status)
+            if delta: label.setText(str(max(0, int(label.text()) + delta)))
+
+    def _download_snapshot_changed(self,jobs):
+        count=sum(j.get('desired') not in ('stopped','cancelled') and not j.get('indexed') for j in jobs)
+        self.home_header.tabs[5].setText('Downloads'+(f'  {count}' if count else ''))
+
+    def _user_edit_failed(self,message):
+        QMessageBox.warning(self,'Edits not saved',message)
+
+    def _on_user_fields_changed(self, edits):
+        if not hasattr(self,'_recent_user_edits'):self._recent_user_edits={}
+        for fid,fields in edits.items():self._recent_user_edits.setdefault(fid,{}).update(fields)
+        index=getattr(self.library_page,'_library_index',None)
+        if index:
+            for fid,fields in edits.items():
+                if fid in index.by_id:index.by_id[fid].update(fields)
+                for group in index.groups:
+                    if group['id']==fid:group.update(fields)
+            self.library_page.refresh_user_fields(edits)
+            for state,label in self.coll_counts.items():
+                if state!='WATCHED_REMOVED':label.setText(str(sum(r.get('watch_status')==state for r in index.records)))
+        self._dirty_pages.add(self.storage_page)
+
     def _on_data_updated(self):
+        self._recent_user_edits={}
         if hasattr(self,'_library_watchers'):self._library_watchers.reload()
         self._dirty_pages.update((self.library_page, self.storage_page, self.updates_page))
         self._start_refresh()
@@ -829,6 +950,7 @@ class MainWindow(QMainWindow):
         self._refresh_invalidates_others = bool(scan_library or sync_internet)
         self._refresh_pending = False
         self.refresh_button.setEnabled(False)
+        if hasattr(self,'refresh_progress'):self.refresh_progress.begin('library','Refreshing library…')
         self.refresh_button.setText("Checking…" if new_only else "Refreshing…")
         self._refresh_worker = RefreshWorker(self, scan_library=scan_library, new_only=new_only, allow_network=allow_network, sync_internet=sync_internet)
         self._refresh_worker.progress.connect(self._show_scan_progress)
@@ -840,11 +962,21 @@ class MainWindow(QMainWindow):
     def _show_scan_progress(self, message, current, total):
         if not getattr(self, "_shutdown_pending", False):
             self.scan_stats_label.setText(f"{message} ({current}/{total})")
+            if hasattr(self,'refresh_progress'):self.refresh_progress.report('library',current,total,message)
 
     def _apply_refresh_snapshot(self, snapshot):
         if getattr(self, "_shutdown_pending", False):
             snapshot["connection"].close()
             return
+        for fid,fields in getattr(self,'_recent_user_edits',{}).items():
+            index=snapshot.get('library_index')
+            if index and fid in index.by_id:
+                index.by_id[fid].update(fields)
+                for group in index.groups:
+                    if group['id']==fid:group.update(fields)
+                snapshot['connection'].execute('UPDATE franchises SET '+','.join(key+'=?' for key in fields)+' WHERE id=?',(*fields.values(),fid))
+        if getattr(self,'_recent_user_edits',{}):
+            snapshot.pop('stats',None)
         self._refresh_snapshot = snapshot
         if snapshot.get("scan_errors"):
             self.refresh_button.setToolTip("\n".join(snapshot["scan_errors"][:10]))
@@ -881,6 +1013,7 @@ class MainWindow(QMainWindow):
             snapshot["connection"].close()
             self._refresh_snapshot = None
         self._refresh_busy = False
+        if hasattr(self,'refresh_progress'):self.refresh_progress.finish('library')
         self.refresh_button.setEnabled(True)
         self.refresh_button.setText("Refresh")
         if getattr(self, "_refresh_pending", False) and not getattr(self, "_shutdown_pending", False):
@@ -921,7 +1054,9 @@ class MainWindow(QMainWindow):
             badge.setText(str(self._unread_updates))
             badge.setVisible(self._unread_updates > 0)
 
-        disk = disk_snapshot()
+        snapshot=db.current_refresh_view()
+        disk = snapshot['disk'] if snapshot and 'disk' in snapshot else disk_snapshot()
+        if hasattr(self,'home_header'):self.home_header.metrics(disk,self._unread_updates)
         if disk["total"]:
             self.sidebar_free_title.setText(f"{format_bytes(disk['free'])} free")
             self.sidebar_drive_lbl.setText(f"{format_bytes(disk['used'])} of {format_bytes(disk['total'])} used")
@@ -933,7 +1068,7 @@ class MainWindow(QMainWindow):
             self.sidebar_drive_bar.setValue(0)
             self.bottom_free_label.setText("Drive capacity unavailable")
         self.sidebar_drive_lbl.setToolTip("Unavailable roots: " + ", ".join(disk["unavailable"]) if disk["unavailable"] else disk["label"])
-        self.scan_stats_label.setText(f"Last scan just now · {total_anime} anime indexed")
+        self.scan_stats_label.setText(f"{total_anime} anime indexed")
 
     def _open_api_url(self):
         endpoint = server.api_base_url()
@@ -948,28 +1083,16 @@ class MainWindow(QMainWindow):
             return
         online = check_online()
         if online:
-            self.status_pill.setText("Online · AniList & Jikan")
-            self.status_pill.setStyleSheet("""
-                background-color: rgba(34, 197, 94, 0.15);
-                color: #22c55e;
-                border-radius: 10px;
-                padding: 2px 10px;
-                font-size: 11px;
-                font-weight: 600;
-            """)
+            self.status_pill.setText("AniList & Jikan · Online")
+            self.status_pill.setProperty('online',True)
             from app import preferences as prefs
             if prefs.enabled("metadata_auto"):
                 self._start_background_updater()
         else:
-            self.status_pill.setText("Offline Mode · using cached data")
-            self.status_pill.setStyleSheet("""
-                background-color: rgba(245, 158, 11, 0.15);
-                color: #f59e0b;
-                border-radius: 10px;
-                padding: 2px 10px;
-                font-size: 11px;
-                font-weight: 600;
-            """)
+            self.status_pill.setText("AniList & Jikan · Offline · Cached data")
+            self.status_pill.setProperty('online',False)
+        self.status_pill.style().unpolish(self.status_pill)
+        self.status_pill.style().polish(self.status_pill)
 
         self._refresh_metrics()
 
@@ -977,6 +1100,10 @@ class MainWindow(QMainWindow):
         if self._updater_thread and self._updater_thread.isRunning():
             return
         self._updater_thread = UpdaterThread(parent=self)
+        if hasattr(self,'refresh_progress'):
+            self.refresh_progress.begin('metadata','Refreshing metadata…')
+            self._updater_thread.progress.connect(lambda message,current,total:self.refresh_progress.report('metadata',current,total,message))
+            self._updater_thread.finished.connect(lambda:self.refresh_progress.finish('metadata'))
         self._updater_thread.update_found.connect(self._on_update_found)
         self._updater_thread.finished_signal.connect(self._on_updater_finished)
         self._updater_thread.start()
@@ -1010,6 +1137,8 @@ class MainWindow(QMainWindow):
         from app.ui.io_task import running
         threads = running()
         workflows = [self, self.organizer_page, self.organizer_page.merge_page, self.updates_page] + [p.workflow for p in getattr(self, "_navigation_pages", [])]
+        duplicate=getattr(self.organizer_page,'_duplicate_page',None)
+        if duplicate is not None:workflows.append(duplicate)
         for workflow in workflows:
             for name in ("_batch_worker", "_organize_worker", "_apply_worker", "_search_worker", "_worker", "_refresh_worker", "_merge_worker", "_merge_plan_worker"):
                 worker = getattr(workflow, name, None)
@@ -1032,6 +1161,8 @@ class MainWindow(QMainWindow):
 
     def _active_task_page(self, protect_only=False):
         pages = [self.organizer_page] + ([self.updates_page] if hasattr(self, "updates_page") else []) + ([self.organizer_page.merge_page] if hasattr(self.organizer_page, "merge_page") else []) + list(getattr(self, "_navigation_pages", []))
+        duplicate=getattr(self.organizer_page,'_duplicate_page',None)
+        if duplicate is not None:pages.append(duplicate)
         for page in pages:
             workflow = getattr(page, "workflow", page)
             names = ("_batch_worker", "_organize_worker", "_apply_worker", "_merge_worker") if protect_only else ("_batch_worker", "_organize_worker", "_apply_worker", "_search_worker", "_worker", "_merge_worker", "_merge_plan_worker")
@@ -1050,13 +1181,15 @@ class MainWindow(QMainWindow):
     def _view_active_task(self):
         page = self._active_task_page()
         if page is not None:
-            if page is self.organizer_page.merge_page:
+            if page is self.organizer_page.merge_page or page is getattr(self.organizer_page,'_duplicate_page',None):
                 self.organizer_page.organizer_tabs.setCurrentWidget(page)
                 self.stacked_widget.setCurrentWidget(self.organizer_page)
             else:
                 self.stacked_widget.setCurrentWidget(page)
 
     def closeEvent(self, event):
+        from app.ui.user_edits import user_edits
+        user_edits().flush()
         if getattr(self, "_shutdown_pending", False):
             event.ignore()
             return

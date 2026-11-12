@@ -1,0 +1,6 @@
+[
+  "anime", "anime-library", "anime-manager", "anime-tracker", "anime-organizer",
+  "anilist", "jikan", "release-calendar", "episode-tracker", "media-library",
+  "media-manager", "desktop-app", "windows", "python", "pyqt5", "qt",
+  "sqlite", "libtorrent", "bittorrent", "chrome-extension"
+]

@@ -341,7 +341,7 @@ class PosterCard(QFrame):
             import json
             genre_list = json.loads(genres) if isinstance(genres, str) else genres
             if genre_list:
-                tooltip_lines.append(f"<span style='color:#898d9f;'>Genres:</span> {', '.join(genre_list[:4])}")
+                tooltip_lines.append(f"<span style='color:#898d9f;'>Genres:</span> {', '.join(escape(str(g)) for g in genre_list[:4])}")
         except Exception:
             pass
 

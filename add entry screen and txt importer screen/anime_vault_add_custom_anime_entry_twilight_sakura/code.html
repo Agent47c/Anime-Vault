@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault - Add Custom Entry (Twilight Sakura)</title>
+<!-- Tailwind CSS v3 CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans & Noto Sans JP -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              base: '#0f0d17',
+              surface: '#14121d',
+              card: '#1c1a29',
+              modal: '#191724',
+              input: '#12101a',
+              border: '#2a263a',
+              borderLight: '#38334c',
+              muted: '#7a758d',
+              subtext: '#a6a0bc',
+              accent: '#ff6584',
+              accentHover: '#ff4d72',
+              accentGlow: 'rgba(255, 101, 132, 0.25)',
+              tag: '#262335'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            kanji: ['"Noto Sans JP"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Scrollbar & Kanji Watermark -->
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #12101a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2f2a41;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #443c5e;
+    }
+  </style>
+<style data-purpose="watermark-and-glow">
+    .kanji-watermark {
+      user-select: none;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255, 101, 132, 0.08) 0%, rgba(255, 101, 132, 0.01) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sakura-glow {
+      box-shadow: 0 0 25px -4px rgba(255, 101, 132, 0.35);
+    }
+    .sakura-border-focus:focus {
+      outline: none;
+      border-color: #ff6584;
+      box-shadow: 0 0 0 2px rgba(255, 101, 132, 0.2);
+    }
+  </style>
+</head>
+<body class="bg-vault-base text-gray-200 font-sans min-h-screen antialiased flex flex-col justify-between overflow-x-hidden selection:bg-vault-accent selection:text-white">
+<!-- BEGIN: DesktopApplicationShell -->
+<div class="relative min-h-screen w-full flex flex-col justify-center items-center p-3 sm:p-6 lg:p-10 bg-radial from-[#1e192f]/40 via-vault-base to-[#0a0812]">
+<!-- Background Ambient Glow & Decorative Japanese Watermark -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
+<div class="absolute -top-40 -left-40 w-96 h-96 bg-vault-accent/10 rounded-full blur-[120px]"></div>
+<div class="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-900/15 rounded-full blur-[140px]"></div>
+<span class="kanji-watermark font-kanji font-black text-[22rem] lg:text-[32rem] leading-none absolute right-4 top-10 opacity-70 transform rotate-[-4deg] select-none">
+        追加
+      </span>
+</div>
+<!-- BEGIN: ModalContainer -->
+<div class="relative z-10 w-full max-w-4xl bg-vault-modal/95 backdrop-blur-xl border border-vault-border rounded-2xl shadow-2xl shadow-black/80 flex flex-col overflow-hidden" data-purpose="custom-entry-modal">
+<!-- BEGIN: ModalHeader -->
+<header class="relative px-6 py-5 border-b border-vault-border flex items-start justify-between bg-vault-card/40">
+<!-- Title & Subtitle -->
+<div>
+<div class="flex items-center gap-2.5">
+<span class="h-2.5 w-2.5 rounded-full bg-vault-accent animate-pulse"></span>
+<h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              Add custom entry
+            </h1>
+<span class="text-xs px-2 py-0.5 rounded font-mono bg-vault-tag text-vault-accent border border-vault-accent/20">
+              Twilight Sakura
+            </span>
+</div>
+<p class="text-xs sm:text-sm text-vault-subtext mt-1">
+            Keep unmatched anime in your library with your own custom metadata and artwork.
+          </p>
+</div>
+<!-- Close Window Button -->
+<button aria-label="Close dialog" class="text-vault-muted hover:text-white hover:bg-vault-tag/80 rounded-lg p-2 transition-colors border border-transparent hover:border-vault-border" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</header>
+<!-- END: ModalHeader -->
+<!-- BEGIN: FormBody -->
+<form class="p-6 overflow-y-auto max-h-[calc(88vh-140px)] space-y-7" id="custom-entry-form">
+<!-- SECTION 1: Top Dual Column - Titles & Artwork Media Asset -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Poster Artwork Upload Block (Left on desktop) -->
+<div class="lg:col-span-4 flex flex-col space-y-2">
+<label class="block text-xs font-semibold uppercase tracking-wider text-vault-subtext">
+              Poster Artwork
+            </label>
+<!-- Artwork Dashed Preview Frame (2:3 standard anime poster aspect ratio) -->
+<div class="relative aspect-[2/3] w-full rounded-xl border-2 border-dashed border-vault-borderLight hover:border-vault-accent/60 bg-vault-input/80 transition-all flex flex-col items-center justify-center p-4 text-center group cursor-pointer" data-purpose="artwork-dropzone">
+<div class="w-12 h-12 rounded-full bg-vault-card flex items-center justify-center text-vault-muted group-hover:text-vault-accent group-hover:scale-110 transition-all border border-vault-border">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewbox="0 0 24 24">
+<path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<p class="mt-3 text-xs sm:text-sm font-medium text-vault-subtext group-hover:text-gray-200">
+                No image yet
+              </p>
+<p class="text-[11px] text-vault-muted mt-0.5">
+                Recommended 2:3 ratio (PNG, JPG, WebP)
+              </p>
+</div>
+<!-- Poster Artwork Action Buttons -->
+<div class="space-y-2 pt-1">
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium text-gray-200 bg-vault-card hover:bg-vault-tag border border-vault-borderLight hover:border-vault-accent/50 transition-colors" type="button">
+<svg class="w-3.5 h-3.5 text-vault-accent" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+                Choose image
+              </button>
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium text-vault-subtext hover:text-white bg-vault-input hover:bg-vault-card border border-vault-border transition-colors" type="button">
+<svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+                Grab episode 1 frame
+              </button>
+</div>
+</div>
+<!-- Titles & Primary Info Column (Right on desktop) -->
+<div class="lg:col-span-8 space-y-4">
+<!-- Section Header -->
+<div class="border-b border-vault-border/60 pb-2">
+<h2 class="text-sm font-semibold text-white tracking-wide flex items-center gap-2">
+<span class="w-1.5 h-3 bg-vault-accent rounded-full"></span>
+                Title information and details
+              </h2>
+</div>
+<!-- English Title / Display Title -->
+<div data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5" for="display-title">
+                Display title <span class="text-vault-accent">*</span>
+</label>
+<input class="w-full bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-vault-muted sakura-border-focus transition" id="display-title" name="display-title" placeholder="e.g. Frieren: Beyond Journey's End - Special OVA" required="" type="text"/>
+</div>
+<!-- Romaji Title -->
+<div data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5" for="romaji-title">
+                Romaji title
+              </label>
+<input class="w-full bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-vault-muted sakura-border-focus transition" id="romaji-title" name="romaji-title" placeholder="Sousou no Frieren OVA" type="text"/>
+</div>
+<!-- Japanese Title (Kanji / Kana) -->
+<div data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5 flex justify-between items-center" for="japanese-title">
+<span>Japanese title</span>
+<span class="text-[10px] text-vault-muted font-normal font-kanji">日本語タイトル</span>
+</label>
+<input class="w-full bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-vault-muted sakura-border-focus font-kanji transition" id="japanese-title" name="japanese-title" placeholder="葬送のフリーレン" type="text"/>
+</div>
+<!-- Genres Input -->
+<div data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5" for="genres-input">
+                Genres
+              </label>
+<input class="w-full bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-vault-muted sakura-border-focus transition" id="genres-input" name="genres" placeholder="Adventure, Drama, Fantasy, Slice of Life" type="text"/>
+<p class="text-[11px] text-vault-muted mt-1">Separate multiple genres with commas.</p>
+</div>
+</div>
+</div>
+<!-- END SECTION 1 -->
+<!-- SECTION 2: Synopsis & Extended Metadata -->
+<div class="space-y-4 pt-2">
+<!-- Synopsis Area -->
+<div data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5 flex items-center justify-between" for="synopsis">
+<span>Synopsis</span>
+<span class="text-[11px] text-vault-muted">Supports Markdown</span>
+</label>
+<textarea class="w-full bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-vault-muted sakura-border-focus resize-y min-h-[90px] transition" id="synopsis" name="synopsis" placeholder="Provide a synopsis or plot outline for this unmatched release..." rows="3"></textarea>
+</div>
+<!-- Watch Status and 1-10 Rating Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+<!-- Watch Status Selector -->
+<div class="md:col-span-5" data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5" for="watch-status">
+                Watch status
+              </label>
+<div class="relative">
+<select class="w-full appearance-none bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white pr-9 sakura-border-focus cursor-pointer transition" id="watch-status" name="watch-status">
+<option selected="" value="watched">Watched</option>
+<option value="watching">Currently Watching</option>
+<option value="plan_to_watch">Plan to Watch</option>
+<option value="on_hold">On Hold</option>
+<option value="dropped">Dropped</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-vault-muted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- User Rating (1 - 10 Score Selector) -->
+<div class="md:col-span-7" data-purpose="rating-selector">
+<div class="flex items-center justify-between mb-1.5">
+<label class="block text-xs font-semibold text-vault-subtext">
+                  Your rating
+                </label>
+<span class="text-xs text-vault-accent font-semibold" id="rating-label">9 / 10 (Great)</span>
+</div>
+<!-- 1 to 10 Pills -->
+<div aria-label="Rating scale 1 to 10" class="grid grid-cols-10 gap-1 sm:gap-1.5" role="radiogroup">
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">1</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">2</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">3</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">4</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">5</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">6</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">7</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">8</button>
+<!-- Active Selected State (9) -->
+<button class="py-1.5 rounded text-xs font-bold bg-vault-accent text-white border border-vault-accent shadow-sm shadow-vault-accent/40 ring-2 ring-vault-accent/30 transition" type="button">9</button>
+<button class="py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition" type="button">10</button>
+</div>
+</div>
+</div>
+<!-- Anime Folder Path & Local Linking -->
+<div class="pt-1" data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5" for="folder-path">
+              Anime folder (Local filesystem binding)
+            </label>
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<input class="w-full bg-vault-input border border-vault-border rounded-lg pl-3.5 pr-9 py-2.5 text-xs sm:text-sm font-mono text-gray-200 placeholder-vault-muted sakura-border-focus transition" id="folder-path" name="folder-path" placeholder="Root folder path (optional, e.g. D:\Anime\Frieren Specials\)" type="text"/>
+<span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-vault-muted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewbox="0 0 24 24">
+<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+</div>
+<button class="px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-200 bg-vault-card hover:bg-vault-tag border border-vault-borderLight transition" type="button">
+                Browse
+              </button>
+</div>
+</div>
+<!-- Notes Textarea -->
+<div data-purpose="field-group">
+<label class="block text-xs font-semibold text-vault-subtext mb-1.5" for="personal-notes">
+              Notes
+            </label>
+<textarea class="w-full bg-vault-input border border-vault-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-vault-muted sakura-border-focus transition" id="personal-notes" name="personal-notes" placeholder="Optional personal notes (e.g. BD Remux dual audio, creditless EDs included)" rows="2"></textarea>
+</div>
+<!-- Informational Banner for Non-AniList / Unmatched Sync -->
+<div class="rounded-xl p-3.5 bg-vault-input/90 border border-vault-border/80 flex items-start gap-3">
+<div class="p-1 rounded bg-vault-accent/15 text-vault-accent mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="text-xs text-vault-subtext leading-relaxed">
+<span class="text-gray-200 font-medium">Automatic sync policy:</span>
+              Custom entries without an AniList link are preserved in local storage and skipped during automatic metadata refresh.
+            </div>
+</div>
+</div>
+<!-- END SECTION 2 -->
+</form>
+<!-- END: FormBody -->
+<!-- BEGIN: ModalFooter -->
+<footer class="px-6 py-4 border-t border-vault-border bg-vault-card/70 flex items-center justify-end gap-3">
+<!-- Cancel Action -->
+<button class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-vault-subtext hover:text-white bg-vault-tag/50 hover:bg-vault-tag border border-vault-border transition-colors duration-150" type="button">
+          Cancel
+        </button>
+<!-- Save Entry Action (Twilight Sakura Gradient) -->
+<button class="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-vault-accent to-[#ff4870] hover:brightness-110 sakura-glow transition-all duration-200 flex items-center gap-2 active:scale-95" form="custom-entry-form" type="submit">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+          Save entry
+        </button>
+</footer>
+<!-- END: ModalFooter -->
+</div>
+<!-- END: ModalContainer -->
+<!-- Desktop Window Status Hint -->
+<div class="relative z-10 mt-3 text-center text-xs text-vault-muted font-medium flex items-center gap-1.5 opacity-80">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+      Vault Database v2.4.1 • Local library sync active
+    </div>
+</div>
+<!-- END: DesktopApplicationShell -->
+<!-- Interactive Rating Pill Script -->
+<script data-purpose="rating-pill-interactions">
+    document.addEventListener('DOMContentLoaded', () => {
+      const ratingContainer = document.querySelector('[data-purpose="rating-selector"]');
+      if (!ratingContainer) return;
+
+      const buttons = ratingContainer.querySelectorAll('button');
+      const label = document.getElementById('rating-label');
+
+      const descriptors = {
+        1: 'Appalling',
+        2: 'Horrible',
+        3: 'Very Bad',
+        4: 'Bad',
+        5: 'Average',
+        6: 'Fine',
+        7: 'Good',
+        8: 'Very Good',
+        9: 'Great',
+        10: 'Masterpiece'
+      };
+
+      buttons.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+          const score = index + 1;
+
+          // Reset styling on all pills
+          buttons.forEach(b => {
+            b.className = 'py-1.5 rounded text-xs font-semibold bg-vault-input text-vault-subtext hover:bg-vault-tag hover:text-white border border-vault-border transition';
+          });
+
+          // Apply active Twilight Sakura highlight
+          btn.className = 'py-1.5 rounded text-xs font-bold bg-vault-accent text-white border border-vault-accent shadow-sm shadow-vault-accent/40 ring-2 ring-vault-accent/30 transition';
+
+          // Update score description label
+          if (label) {
+            label.textContent = `${score} / 10 (${descriptors[score]})`;
+          }
+        });
+      });
+    });
+  </script>
+</body></html>

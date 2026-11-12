@@ -3,11 +3,11 @@ import json
 import os
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QAbstractListModel, QModelIndex, QSize, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QAbstractListModel, QModelIndex, QSize, QThread, pyqtSignal,QRectF
 from PyQt5.QtGui import QColor, QPainter, QPen
 from PyQt5.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QLabel, QListView, QStyledItemDelegate,
-    QMessageBox, QShortcut, QAbstractItemView, QComboBox,
+    QMessageBox, QShortcut, QAbstractItemView, QComboBox,QHBoxLayout,QFrame,QLineEdit,
 )
 
 from app import db
@@ -15,7 +15,8 @@ from app.config import VIDEO_EXTENSIONS, launch_video_file, set_last_franchise_i
 from app.core.parser import clean_title, extract_episode_numbers
 from app.core.consolidation import explicit_season
 from app.core.library_health import release_availability_notice
-from app.ui.theme import COLORS
+from app.ui.home_style import px
+from app.ui.review_reference_style import reference_colors
 
 
 class EpisodeWorker(QThread):
@@ -179,62 +180,76 @@ class EpisodeDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         from PyQt5.QtWidgets import QStyle
         row = index.data(Qt.UserRole)
-        palette = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
+        palette = reference_colors()
         painter.save()
         painter.setRenderHint(QPainter.Antialiasing)
-        rect = option.rect.adjusted(5, 5, -5, -5)
+        rect = option.rect.adjusted(px(6), px(6), -px(6), -px(6))
         last_played = index.data(Qt.UserRole + 1)
         selected = bool(option.state & QStyle.State_Selected)
         hovered = bool(option.state & QStyle.State_MouseOver)
-        painter.setBrush(QColor(palette["accent"] if last_played else palette["bg_card_alt"] if hovered or selected else palette["bg_card"]))
-        border = QColor(palette["accent_secondary"] if selected else palette["accent"] if last_played else palette["text_muted"])
-        if not selected:
-            border.setAlpha(72)
-        painter.setPen(QPen(border, 2 if selected else 1))
-        painter.drawRoundedRect(rect, 12, 12)
-        text = rect.adjusted(12, 10, -12, -10)
+        painter.setBrush(QColor(palette['raised'] if hovered or selected or last_played else palette['panel']))
+        border=QColor(palette['coral'] if selected or last_played else palette['line'])
+        painter.setPen(QPen(border,2 if selected or last_played else 1))
+        painter.drawRoundedRect(rect,px(9),px(9))
+        text = rect.adjusted(px(15),px(10),-px(15),-px(10))
         font = painter.font()
         font.setBold(True)
+        font.setPixelSize(px(14))
         painter.setFont(font)
-        painter.setPen(QColor(palette["on_red"] if last_played else palette["text_primary"]))
-        painter.drawText(text.x(), text.y() + 18, painter.fontMetrics().elidedText(row["title"], Qt.ElideRight, text.width()))
+        painter.setPen(QColor(palette['text']))
+        painter.drawText(text.x(),text.y()+px(20),painter.fontMetrics().elidedText(row['title'],Qt.ElideRight,text.width()-px(12)))
         font.setBold(False)
+        font.setPixelSize(px(11))
         painter.setFont(font)
-        painter.setPen(QColor(palette["on_red"] if last_played else palette["text_secondary"]))
-        painter.drawText(text.x(), text.y() + 44, row.get("subtitle", row["type"]))
+        painter.setPen(QColor(palette['muted']))
+        painter.drawText(text.x(),text.y()+px(48),painter.fontMetrics().elidedText(row.get('subtitle',row['type']),Qt.ElideRight,text.width()))
+        if last_played:
+            painter.setPen(Qt.NoPen);painter.setBrush(QColor(palette['coral']))
+            painter.drawEllipse(QRectF(rect.right()-px(20),rect.top()+px(18),px(6),px(6)))
+            painter.drawRoundedRect(QRectF(rect.left()+2,rect.bottom()-px(3),rect.width()-4,px(3)),1,1)
         painter.restore()
 
     def sizeHint(self, option, index):
-        return QSize(210, 82)
+        return QSize(px(180),px(104))
 
 
 class EpisodePage(QDialog):
     dispose_on_leave = True
+    full_page = True
 
     def __init__(self, fid, parent=None, release=None):
         super().__init__(parent)
         self.fid = fid
         self.release = release
         self.setWindowTitle("Choose episode")
-        self.setObjectName("series_details")
+        self.setObjectName("episode_picker")
+        self.refresh_home_style()
+        self.resize(1400,850)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(28, 20, 28, 24)
+        layout.setContentsMargins(28,20,28,24);layout.setSpacing(18)
+        header=QHBoxLayout();header.setSpacing(16)
         heading = QLabel("Choose episode")
         heading.setObjectName("heading")
-        layout.addWidget(heading)
+        header.addWidget(heading)
+        self.series_title=QLabel();self.series_title.setTextFormat(Qt.PlainText);self.series_title.setWordWrap(True);header.addWidget(self.series_title,1)
         self.release_filter = QComboBox()
         self.release_filter.setAccessibleName('Episode release status')
         for label, value in [('All release states', ''), ('Aired', 'AIRED'), ('Upcoming', 'UPCOMING'), ('Release unknown', 'UNKNOWN')]:
             self.release_filter.addItem(label, value)
         self.release_filter.currentIndexChanged.connect(self._filter_releases)
-        layout.addWidget(self.release_filter)
+        self.release_filter.setMinimumWidth(210);self.release_filter.setMaximumWidth(270);self.release_filter.setCursor(Qt.PointingHandCursor)
+        header.addWidget(self.release_filter);layout.addLayout(header)
+        subtitle=QLabel('Select an episode card to play in your configured media player.');subtitle.setWordWrap(True);layout.addWidget(subtitle)
         from app.ui.components.workflow import button
-        from app.ui.downloads import open_downloads
-        layout.addWidget(button('Find an episode / download…',lambda:open_downloads(self,self.fid)),0,Qt.AlignLeft)
-        self.status = QLabel("Finding video files?")
+        from app.ui.pages.release_search_page import open_release_search
+        action_row=QHBoxLayout();action_row.setSpacing(16)
+        self.find_button=button('Find an episode / download…',lambda:open_release_search(self,self.fid))
+        from app.ui.icons import icon
+        self.find_button.setIcon(icon('downloads',reference_colors()['coral']));action_row.addWidget(self.find_button)
+        self.status = QLabel("Finding video files…")
         self.status.setObjectName("subheading")
         self.status.setWordWrap(True)
-        layout.addWidget(self.status)
+        action_row.addWidget(self.status,1);layout.addLayout(action_row)
         self.availability = QLabel()
         self.availability.setObjectName("episode_availability")
         self.availability.setWordWrap(True)
@@ -252,13 +267,27 @@ class EpisodePage(QDialog):
         self.view.setLayoutMode(QListView.Batched)
         self.view.setBatchSize(100)
         self.view.setUniformItemSizes(True)
-        self.view.setGridSize(QSize(210, 82))
+        self.view.setGridSize(QSize(px(180),px(104)))
+        self.view.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setCursor(Qt.PointingHandCursor)
         self.view.setSelectionMode(QAbstractItemView.SingleSelection)
         self.view.setMouseTracking(True)
         self.view.setModel(self.model)
         self.view.setItemDelegate(EpisodeDelegate(self.view))
         self.view.clicked.connect(self._play)
         layout.addWidget(self.view, 1)
+        self.playback_footer=QFrame();self.playback_footer.setObjectName('playback_footer')
+        footer=QHBoxLayout(self.playback_footer);footer.setContentsMargins(20,16,20,16);footer.setSpacing(20)
+        ready=QVBoxLayout();ready.setSpacing(8)
+        self.ready_title=QLabel('Choose an episode to play');self.ready_title.setObjectName('workflow_row_title');self.ready_title.setWordWrap(True);self.ready_title.setTextFormat(Qt.PlainText);ready.addWidget(self.ready_title)
+        self.ready_path=QLineEdit();self.ready_path.setReadOnly(True);self.ready_path.setAccessibleName('Selected episode file path');ready.addWidget(self.ready_path);footer.addLayout(ready,1)
+        from app.config import get_media_player_type
+        player=get_media_player_type();name={'default':'default player','vlc':'VLC','mpv':'MPV','mpc-hc':'MPC-HC','potplayer':'PotPlayer','custom':'custom player'}.get(player,player or 'default player')
+        self.footer_play=button('Play with '+name,lambda:self._play(self.view.currentIndex()),True)
+        self.footer_play.setIcon(icon('play',reference_colors()['on_coral']));self.footer_play.setEnabled(False);footer.addWidget(self.footer_play)
+        layout.addWidget(self.playback_footer)
+        self.view.selectionModel().currentChanged.connect(self._update_ready)
         for key in ("Return", "Enter"):
             shortcut = QShortcut(key, self.view)
             shortcut.activated.connect(lambda: self._play(self.view.currentIndex()))
@@ -269,6 +298,12 @@ class EpisodePage(QDialog):
         self._worker.finished.connect(self._worker_done)
         self.finished.connect(self._cancel)
         self._worker.start()
+
+    def refresh_home_style(self):
+        from app.ui.episode_selection_style import style
+        self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(style('episode_picker'))
+        if hasattr(self,'view'):
+            self.view.setGridSize(QSize(px(180),px(104)));self.view.viewport().update()
 
     def _loaded(self, rows, warnings):
         self._all_rows = rows
@@ -283,9 +318,19 @@ class EpisodePage(QDialog):
     def _filter_releases(self):
         state = self.release_filter.currentData()
         self.model.replace([row for row in getattr(self, '_all_rows', []) if not state or row.get('release_state') == state])
+        self._update_ready(self.view.currentIndex())
+
+    def _update_ready(self,index,*_):
+        if not hasattr(self,'footer_play'):return
+        row=index.data(Qt.UserRole) if index.isValid() else None
+        self.footer_play.setEnabled(bool(row))
+        self.ready_title.setText(('Currently ready: '+row['title']) if row else 'Choose an episode to play')
+        self.ready_path.setText(row['path'] if row else '');self.ready_path.setCursorPosition(0)
+        self.ready_path.setToolTip(row['path'] if row else '')
 
     def _show_availability(self, rows, warnings):
         series = db.get_series(self.fid) or {}
+        self.series_title.setText('— '+series.get('display_title','Local episodes'))
         seasons = db.get_series_seasons(self.fid)
         requests = {}
         for season in seasons:

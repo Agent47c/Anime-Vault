@@ -179,6 +179,7 @@ class DeleteConfirmDialog(QDialog):
         self._deletion_finished(result)
 
     def _deletion_finished(self, result):
+        self.result_details=result
         if result["failures"]:
             QMessageBox.warning(self, "Some files could not be recycled", "\n".join(result["failures"][:12]))
         self.deletion_confirmed.emit(self.franchise_data["id"], ", ".join(result["recycled"]))

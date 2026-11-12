@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Choose Episode &amp; Season Playback Explorer</title>
+<!-- Load Tailwind CSS v3 with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              bg: '#14121d',
+              surface: '#1c1a27',
+              surfaceHover: '#232032',
+              card: '#1f1c2c',
+              border: '#2d293d',
+              borderLight: '#3d3752',
+              coral: '#ff6584',
+              coralGlow: 'rgba(255, 101, 132, 0.25)',
+              coralLight: '#ff829d',
+              lavender: '#b8b2ce',
+              muted: '#7a7593'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom App Styling -->
+<style data-purpose="app-core">
+    body {
+      background-color: #14121d;
+      color: #ede9f6;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom scrollbar matching Twilight Sakura theme */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d293d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff6584;
+    }
+  </style>
+<style data-purpose="glow-effects">
+    .selected-episode-glow {
+      box-shadow: 0 0 0 1.5px #ff6584, 0 4px 20px rgba(255, 101, 132, 0.2);
+    }
+    .status-dot-pulse {
+      animation: pulse-dot 2.2s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+  </style>
+<!-- END: Custom App Styling -->
+</head>
+<body class="min-h-screen flex flex-col font-sans overflow-x-hidden selection:bg-vault-coral selection:text-white">
+<!-- BEGIN: DesktopWindowChrome -->
+<!-- Top decorative macOS/Desktop window bar with title and controls -->
+<header class="h-9 w-full bg-[#100e18] border-b border-vault-border flex items-center justify-between px-4 text-xs text-vault-muted select-none">
+<!-- Window controls (macOS style window buttons) -->
+<div class="flex items-center space-x-2">
+<span class="w-3 h-3 rounded-full bg-[#e8545b]/80 border border-[#c4434a] hover:opacity-100 transition inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-[#e5b542]/80 border border-[#bfa034] hover:opacity-100 transition inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-[#46c263]/80 border border-[#3b9f54] hover:opacity-100 transition inline-block"></span>
+<span class="ml-4 text-[11px] font-mono tracking-wider text-vault-muted">ANIME_VAULT // SOURCING ENGINE 2.4</span>
+</div>
+<!-- Centered current anime identity -->
+<div class="hidden md:flex items-center space-x-2 font-medium text-vault-lavender text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-vault-coral inline-block"></span>
+<span>Frieren: Beyond Journey's End (Sousou no Frieren)</span>
+<span class="text-vault-muted">· Season 01</span>
+</div>
+<!-- System specs info right side -->
+<div class="flex items-center space-x-3 text-[11px] font-mono">
+<span class="text-emerald-400/90 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block status-dot-pulse"></span>
+        NODE_SYNCED
+      </span>
+<span class="text-vault-muted">v2.4.1</span>
+</div>
+</header>
+<!-- END: DesktopWindowChrome -->
+<!-- BEGIN: MainContainer -->
+<main class="flex-1 max-w-[1920px] w-full mx-auto px-5 sm:px-8 lg:px-10 py-6 flex flex-col">
+<!-- BEGIN: NavigationAndBack -->
+<!-- Back button aligned with original UI, enhanced with hover accent -->
+<div class="mb-5">
+<button class="inline-flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-semibold tracking-wide text-vault-coral border border-vault-coral/60 bg-vault-surface hover:bg-vault-coral hover:text-white transition-all duration-200 shadow-sm active:scale-95" data-purpose="back-navigation" type="button">
+<svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+        Back
+      </button>
+</div>
+<!-- END: NavigationAndBack -->
+<!-- BEGIN: HeaderSection -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4">
+<!-- Title & Series Details -->
+<div>
+<div class="flex items-baseline gap-3">
+<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Choose episode</h1>
+<span class="text-sm font-medium text-vault-lavender hidden sm:inline-block">— Frieren: Beyond Journey's End</span>
+</div>
+<p class="text-xs text-vault-muted mt-1 font-normal">Select a sequence card to commence direct MPV / Web player stream</p>
+</div>
+<!-- Filter Dropdown & Search Actions (matches original dropdown top right) -->
+<div class="flex items-center gap-3 self-start lg:self-auto">
+<!-- Filter dropdown select -->
+<div class="relative min-w-[210px]" data-purpose="status-filter-container">
+<label class="sr-only" for="release-filter">Filter by release status</label>
+<select class="w-full appearance-none bg-vault-surface border border-vault-border text-sm text-vault-lavender rounded-lg px-4 py-2 pr-10 hover:border-vault-borderLight focus:border-vault-coral focus:ring-1 focus:ring-vault-coral focus:outline-none transition cursor-pointer" id="release-filter">
+<option selected="">All release states</option>
+<option>Aired &amp; Available (19/19)</option>
+<option>Upcoming Schedule (1)</option>
+<option>Unwatched Only</option>
+<option>Watched Episodes</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-vault-muted">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+<!-- END: HeaderSection -->
+<!-- BEGIN: ActionAndStatusBanner -->
+<div class="space-y-3.5 mb-6">
+<!-- Download / Finder Trigger Button (matches original "Find an episode / download...") -->
+<div class="flex items-center gap-3 flex-wrap">
+<button class="inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-xs font-semibold tracking-wide bg-vault-surface hover:bg-vault-surfaceHover text-white border border-vault-border hover:border-vault-coral/70 transition shadow-sm group active:scale-95" data-purpose="episode-finder-btn" type="button">
+<svg class="w-4 h-4 text-vault-coral group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Find an episode / download...</span>
+<span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-vault-border text-vault-muted group-hover:text-vault-lavender">Ctrl+D</span>
+</button>
+<span class="text-xs text-vault-muted font-normal">
+          19 video files across all local episode folders. Select a block to play.
+        </span>
+</div>
+<!-- Diagnostic & Schedule Notice Box (Direct reproduction of screenshot notification container) -->
+<div class="w-full bg-[#181622] border border-vault-border/90 rounded-lg px-4 py-3 text-xs flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-vault-lavender shadow-inner" data-purpose="schedule-notice-banner">
+<div class="flex items-start md:items-center gap-2.5">
+<!-- Information icon -->
+<svg class="w-4 h-4 text-vault-coral mt-0.5 md:mt-0 flex-shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<p class="leading-relaxed">
+<span class="text-white font-medium">Episode 20</span> is scheduled for <span class="text-vault-coral font-medium">12 Nov 2026</span>; it is excluded from missing episodes. No missing episodes found in the checked range through 19.
+          </p>
+</div>
+<!-- Integrity tag -->
+<div class="flex items-center gap-2 self-start md:self-auto flex-shrink-0">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#201d2d] border border-vault-border text-[11px] font-mono text-emerald-400">
+<svg class="w-3 h-3 text-emerald-400" fill="currentColor" viewbox="0 0 20 20">
+<path clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill-rule="evenodd"></path>
+</svg>
+            CHECKSUM_VERIFIED (19/19)
+          </span>
+</div>
+</div>
+</div>
+<!-- END: ActionAndStatusBanner -->
+<!-- BEGIN: EpisodeGrid -->
+<!-- Grid reproducing 8 columns desktop layout as captured in screenshot -->
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-3.5 mb-8" data-purpose="episodes-grid">
+<!-- Episode 1 (SELECTED / CURRENT ACTIVE PLAYBACK) -->
+<button class="group text-left p-3.5 rounded-lg bg-[#201c2d] border border-vault-coral selected-episode-glow flex flex-col justify-between h-[78px] transition-all relative overflow-hidden focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-bold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 1</span>
+<span class="w-1.5 h-1.5 rounded-full bg-vault-coral"></span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-coral font-medium">1080p</span>
+</div>
+<!-- Active playback progress bottom bar -->
+<div class="absolute bottom-0 left-0 right-0 h-[2px] bg-vault-border">
+<div class="h-full bg-vault-coral w-full"></div>
+</div>
+</button>
+<!-- Episode 2 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 2</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 3 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 3</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 4 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 4</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 5 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 5</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 6 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 6</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 7 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 7</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 8 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 8</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 9 (Row 2 start) -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 9</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 10 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 10</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 11 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 11</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 12 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 12</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 13 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 13</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 14 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 14</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 15 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 15</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 16 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 16</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 17 (Row 3 start) -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 17</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 18 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 18</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 19 -->
+<button class="group text-left p-3.5 rounded-lg bg-vault-surface hover:bg-vault-surfaceHover border border-vault-border hover:border-vault-borderLight flex flex-col justify-between h-[78px] transition-all hover:-translate-y-0.5 focus:outline-none" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-semibold text-white tracking-wide group-hover:text-vault-coral transition-colors">Episode 19</span>
+</div>
+<div class="flex items-center justify-between w-full text-[11px] text-vault-muted group-hover:text-vault-lavender">
+<span>S1 / Episode</span>
+<span class="text-[10px] font-mono text-vault-muted">24m</span>
+</div>
+</button>
+<!-- Episode 20 Scheduled Ghost Placeholder -->
+<div class="text-left p-3.5 rounded-lg bg-[#161420]/50 border border-vault-border/50 border-dashed flex flex-col justify-between h-[78px] opacity-40 cursor-not-allowed select-none" title="Scheduled for 12 Nov 2026">
+<div class="flex items-center justify-between w-full">
+<span class="text-sm font-medium text-vault-muted">Episode 20</span>
+<span class="text-[10px] font-mono text-vault-coral/80 bg-vault-coral/10 px-1 py-0.5 rounded">SCHED</span>
+</div>
+<div class="flex items-center justify-between w-full text-[10px] text-vault-muted font-mono">
+<span>12 Nov 2026</span>
+<span>S1 / Airing</span>
+</div>
+</div>
+</div>
+<!-- END: EpisodeGrid -->
+<!-- BEGIN: QuickDetailsPanel -->
+<!-- Rich metadata footer drawer showing current active episode overview -->
+<section class="mt-auto bg-vault-surface/70 border border-vault-border rounded-xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-sm" data-purpose="active-episode-metadata-card">
+<div class="flex items-start sm:items-center gap-4">
+<!-- Play thumbnail preview icon -->
+<div class="w-12 h-12 rounded-lg bg-vault-coral/10 border border-vault-coral/30 flex items-center justify-center text-vault-coral flex-shrink-0">
+<svg class="w-6 h-6 ml-0.5" fill="currentColor" viewbox="0 0 20 20">
+<path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-sm sm:text-base font-semibold text-white">Currently Ready: Episode 1 · "The Journey's End"</h2>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-vault-coral/20 text-vault-coral border border-vault-coral/30 font-medium">Auto-Resume</span>
+</div>
+<p class="text-xs text-vault-lavender mt-0.5 font-normal">
+            Path: <span class="font-mono text-vault-muted">/Volumes/AnimeDrive/Frieren/[Erai-raws] Frieren - 01 [1080p][HEVC 10bit x265].mkv</span>
+</p>
+</div>
+</div>
+<!-- Action buttons -->
+<div class="flex items-center gap-3 w-full md:w-auto justify-end">
+<button class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-vault-lavender bg-[#232033] hover:text-white hover:bg-vault-borderLight border border-vault-border transition" type="button">
+          File Info
+        </button>
+<button class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-vault-coral hover:bg-vault-coralLight transition shadow-lg shadow-vault-coral/20 flex items-center gap-2" type="button">
+<svg class="w-3.5 h-3.5 fill-current" viewbox="0 0 20 20">
+<path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path>
+</svg>
+          Play with MPV
+        </button>
+</div>
+</section>
+<!-- END: QuickDetailsPanel -->
+</main>
+<!-- END: MainContainer -->
+<!-- BEGIN: DesktopFooterStatusBar -->
+<!-- Permanent desktop application status strip at screen bottom -->
+<footer class="h-8 bg-[#0f0e16] border-t border-vault-border px-5 flex items-center justify-between text-[11px] font-mono text-vault-muted select-none">
+<!-- Left status details -->
+<div class="flex items-center space-x-4">
+<span class="flex items-center gap-1.5 text-vault-lavender">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        Daemon v2.4.1 connected
+      </span>
+<span class="hidden sm:inline">Local library sync active</span>
+<span class="hidden md:inline text-vault-borderLight">|</span>
+<span class="hidden md:inline">Renderer: Direct3D11 / Libmpv</span>
+</div>
+<!-- Right disk and network status -->
+<div class="flex items-center space-x-4">
+<span class="text-vault-lavender">Storage: 257.98 GB free</span>
+<span class="hidden sm:inline text-vault-coral">100% Downloaded</span>
+</div>
+</footer>
+<!-- END: DesktopFooterStatusBar -->
+<!-- BEGIN: SimpleCardInteractionScript -->
+<script data-purpose="episode-card-selection">
+    // Add lightweight interactive state switching between episode blocks
+    document.addEventListener('DOMContentLoaded', () => {
+      const episodeButtons = document.querySelectorAll('[data-purpose="episodes-grid"] button');
+
+      episodeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Remove active glowing class from previous
+          episodeButtons.forEach(b => {
+            b.classList.remove('selected-episode-glow', 'border-vault-coral', 'bg-[#201c2d]');
+            b.classList.add('bg-vault-surface', 'border-vault-border');
+            const dot = b.querySelector('.bg-vault-coral.w-1\\.5');
+            if (dot) dot.remove();
+            const bar = b.querySelector('.absolute.bottom-0');
+            if (bar) bar.remove();
+          });
+
+          // Apply selected style to clicked button
+          btn.classList.add('selected-episode-glow', 'border-vault-coral', 'bg-[#201c2d]');
+          btn.classList.remove('bg-vault-surface', 'border-vault-border');
+
+          // Append glow indicator dot if not present
+          const titleContainer = btn.querySelector('.flex.items-center.justify-between');
+          if (titleContainer && !titleContainer.querySelector('.bg-vault-coral')) {
+            const dot = document.createElement('span');
+            dot.className = 'w-1.5 h-1.5 rounded-full bg-vault-coral';
+            titleContainer.appendChild(dot);
+          }
+        });
+      });
+    });
+  </script>
+<!-- END: SimpleCardInteractionScript -->
+</body></html>

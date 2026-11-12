@@ -57,6 +57,7 @@ class DownloadTests(unittest.TestCase):
 
     def adapter(self):
         adapter=Mock()
+        adapter.snapshot.return_value={'status':'Downloading','files':[]}
         def prepare(item,source):item['torrent_identity']='a'*40;return object()
         adapter.prepare.side_effect=prepare
         return adapter
@@ -69,8 +70,8 @@ class DownloadTests(unittest.TestCase):
         self.assertEqual(row['destination'],destination)
         self.assertEqual(row['engine'],'builtin')
         self.assertFalse(Path(destination).exists())
-        self.assertFalse(row['selection_confirmed'])
-        self.assertEqual(row['desired'],'paused')
+        self.assertTrue(row['selection_confirmed'])
+        self.assertEqual(row['desired'],'running')
         self.assertTrue(row['source_ref'].startswith('magnet:'))
         adapter.attach.assert_called_once()
         self.assertEqual(db.get_franchise(self.fid)['anilist_id'],21)
@@ -91,12 +92,12 @@ class DownloadTests(unittest.TestCase):
         service._save_jobs([old]);adapter=self.adapter()
         with patch('app.core.builtin_torrents.engine',return_value=adapter),patch('requests.sessions.Session.request',side_effect=AssertionError('No external client')):
             message=download_queue.action(old['id'],'retry')
-            with self.assertRaisesRegex(ValueError,'already retried'):download_queue.action(old['id'],'retry')
+            download_queue.action(old['id'],'retry')
         self.assertIn('Anime Vault',message)
-        rows=service.jobs();self.assertEqual(len(rows),2)
+        rows=service.jobs();self.assertEqual(len(rows),1)
         native=next(row for row in rows if row['engine']=='builtin')
         self.assertNotEqual(native['destination'],old['destination'])
-        self.assertEqual(native['replaces_external'],old['id'])
+        self.assertEqual(native['id'],old['id'])
         self.assertEqual(native['episode_keys'],old['episode_keys'])
         self.assertEqual(file.read_bytes(),b'video')
 

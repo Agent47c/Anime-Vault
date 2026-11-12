@@ -5,6 +5,32 @@ from app.core import downloads
 from app.core.season_numbering import explicit_number
 
 
+def _custom_key(fid,season):
+    series=db.get_series(fid)
+    if not series:raise ValueError('This anime is no longer in the library.')
+    return f"download_custom_query:{series['id']}:{season or 0}"
+
+
+def custom_query(fid,season=None):
+    try:
+        value=json.loads(db.get_state(_custom_key(fid,season),'{}'))
+        return value if isinstance(value,dict) else {}
+    except (ValueError,TypeError):return {}
+
+
+def save_custom_query(fid,season,query):
+    query=query.strip()
+    if not query:raise ValueError('Enter your custom search text first.')
+    db.set_state(_custom_key(fid,season),json.dumps(dict(query=query,active=True)))
+    return query
+
+
+def activate_custom_query(fid,season,active):
+    saved=custom_query(fid,season)
+    if saved:
+        saved['active']=bool(active);db.set_state(_custom_key(fid,season),json.dumps(saved))
+
+
 def title_options(fid,season=None):
     series=db.get_series(fid)
     if not series:return []

@@ -64,6 +64,7 @@ def _complete(operation_id, source, target):
     with closing(_connection()) as conn, conn:
         conn.execute("UPDATE repair_candidates SET status='RESOLVED_BY_MOVE' WHERE file_id=(SELECT file_id FROM file_locations WHERE path_key=?) AND status='REVIEW'", (identity.path_key(source),))
         identity.relocate(conn, source, target)
+        conn.execute('UPDATE physical_files SET size_bytes=?,mtime_ns=?,device=?,inode=? WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)',(*identity.signature(target),identity.path_key(target)))
         conn.execute("UPDATE file_operations SET status='COMPLETED',error=NULL,updated_at=? WHERE id=?", (int(time.time()), operation_id))
 
 
@@ -94,6 +95,15 @@ def recover_operations():
     with closing(db.get_connection()) as conn:
         rows = conn.execute("SELECT * FROM file_operations WHERE status<>'COMPLETED'").fetchall()
     for row in rows:
+        if row['kind']=='COPY_MOVE':
+            try:
+                source,target=Path(row['source']),Path(row['target']);proof=json.loads(row['signature'])
+                if not source.exists() and target.is_file() and not target.is_symlink() and proof.get('sha256') and _digest(target)==proof['sha256']:
+                    _complete(row['id'],source,target);recovered+=1
+                else:raise ValueError('Interrupted verified-copy move; original/target retained for review')
+            except (OSError,ValueError) as error:
+                _status(row['id'],'REVIEW',str(error));errors.append(f"{row['source']}: {error}")
+            continue
         if row['kind'] != 'MOVE':
             _status(row['id'], 'REVIEW', row['error'] or 'Interrupted Recycle Bin operation; review required')
             errors.append(f"{row['source']}: interrupted Recycle Bin operation; review required")
@@ -112,6 +122,44 @@ def recover_operations():
             _status(row['id'], 'REVIEW', str(error))
             errors.append(f"{row['source']}: {error}")
     return {'recovered': recovered, 'errors': errors}
+
+
+def _digest(path):
+    import hashlib
+    digest=hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for block in iter(lambda:stream.read(1024*1024),b''):digest.update(block)
+    return digest.hexdigest()
+
+
+@serialized
+def copy_move_file(source,target,expected=None):
+    """Explicit cross-volume move: exclusive copy, hash verification, then unlink.
+
+    Recovery never deletes either copy automatically when both still exist.
+    """
+    operation,before=prepare_move(source,target,expected);source,target=Path(source).absolute(),Path(target).absolute()
+    proof={'original':before,'sha256':None};temporary=target.with_name(target.name+'.'+operation+'.partial')
+    def save_proof():
+        with closing(_connection()) as conn,conn:conn.execute("UPDATE file_operations SET kind='COPY_MOVE',signature=? WHERE id=?",(json.dumps(proof),operation))
+    save_proof();created=False
+    try:
+        import shutil
+        target.parent.mkdir(parents=True,exist_ok=True)
+        with source.open('rb') as incoming,temporary.open('xb') as outgoing:
+            created=True
+            shutil.copyfileobj(incoming,outgoing,1024*1024);outgoing.flush();os.fsync(outgoing.fileno())
+        proof['sha256']=_digest(temporary)
+        if identity.signature(source)!=before or _digest(source)!=proof['sha256']:raise ValueError('Source changed during copy; original kept')
+        save_proof();os.utime(temporary,ns=(before[1],before[1]));_rename_noreplace(temporary,target)
+        if _digest(target)!=proof['sha256'] or identity.signature(source)!=before:raise ValueError('Move verification failed; original kept')
+        source.unlink();_complete(operation,source,target)
+        return operation
+    except Exception as error:
+        try:
+            if created and source.exists() and identity.signature(source)==before and not target.exists():temporary.unlink(missing_ok=True)
+        except OSError:pass
+        _status(operation,'REVIEW',str(error));raise
 
 
 @serialized

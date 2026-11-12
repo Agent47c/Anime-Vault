@@ -33,6 +33,7 @@ def _apply_import_metadata(fid,media):
 
 
 def save_entry(data,previous=None,cover_path=None):
+    db.validate_fields(data,db.FRANCHISE_FIELDS)
     data=dict(data)
     folder=data.get('root_folder_path')
     changed=bool(folder and (not previous or folder!=previous.get('root_folder_path')))

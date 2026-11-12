@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault - Episode Coverage &amp; Franchise Report</title>
+<!-- Tailwind CSS v3 CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#14121d',
+            surface: {
+              card: '#1c1a27',
+              hover: '#252333',
+              subtle: '#181622',
+              border: '#2c293d',
+              glass: 'rgba(28, 26, 39, 0.75)'
+            },
+            sakura: {
+              DEFAULT: '#ff6584',
+              hover: '#ff4d72',
+              glow: 'rgba(255, 101, 132, 0.25)',
+              subtle: 'rgba(255, 101, 132, 0.12)'
+            },
+            status: {
+              complete: '#10b981',
+              completeBg: 'rgba(16, 185, 129, 0.12)',
+              warning: '#f59e0b',
+              warningBg: 'rgba(245, 158, 11, 0.12)'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Scrollbar Styles -->
+<style data-purpose="custom-scrollbar">
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2b273b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff6584;
+    }
+  </style>
+<!-- Custom Glassmorphism Styles -->
+<style data-purpose="glass-effects">
+    .glass-panel {
+      background: rgba(28, 26, 39, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid #2d293d;
+    }
+    .sakura-glow {
+      box-shadow: 0 0 20px -3px rgba(255, 101, 132, 0.25);
+    }
+    .sakura-border-hover:hover {
+      border-color: rgba(255, 101, 132, 0.45);
+      box-shadow: 0 4px 20px -2px rgba(255, 101, 132, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-canvas text-slate-200 font-sans antialiased min-h-screen flex flex-col selection:bg-sakura selection:text-white">
+<!-- BEGIN: DesktopWindowChrome -->
+<header class="h-9 bg-[#0e0c15] border-b border-[#232030] flex items-center justify-between px-3.5 select-none shrink-0" data-purpose="window-titlebar">
+<div class="flex items-center space-x-2 text-xs text-slate-400 font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-sakura inline-block shadow-[0_0_8px_#ff6584]"></span>
+<span class="font-display tracking-wide font-semibold text-slate-300">ANIME VAULT DESKTOP</span>
+<span class="text-slate-600">/</span>
+<span class="text-slate-400">Library Inspector</span>
+</div>
+<!-- Window Control Buttons -->
+<div class="flex items-center space-x-3 text-slate-400" data-purpose="window-controls">
+<button class="hover:text-white transition-colors" title="Minimize">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M20 12H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="hover:text-white transition-colors" title="Maximize">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><rect height="16" rx="2" stroke-width="2" width="16" x="4" y="4"></rect></svg>
+</button>
+<button class="hover:text-sakura transition-colors" title="Close Window">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</header>
+<!-- END: DesktopWindowChrome -->
+<!-- BEGIN: MainAppHeader -->
+<nav class="h-16 bg-surface-card/90 border-b border-surface-border px-6 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md" data-purpose="primary-navigation">
+<!-- Brand & Primary Tabs -->
+<div class="flex items-center space-x-8">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sakura to-purple-600 flex items-center justify-center shadow-lg shadow-sakura/20">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<span class="font-display font-bold text-lg tracking-tight text-white">Anime<span class="text-sakura">Vault</span></span>
+</div>
+<div class="hidden md:flex items-center space-x-1 font-medium text-sm">
+<a class="px-3 py-1.5 rounded-lg text-sakura bg-sakura-subtle font-semibold" href="#">Library</a>
+<a class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-hover transition-colors" href="#">Updates</a>
+<a class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-hover transition-colors" href="#">Downloads</a>
+<a class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-hover transition-colors" href="#">Organizer</a>
+<a class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-hover transition-colors" href="#">Storage</a>
+<a class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-hover transition-colors" href="#">Settings</a>
+</div>
+</div>
+<!-- Search & Storage Metric Badge -->
+<div class="flex items-center space-x-4">
+<div class="relative w-64">
+<svg class="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<input class="w-full pl-9 pr-4 py-1.5 bg-[#12101a] border border-surface-border text-xs rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura transition-all" placeholder="Filter indexed seasons..." type="text"/>
+</div>
+<!-- NVMe Storage Indicator -->
+<div class="flex items-center space-x-2 px-3 py-1.5 bg-[#12101a] border border-surface-border rounded-lg text-xs" title="NVMe Media Array Storage">
+<svg class="w-3.5 h-3.5 text-sakura" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-slate-400">Array Free:</span>
+<span class="font-semibold text-slate-200">1.84 TB</span>
+</div>
+</div>
+</nav>
+<!-- END: MainAppHeader -->
+<!-- BEGIN: SubNavigation -->
+<section class="border-b border-surface-border bg-canvas/90 px-8 py-3.5 flex items-center justify-between text-sm" data-purpose="sub-navigation">
+<a class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg border border-surface-border bg-surface-card hover:bg-surface-hover hover:border-sakura/50 text-slate-300 hover:text-white transition-all text-xs font-semibold group shadow-sm" href="#">
+<svg class="w-4 h-4 text-sakura group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Back to Series Details</span>
+</a>
+<div class="flex items-center space-x-3">
+<span class="text-xs text-slate-400 font-medium">Franchise Sync ID: <span class="text-slate-200 font-mono">OP-88219-X</span></span>
+<button class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-slate-300 hover:text-white transition-all">
+<svg class="w-3.5 h-3.5 text-sakura animate-spin-slow" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Check franchise updates</span>
+</button>
+</div>
+</section>
+<!-- END: SubNavigation -->
+<!-- BEGIN: MainContentArea -->
+<main class="flex-1 px-8 py-6 max-w-7xl mx-auto w-full flex flex-col space-y-6" data-purpose="report-main-content">
+<!-- Report Title and Subtitle -->
+<header class="space-y-1">
+<div class="flex items-center space-x-3">
+<h1 class="text-2xl font-bold font-display tracking-tight text-white flex items-center space-x-2">
+<span>Episode coverage &amp; franchise breakdown</span>
+</h1>
+<span class="text-xs px-2.5 py-0.5 rounded-full bg-sakura/10 text-sakura border border-sakura/30 font-medium">Full Audit Mode</span>
+</div>
+<p class="text-sm text-slate-400">
+<span class="text-slate-200 font-medium font-mono text-sakura">1,170</span> distinct main-series episode numbers found. Movies, specials, and alternate editions are cataloged separately.
+      </p>
+</header>
+<!-- Boundary Notification Banner -->
+<div class="glass-panel rounded-xl p-4 border-l-4 border-l-amber-500 flex items-start space-x-3 shadow-md" data-purpose="boundary-warning-banner">
+<div class="p-1 rounded-lg bg-status-warningBg text-status-warning shrink-0 mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="text-xs space-y-0.5">
+<h4 class="font-semibold text-slate-200 tracking-wide">Unverified franchise boundaries detected</h4>
+<p class="text-slate-400 leading-relaxed">
+          Release boundary unverified: only gaps between detected episodes are verified. Files elsewhere in this franchise can fill a gap in an arc.
+        </p>
+</div>
+</div>
+<!-- Main Layout: Accordion / Grid + Side Summary Stats -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Primary Seasons Column -->
+<div class="lg:col-span-8 space-y-3" data-purpose="seasons-breakdown-list">
+<!-- Parent Root Series Card -->
+<div class="glass-panel rounded-xl p-5 border border-surface-border hover:border-sakura/40 transition-all">
+<div class="flex items-center justify-between">
+<div class="space-y-1">
+<div class="flex items-center space-x-2">
+<span class="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300">Root Franchise Arc</span>
+<span class="text-xs text-status-complete font-semibold flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-complete"></span>
+<span>Verified Range</span>
+</span>
+</div>
+<h3 class="text-lg font-bold text-white font-display">THE GRAND ADVENTURE / ONE PIECE</h3>
+<p class="text-xs text-slate-400">Release boundary unverified; internal gaps checked</p>
+</div>
+<div class="text-right">
+<span class="text-lg font-mono font-bold text-sakura">62 / 62</span>
+<p class="text-[11px] text-slate-400 font-medium">62 distinct files indexed</p>
+</div>
+</div>
+</div>
+<!-- Season Accordion List -->
+<!-- Season 02 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 02</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">15 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">15 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p HEVC x265</span>
+<span>•</span>
+<span class="text-slate-400">14.2 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+<!-- Season 03 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 03</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">15 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">15 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p HEVC x265</span>
+<span>•</span>
+<span class="text-slate-400">13.8 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+<!-- Season 04 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 04</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">38 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">38 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p AVC x264</span>
+<span>•</span>
+<span class="text-slate-400">36.1 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+<!-- Season 05 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 05</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">13 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">13 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p HEVC x265</span>
+<span>•</span>
+<span class="text-slate-400">11.9 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+<!-- Season 06 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 06</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">52 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">52 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p HEVC x265</span>
+<span>•</span>
+<span class="text-slate-400">50.4 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+<!-- Season 07 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 07</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">33 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">33 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p HEVC x265</span>
+<span>•</span>
+<span class="text-slate-400">32.6 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+<!-- Season 08 -->
+<div class="glass-panel rounded-xl p-4 border border-surface-border sakura-border-hover transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center space-x-2.5">
+<h4 class="font-display font-semibold text-white text-base">Season 08</h4>
+<span class="px-2 py-0.5 rounded-full bg-status-completeBg text-status-complete text-[10px] font-semibold border border-status-complete/20">Complete Arc</span>
+</div>
+<p class="text-xs text-slate-400">Boundaries unverified; only internal gaps are checked</p>
+<div class="flex items-center space-x-3 text-[11px] text-slate-400 pt-1 font-mono">
+<span class="text-slate-300">35 distinct episodes</span>
+<span>•</span>
+<span class="text-slate-300">35 files</span>
+<span>•</span>
+<span class="text-slate-400">1080p HEVC x265</span>
+<span>•</span>
+<span class="text-slate-400">34.1 GB</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-slate-500 text-xs text-slate-300 hover:text-white transition-colors">Inspect files</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-card border border-surface-border hover:border-sakura text-xs text-sakura hover:bg-sakura/10 transition-colors">Scan gaps</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Interactive Franchise Summary Sidebar -->
+<aside class="lg:col-span-4 space-y-4" data-purpose="franchise-sidebar-summary">
+<!-- Overall Progress Pill / Card -->
+<div class="glass-panel rounded-xl p-5 border border-surface-border space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-display font-bold text-white text-base">Franchise Metrics</h3>
+<span class="text-xs font-mono bg-sakura/20 text-sakura font-bold px-2 py-0.5 rounded">v4.19</span>
+</div>
+<!-- Progress Ring / Percentage Stat -->
+<div class="bg-surface-subtle p-4 rounded-xl border border-surface-border flex items-center justify-between">
+<div>
+<p class="text-xs text-slate-400 font-medium">Completion Ratio</p>
+<h2 class="text-3xl font-display font-bold text-white mt-0.5">98.4<span class="text-sakura font-normal">%</span></h2>
+<p class="text-[11px] text-slate-500 mt-1">1,170 / 1,189 cataloged</p>
+</div>
+<div class="w-14 h-14 rounded-full border-4 border-surface-border border-t-sakura border-r-sakura flex items-center justify-center font-mono font-bold text-xs text-white">
+              98%
+            </div>
+</div>
+<!-- Key Stat Breakdowns -->
+<div class="space-y-2.5 pt-1 text-xs">
+<div class="flex items-center justify-between py-1.5 border-b border-surface-border/60">
+<span class="text-slate-400">Total Indexed Footprint</span>
+<span class="font-mono font-semibold text-slate-200">948.4 GB</span>
+</div>
+<div class="flex items-center justify-between py-1.5 border-b border-surface-border/60">
+<span class="text-slate-400">Unassigned Extra Specials</span>
+<span class="font-mono font-semibold text-amber-400">14 files</span>
+</div>
+<div class="flex items-center justify-between py-1.5 border-b border-surface-border/60">
+<span class="text-slate-400">OAV / Theatrical Movies</span>
+<span class="font-mono font-semibold text-slate-200">15 releases</span>
+</div>
+<div class="flex items-center justify-between py-1.5">
+<span class="text-slate-400">Primary Codec Profile</span>
+<span class="font-mono font-semibold text-slate-200">HEVC Main 10</span>
+</div>
+</div>
+<div class="pt-2">
+<button class="w-full py-2 bg-surface-card hover:bg-surface-hover border border-surface-border hover:border-slate-500 text-xs font-semibold rounded-lg text-slate-200 transition-colors flex items-center justify-center space-x-1.5">
+<svg class="w-3.5 h-3.5 text-sakura" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Scan Directory for Missing Files</span>
+</button>
+</div>
+</div>
+<!-- Arc Verification Helper Box -->
+<div class="p-4 rounded-xl border border-surface-border bg-surface-subtle/70 text-xs space-y-2">
+<span class="font-semibold text-slate-300 flex items-center space-x-1.5">
+<svg class="w-3.5 h-3.5 text-sakura" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Boundary Verification Notes</span>
+</span>
+<p class="text-slate-400 leading-relaxed">
+            Only sequence gaps within indexed episode numbering sequences are validated. If season dividers contain non-sequential naming tokens, re-run matching using the AniDB franchise mapping agent.
+          </p>
+</div>
+</aside>
+</div>
+</main>
+<!-- END: MainContentArea -->
+<!-- BEGIN: StickyBottomBar -->
+<footer class="sticky bottom-0 z-40 bg-[#100e18]/95 border-t border-surface-border px-8 py-3.5 backdrop-blur-md flex items-center justify-between mt-auto" data-purpose="bottom-action-dock">
+<div class="flex items-center space-x-3 text-xs text-slate-400">
+<span class="inline-block w-2 h-2 rounded-full bg-status-complete"></span>
+<span>Anime Vault Indexer: Ready</span>
+<span class="text-slate-600">|</span>
+<span>Engine: v2.4.0 (x86_64)</span>
+</div>
+<!-- Center Close Action mimicking the screenshot's 'Close' button -->
+<div class="flex items-center space-x-3">
+<button class="px-5 py-2 rounded-lg bg-surface-card hover:bg-surface-hover border border-surface-border hover:border-slate-500 text-xs font-semibold text-slate-300 transition-all shadow-sm">
+        Export breakdown (.json)
+      </button>
+<button class="px-7 py-2 rounded-lg bg-sakura hover:bg-sakura-hover text-white text-xs font-bold transition-all sakura-glow shadow-md">
+        Close report
+      </button>
+</div>
+</footer>
+<!-- END: StickyBottomBar -->
+</body></html>

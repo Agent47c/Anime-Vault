@@ -190,6 +190,7 @@ def detect_installed_players() -> dict:
             r"C:\Program Files (x86)\MPC-HC\mpc-hc.exe",
             r"C:\Program Files\K-Lite Codec Pack\MPC-HC64\mpc-hc64.exe",
         ],
+        "potplayer": [r"C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe",r"C:\Program Files\DAUM\PotPlayer\PotPlayerMini.exe",r"C:\Program Files (x86)\DAUM\PotPlayer\PotPlayerMini.exe"],
     }
     found = {}
     for name, paths in candidates.items():
@@ -200,7 +201,7 @@ def detect_installed_players() -> dict:
     return found
 
 
-def launch_video_file(video_path: str) -> bool:
+def launch_video_file(video_path: str, resume=True) -> bool:
     """Safely launch a video file in the configured player with security validation.
     
     Validates:
@@ -228,6 +229,7 @@ def launch_video_file(video_path: str) -> bool:
     if player_type == "custom":
         custom = get_custom_player_path()
         if custom and os.path.isfile(custom):
+            if os.name=='nt' and Path(custom).suffix.lower()!='.exe':raise ValueError('Choose a Windows .exe media player; scripts and shortcuts cannot be launched.')
             player_exe = custom
     elif player_type in installed:
         player_exe = installed[player_type]
@@ -242,11 +244,16 @@ def launch_video_file(video_path: str) -> bool:
                 if language in ('eng','jpn'): arguments.append(flag+language)
             if db.get_state('playback.subtitles','1')=='0': arguments.append('--no-spu' if player_type=='vlc' else '--sid=no')
             if db.get_state('playback.fullscreen','0')=='1': arguments.append('--fullscreen')
-        subprocess.Popen([player_exe,*arguments,str(path)])
+        from app.core import playback
+        session=playback.launch_session(player_type,path,resume=resume)
+        process=subprocess.Popen([player_exe,*arguments,*(session.arguments if session else []),str(path)])
+        playback.attach(session,process)
         return True
     else:
         # Fallback to Windows default registered handler
         os.startfile(str(path))
+        from app.core import playback
+        playback.attach(None)
         return True
 
 

@@ -10,6 +10,12 @@ import sys
 import os
 from pathlib import Path
 
+# AUDIT-START: passive measurements only; remove this block after the audit.
+if os.environ.get('APP_PROFILE') == '1':
+    from app.audit_profile import bootstrap
+    bootstrap()
+# AUDIT-END
+
 # Ensure project root is in sys.path
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
@@ -48,7 +54,17 @@ def main():
     if hasattr(Qt, "AA_UseHighDpiPixmaps"):
         QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
+    # AUDIT-START
+    if os.environ.get('APP_PROFILE') == '1':
+        from time import perf_counter
+        audit_qt_start=perf_counter()
+    # AUDIT-END
     app = QApplication([sys.argv[0]] if incoming else sys.argv)
+    # AUDIT-START
+    if os.environ.get('APP_PROFILE') == '1':
+        from app.audit_profile import attach
+        attach(app,(perf_counter()-audit_qt_start)*1000)
+    # AUDIT-END
     app.setApplicationName("Anime Vault")
     app.setApplicationVersion(__version__)
     app.setOrganizationName("AnimeManager")
@@ -91,6 +107,11 @@ def main():
 
     # 8. Start main GUI event loop
     exit_code = app.exec_()
+    # AUDIT-START
+    if os.environ.get('APP_PROFILE') == '1':
+        from app.audit_profile import detach
+        detach(app)
+    # AUDIT-END
     instance_lock.unlock()
     sys.exit(exit_code)
 

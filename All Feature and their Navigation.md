@@ -2,6 +2,39 @@
 
 Anime Vault — current feature inventory and navigation reference for UI redesign.
 
+**Navigation update, 12 November 2026:** Each main tab remembers its open page
+during the current session. Returning to Library restores its series details;
+returning to Updates restores its open release-discovery page. Back and Close
+return to the parent page. Global Library search and collection shortcuts open
+the Library results directly. See NAVIGATION_MEMORY_AND_COMPACT_HEADINGS.md.
+
+**Update review:** Library's New seasons and episodes posters now route through
+Updates to View changes. Back returns to the Updates overview. Ordinary Library
+cards retain anime details. Full-page Back controls and breadcrumbs share one row.
+
+**Shell update:** Maximize fills the Windows work area with the taskbar visible;
+F11 enters/leaves fullscreen. Connectivity and indexed-count status now appear
+beneath All anime instead of in a global footer. The rightmost three-line menu
+retains its existing commands. Disk usage remains in the header and Storage.
+
+**Nested breadcrumb update:** Workflow breadcrumbs now include the full anime
+context and intermediate pages, e.g. Library / Anime / Choose episode / Find
+Download Files. Tab switching retains the path; Back shortens it; returning to
+the Library root resets it. Drawers also show this shared navigation header.
+See BREADCRUMB_NAVIGATION_HISTORY.md.
+
+**Menus/update review:** The top-right navigator and poster/list context menus
+use the shared Vault menu design. Context commands reuse existing Details actions
+and preserve Select. View changes reads fresh saved records on open and offers
+Refresh data for an explicit scoped AniList check, with cached/error/empty states.
+See VAULT_MENUS_AND_UPDATE_REVIEW.md.
+
+**Update-review follow-up:** Open details beside Refresh data navigates to the
+same anime and Back returns to View changes. Episode notifications distinguish
+timestamp-confirmed aired episodes from future scheduled episodes. A shared
+bottom-edge progress bar remains visible across tab changes while refreshes run.
+See UPDATE_DETAILS_EPISODE_TIMING_AND_PROGRESS.md.
+
 **Reviewed:** 11 November 2026. **Scope:** the current Python/PyQt implementation,
 not every idea discussed in chat or every element in an older mockup.
 
@@ -42,7 +75,7 @@ or changes to file handling. No application code was changed to produce it.
 | Downloads | Queue and transfer activity | Setup; download settings; manual download; file selection; queue actions |
 | Organizer | Preview and organize local files | Season organization; merge tab; individual review; missing-path repair; duplicate review |
 | Storage | Drive usage, collection sizes, health and reclaimable space | Details; library reclaim filter; deletion confirmation |
-| Settings | Persistent configuration, import, backup and maintenance | Six category tabs; download setup; organizer; importer; Downloads |
+| Settings | Persistent configuration, import, backup and maintenance | Eight separate category pages; download setup; organizer; importer; Downloads |
 
 The display order above differs from internal stack order. Existing stack indices
 are Library 0, Organizer 1, Updates 2, Storage 3, Settings 4, Downloads 5. These
@@ -146,6 +179,43 @@ protected file operations and running workers must be respected. Do not turn clo
 into immediate process termination or treat tray minimization as cancellation.
 
 ## 3. Library
+
+### Updated Details navigation
+
+Click a poster to open the Twilight Sakura Details page. Primary Play/Resume,
+its playback menu, Open folder, Edit title, Rematch, and Find Download Files remain
+available. **More** opens View API JSON, Group with another series, Episode and
+movie check, and Combine episode folders / Use separate seasons. Edit season
+numbers remains above the full-width season table.
+
+Below seasons, the virtual episode list shows local thumbnails, episode titles/
+descriptions, and recorded playback dates. Use the release selector to narrow
+the list. Click a row's Play/Resume area, or press Enter on the selected row, to
+play it. Full descriptions are available on hover. Choose episode still opens
+the original episode-block page. See `DETAIL_SCREEN_REDESIGN.md` for cache,
+metadata-matching and lifecycle details.
+
+Home uses the Twilight Sakura design from `Home Library Screen`. Its capsule
+header links all six destinations; Quick Find retains search/clear/Ctrl+K. The
+storage chip opens Storage. The actions menu retains Add anime, watched TXT import,
+all collection shortcuts and local/internet Refresh. No profile/avatar is present.
+
+Posters open details normally. To batch-select, use **Home actions → Select
+multiple anime** (double-check icon), **right-click a poster → Select**, or Space
+on a focused poster. Checkboxes then appear in both poster and compact views;
+clicking a poster toggles selection. **Clear Selection** hides the checkboxes again.
+Existing batch actions remain available. The schedule displays one Monday–Sunday
+row: a title for one release, a count for multiple releases, and themed clickable
+hover previews for every entry. Previous/next schedule weeks, sort/filter choices,
+compact view and new-release cards are retained. Calendar/poster transfer badges
+reuse the current download queue; Series DL means a series transfer, not verified
+availability of the particular airing episode.
+
+App-launched VLC/MPV sessions provide real playback position, remaining time and
+resume. Space toggles the owned player while the app is active, except inside text
+and interactive controls. Unsupported players retain normal launch behavior with
+unavailable timing. Progress persists by Episode ID through path changes. Full
+scope and checks: `HOME_LIBRARY_REDESIGN.md`.
 
 ### Continue-watching hero
 
@@ -279,6 +349,14 @@ explicitly select the Media Player tab.
 
 ## 6. Updates
 
+The Twilight Sakura screen uses the shared capsule navigation. Sort by change/
+health counts and last check, newest/oldest check, or title. **Select** enables
+checkboxes and the batch Later/Dismiss/Watched and ignore/Not interested/Mute bar.
+Clear selection returns to normal card navigation. Health cards are inspected
+individually. Episode alerts link to the existing Find Download Files search;
+their View changes action remains in More. Per-anime saved choices still expose
+Restore updates. See `UPDATE_DOWNLOAD_SCREENS.md` for all changes.
+
 **Categories:** All, Episodes, Seasons, Health, New, Later, Not interested, Muted.
 
 - AniList/connectivity information and **Refresh metadata** action.
@@ -304,6 +382,25 @@ Exact duplicate deletion lives in Organizer. Restore updates is attached to the
 relevant anime; there is no need to recreate the removed global muted-anime combo.
 
 ## 7. Organizer
+
+Configured roots and Merge preview source paths now have clickable Open folder
+buttons with full-path tooltips. Shared button rules and vertical Updates actions
+are documented in [Unified buttons and release dates](UNIFIED_BUTTONS_AND_RELEASE_DATES.md).
+
+Completed downloads now appear by their linked anime after Scan now. Review uses
+the dedicated completed-download move preview; torrent staging is excluded from
+generic season organization. See [Download organization and UI fixes](DOWNLOAD_ORGANIZER_AND_UI_POLISH.md).
+
+Current navigation: **Organize seasons and folders**, **Merge all anime into one
+root library**, and **Review duplicate files** are separate Organizer tabs.
+Duplicate review has moved out of the season/folder screen; its scan remains
+manual. Merge and Duplicate Review follow the new supplied references while
+retaining existing operations. See [Merge and Duplicate Review UI](MERGE_DUPLICATE_REFERENCE_UI.md).
+
+Organizer visual update: the Organize seasons and folders tab follows the
+`organizer screen` reference, with rules/roots above the preview. Scan remains
+manual; Merge library is retained. Review duplicate files opens the existing
+workflow without exposing hash/encryption details. See [Organizer reference UI](ORGANIZER_REFERENCE_UI.md).
 
 **Path:** sidebar Organizer → Organize seasons and folders tab.
 
@@ -402,6 +499,13 @@ real move, not only when a preview is generated. Failures are not success states
 
 ## 11. Downloads queue
 
+The redesigned screen uses counted filter pills and painted transfer cards.
+Select a card to use the existing bottom toolbar, its row buttons, or right-click
+menu. **Pause all** pauses eligible active native transfers; **Clear completed**
+confirms removal of completed queue records while keeping files and history.
+The setup side panel edits existing destination/rate preferences and links to
+the original setup wizard and full settings. It scrolls on shorter windows.
+
 **Path:** main sidebar Downloads. Opening it shows activity immediately.
 
 ### Information and filters
@@ -429,16 +533,44 @@ real move, not only when a preview is generated. Failures are not success states
 | More → Open download folder | Open destination in OS |
 | More → Remove queue entry — keep files | Remove tracking entry; preserve local files |
 | More → Move download files to Recycle Bin… | Separate explicit destructive confirmation; only validated tracked files |
+| Move completed to library | Preview verified completed files and their anime/season destinations; explicitly confirm moves, or stop after the current file |
 
 Queue survives app restart. Built-in transfers can continue in tray; full exit
 saves native progress and stops the engine. The external-client integration has
-been removed. Old external queue entries stay as history; Retry confirms a new
-native transfer in an isolated folder without touching their old files. Removing
+been removed. Old external queue entries stay as history; Retry converts the same
+queue entry to a native transfer in an isolated folder without touching their old files. Removing
 a row and deleting its files are different actions.
+
+Native Retry keeps the queue ID, selected files and partial destination. Row menus
+retain their original target across refreshes. The default staging destination for
+new downloads follows the main library; explicit custom destinations are preserved.
+Move completed to library uses a reviewed, no-overwrite journal and updates library
+paths/history references after each file. See [Download retry and library moves](DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md)
+for navigation, recovery behavior and validation.
 
 ## 12. Release search and download review
 
 **Path:** Series details → Find Download Files.
+
+Confirmed downloads start directly without mandatory file selection. Existing
+selection-gated paused jobs can use Downloads → Resume. Choose files remains
+optional; previously selected subsets are preserved on Resume/Retry.
+
+**Confirm anime & episodes:** highlight a result → centered confirmation →
+choose type, season, first/last episode → verify the title/numbering → Confirm.
+Optionally remember its alternate encoder title for future searches of this
+anime/season. Confirm highlighted match opens the same dialog. Review selected
+downloads still confirms submission separately.
+
+**Use Custom One:** save the current search field as the exact default query for
+this anime/season. Reopening restores it. Select a normal title and Use title to
+switch back; the saved custom option remains in the title mapping list.
+
+This destination follows the supplied `file download page` reference: grouped
+search panel, virtual release table with rounded availability pills, optional
+episode availability cards and wrapping actions. Review shows the checked-release
+count. Existing search/review logic is preserved. See [Find Download screen](FIND_DOWNLOAD_SCREEN.md)
+for the UI changes, skipped reference-only features and validation.
 
 ### Search controls and result fields
 
@@ -538,6 +670,22 @@ Preserve this alternate entry flow alongside newer search/queue pages:
   until a series-scoped flow is used.
 
 ## 14. Settings
+
+Current design follows `setting ui screen`: eight separate category pages grouped
+in the sidebar. Naming & Organization and Metadata & AniList have dedicated pages;
+existing Appearance, Scanning, Watchers, Media Player, Downloads and Database links
+retain their category indices. See [Settings UI Screen](SETTINGS_UI_SCREEN.md).
+
+The `Sertting UI` reference is applied through a left category navigator and
+separate category pages. Only the selected category's options are shown; navigation
+does not scroll between sections. Theme previews and player cards use the existing saved
+controls. Settings continue saving immediately. The six-category page container
+preserves existing in-app links. See [Settings reference UI](SETTINGS_REFERENCE_UI.md)
+for preserved controls, skipped mockup features and validation.
+
+Anime selection is available through **All anime → Select anime**, alongside
+sort/view controls, rather than the global top-right actions menu. **Done selecting**
+exits selection mode; existing right-click and batch actions remain available.
 
 Each category owns its own scrolling content. Some tab captions are shorter than
 their full names; full category names are tooltips. Most switches save immediately;
@@ -842,3 +990,43 @@ This inventory is for the current code. A control listed here can still depend o
 valid local paths, available drives, an installed player, provider connectivity,
 or a connected Chrome/client session. Presence in the UI is not a claim that every
 external service or every user's machine has passed live validation.
+
+## Update action and removal navigation (November 2026)
+
+- Updates → Later / Not interested / Mute / Dismiss / Watched and ignore:
+  save in the background, move only the affected card, and update counts.
+- Updates → Later / Not interested / Muted → Restore updates: restore that anime.
+- Updates card or Series details → Remove anime → keep files / review deletion /
+  Cancel. Removal includes grouped seasons, preserves internal history, and
+  excludes kept folders from automatic reimport. Deletion uses existing reviewed
+  Recycle Bin safeguards; failed deletion keeps the entry visible.
+- Compact action buttons sit at the card's bottom-right and wrap when needed.
+- Full change notes: `UPDATE_ACTIONS_AND_REMOVAL.md`.
+
+## Release news navigation
+
+### Five-screen update and approved release actions
+
+- Details → Rematch: full metadata cards; existing release/season assignment and confirmation.
+- Details → Check release updates: broadcast table → filter All/Aired/Scheduled.
+- Aired episode → Auto-Grab → confirm → configured-source lookup → exact verified
+  single-episode result → existing built-in queue. Uncertain results stay manual.
+- Scheduled episode → Notify me: local reminder delivered by the running app.
+- Group with another series → searchable season/arc list → centered review confirmation.
+- Episode and movie check → native coverage report → Export breakdown (.json).
+- Updates → New anime releases → recent/upcoming/announced discovery, premiere/title
+  sorting, responsive cards and Import as Watching.
+- Details notes/ratings/status save through an app-owned background queue. API
+  authentication/origin requirements and remaining audit work are documented in
+  `AUDIT_FIXES_APPLIED.md`; screen details in `FIVE_UI_SCREENS_IMPLEMENTATION.md`.
+
+Reference UI update: Library → List uses the new table layout; Group with another
+series → Review grouping opens the centered confirmation; Organizer → Review
+duplicate files uses the new summary/tree presentation. Existing actions and
+confirmation requirements remain. Details: `THREE_REFERENCE_SCREENS.md`.
+
+- Anime Details → Check release updates → premiere, related seasons, episode schedule.
+- Updates → New episode updates → existing Episodes filter.
+- Updates → New anime releases → recent/upcoming discovery → Release details.
+- Discovery → Import as Watching → metadata-only library entry plus Update card.
+- Check updates explicitly refreshes cached release data. See `RELEASE_NEWS.md`.

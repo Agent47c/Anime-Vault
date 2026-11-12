@@ -5,6 +5,12 @@ import struct
 import sys
 from pathlib import Path
 
+# AUDIT-START
+if os.environ.get('APP_PROFILE') == '1':
+    from app.audit_profile import bootstrap
+    bootstrap()
+# AUDIT-END
+
 
 def binary_stream(name,mode,handle_id):
     stream=getattr(sys,name)

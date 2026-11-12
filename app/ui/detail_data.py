@@ -1,7 +1,6 @@
 """Prepare detail data, coverage and artwork outside the event loop."""
 import json
 import os
-import sqlite3
 from pathlib import Path
 from app import db
 from app.config import COVERS_DIR,get_last_episode_path
@@ -10,20 +9,27 @@ from app.core.image_profiles import load_cached_image
 
 
 def prepare_details(fid):
-    memory=sqlite3.connect(':memory:',check_same_thread=False);memory.row_factory=sqlite3.Row
+    # Keep a complete, consistent WAL read view until the incremental UI build
+    # finishes. Copying only display tables omits file identities and history.
+    # The worker hands this connection to the UI sequentially; the caller owns
+    # closing it on completion, cancellation, or a stale result.
+    source=db.get_connection()
     try:
-        source=db.get_connection()
-        try:source.backup(memory)
-        finally:source.close()
-        snapshot={'connection':memory}
-        with db.refresh_view(snapshot):
+        source.execute('PRAGMA query_only = ON')
+        source.execute('BEGIN')
+        with db.refresh_view({'connection':source}):
             series=db.get_series(fid)
-            if not series:memory.close();return None
+            if not series:
+                source.close()
+                return None
             seasons=db.get_series_seasons(series['id'],series=series)
+            saved=get_last_episode_path()
+        snapshot={'connection':source,'series_groups':[series],'last_episode_path':saved}
+        with db.refresh_view(snapshot):
             continuous=db.uses_continuous_episodes(series)
             coverage=episode_inventory(seasons,continuous=continuous)
             poster=load_cached_image(COVERS_DIR/series['cover_filename']) if series.get('cover_filename') else None
-            resume=(None,None);saved=get_last_episode_path()
+            resume=(None,None)
             if saved and Path(saved).is_file():
                 key=os.path.normcase(os.path.abspath(saved))
                 for season in seasons:
@@ -32,4 +38,4 @@ def prepare_details(fid):
                         resume=(Path(saved),season);break
             return dict(franchise=series,seasons=seasons,continuous=continuous,coverage=coverage,poster=poster,resume=resume,snapshot=snapshot)
     except Exception:
-        memory.close();raise
+        source.close();raise

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Group Seasons &amp; Arcs - Anime Vault</title>
+<!-- Tailwind CSS CDN with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            twilight: {
+              canvas: '#14121d',
+              surface: '#1c1a27',
+              card: '#222030',
+              border: '#2f2c40',
+              muted: '#7a7693',
+              text: '#e6e4f0'
+            },
+            coral: {
+              DEFAULT: '#ff6584',
+              hover: '#ff4c72',
+              glow: 'rgba(255, 101, 132, 0.25)'
+            }
+          },
+          fontFamily: {
+            heading: ['Space Grotesk', 'sans-serif'],
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Themes & Scrollbar -->
+<style data-purpose="custom-styling">
+    body {
+      background-color: #14121d;
+      color: #e6e4f0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Custom Scrollbar for list container */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #181622;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2e2b3e;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #ff6584;
+    }
+
+    /* Coral active highlight glow */
+    .active-series-card {
+      border-color: #ff6584;
+      background: linear-gradient(90deg, rgba(255, 101, 132, 0.08) 0%, rgba(28, 26, 39, 0.8) 100%);
+      box-shadow: 0 0 20px -3px rgba(255, 101, 132, 0.25);
+    }
+  </style>
+</head>
+<body class="min-flex flex-col min-h-screen bg-twilight-canvas text-twilight-text selection:bg-coral selection:text-white">
+<!-- BEGIN: GlobalDesktopHeader -->
+<header class="border-b border-twilight-border bg-twilight-surface/90 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 transition-colors">
+<div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+<!-- Brand & Navigation -->
+<div class="flex items-center gap-8">
+<!-- Brand Logo -->
+<a class="flex items-center gap-2.5 group" href="#">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-coral to-indigo-500 flex items-center justify-center shadow-lg shadow-coral/20 group-hover:scale-105 transition-transform">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<span class="font-heading font-bold text-xl tracking-tight text-white flex items-center">
+            ANIME<span class="text-coral ml-1">VAULT</span>
+</span>
+</a>
+<!-- Main Desktop Nav -->
+<nav class="hidden md:flex items-center gap-1 font-medium text-sm">
+<a class="px-3.5 py-1.5 rounded-lg text-twilight-muted hover:text-white hover:bg-twilight-card/60 transition-colors" href="#">Library</a>
+<a class="px-3.5 py-1.5 rounded-lg bg-coral/15 text-coral font-semibold flex items-center gap-1.5 transition-colors" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-coral animate-pulse"></span>
+            Organizer
+          </a>
+<a class="px-3.5 py-1.5 rounded-lg text-twilight-muted hover:text-white hover:bg-twilight-card/60 transition-colors" href="#">Downloads</a>
+<a class="px-3.5 py-1.5 rounded-lg text-twilight-muted hover:text-white hover:bg-twilight-card/60 transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<!-- Right Utility Modules: Search & Storage Badge -->
+<div class="flex items-center gap-4">
+<!-- Global Search Bar -->
+<div class="relative hidden sm:block w-56 lg:w-72">
+<input class="w-full bg-twilight-canvas border border-twilight-border rounded-lg pl-9 pr-3.5 py-1.5 text-xs text-twilight-text placeholder-twilight-muted focus:outline-none focus:border-coral transition-colors" placeholder="Quick search library..." type="text"/>
+<svg class="w-4 h-4 text-twilight-muted absolute left-3 top-2.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Drive Space Indicator -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-twilight-canvas border border-twilight-border" data-purpose="drive-indicator">
+<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<div class="text-xs">
+<span class="text-twilight-muted font-normal">Vault Drive:</span>
+<span class="text-white font-medium ml-1">257.98 GB free</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- END: GlobalDesktopHeader -->
+<!-- BEGIN: MainWorkflowContent -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+<!-- Top Return / Breadcrumb Workflow Button -->
+<div class="mb-5">
+<button aria-label="Return to previous workflow" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-twilight-muted hover:text-coral transition-colors group cursor-pointer" type="button">
+<svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Back to Media Scanner</span>
+</button>
+</div>
+<!-- Page Title & Instructions Header -->
+<div class="mb-6">
+<h1 class="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+        Group seasons and arcs
+      </h1>
+<p class="text-sm text-twilight-muted max-w-3xl leading-relaxed">
+        Click an anime to select and include it. Check additional season entries to include them; uncheck to remove them. The highlighted anime is the main series.
+      </p>
+</div>
+<!-- Filter & Search Panel -->
+<div class="mb-6 bg-twilight-surface border border-twilight-border p-3.5 rounded-xl shadow-sm">
+<div class="flex flex-col sm:flex-row gap-3">
+<div class="relative flex-1">
+<input class="w-full bg-twilight-canvas border border-twilight-border focus:border-coral focus:ring-1 focus:ring-coral text-sm rounded-lg px-4 py-2.5 text-twilight-text placeholder-twilight-muted transition-all" id="anime-title-search" placeholder="Search English, Romaji or Japanese titles..." type="text"/>
+</div>
+<button class="px-6 py-2.5 bg-twilight-card hover:bg-twilight-border border border-twilight-border/80 text-sm font-semibold text-white rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95" type="button">
+<svg class="w-4 h-4 text-twilight-muted" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Search
+        </button>
+</div>
+</div>
+<!-- BEGIN: AnimeSelectionList -->
+<section aria-label="Anime series selection list" class="bg-twilight-surface border border-twilight-border rounded-xl p-4 md:p-5 shadow-xl">
+<div class="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+<!-- Series Item 1: 86 EIGHTY-SIX -->
+<article class="flex items-center gap-4 p-3.5 rounded-xl border border-twilight-border/70 bg-twilight-card/40 hover:bg-twilight-card hover:border-twilight-border transition-all duration-200 cursor-pointer" data-purpose="anime-entry">
+<label class="flex items-center cursor-pointer">
+<input class="w-5 h-5 rounded border-twilight-border bg-twilight-canvas text-coral focus:ring-coral focus:ring-offset-twilight-surface transition-colors cursor-pointer" type="checkbox"/>
+</label>
+<img alt="86 EIGHTY-SIX Poster" class="w-12 h-16 object-cover rounded-md border border-twilight-border shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU6yme1h4jPlZxxbos1BfdIVqB9IeAyOUT_b0CPouxUJHjVsYSRiYVoK8STfJfRhYg9C6paRdhKwNzVVmo4P_DKeKsIsRGGS6V9OX2VtKhCqjVXwhWIZVYRE_Dmm053iz5wlVg__QhlKCV58tcvzAu3JHoTCHR_f2eiV4O6sZlG8ZE-X-wMzbUeJa8hspuoRUp0p4RvOmbBLmYYfhq2GRykzXNh2WHplOiIPc58qg"/>
+<div class="flex-1 min-w-0">
+<h2 class="text-sm font-semibold text-white truncate font-heading group-hover:text-coral">86 EIGHTY-SIX</h2>
+<div class="flex items-center gap-2 mt-1 text-xs text-twilight-muted">
+<span class="inline-flex items-center font-medium">5 library entries</span>
+<span class="text-twilight-border">•</span>
+<span class="text-amber-400/90 font-medium">Not Downloaded</span>
+</div>
+</div>
+</article>
+<!-- Series Item 2: A Gatherer's Adventure in Isekai (HIGHLIGHTED / MAIN SERIES) -->
+<article class="active-series-card flex items-center gap-4 p-3.5 rounded-xl border transition-all duration-200 cursor-pointer" data-purpose="anime-entry">
+<label class="flex items-center cursor-pointer">
+<input checked="" class="w-5 h-5 rounded border-coral bg-twilight-canvas text-coral focus:ring-coral focus:ring-offset-twilight-surface transition-colors cursor-pointer" type="checkbox"/>
+</label>
+<img alt="A Gatherer's Adventure in Isekai Poster" class="w-12 h-16 object-cover rounded-md border border-coral/50 shadow-md shadow-coral/10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvvzf9Rxj704IFgGdpt8QAt2zOR3hNJVyZKL8h7rX99-1PYvZJ_1wKBum957JQrmh_pfSXsYqfugngbj8S_hIkQDZdDHnU98pf9TVXb7ywSkYinfL0S3MO-1NSMR-_q4q5oS3illfj5JiJx_nAj7s3nM-B0sNg0OnEt3EgPh622mr9s1b9iJJHI1lvxgmhehTWddm8MW-Ve-ye5pMw4QCr_KwAMqYs0oAoUFiPXHU"/>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-sm font-bold text-white truncate font-heading">A Gatherer's Adventure in Isekai</h2>
+<span class="bg-coral/20 border border-coral/40 text-coral text-[10px] font-bold px-2 py-0.5 rounded tracking-wide uppercase">Main Series</span>
+</div>
+<div class="flex items-center gap-2 mt-1 text-xs text-twilight-muted">
+<span class="inline-flex items-center font-medium">1 library entry</span>
+<span class="text-twilight-border">•</span>
+<span class="text-emerald-400 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                On Disk
+              </span>
+</div>
+</div>
+</article>
+<!-- Series Item 3: A Nobody's Way Up to an Exploration Hero -->
+<article class="flex items-center gap-4 p-3.5 rounded-xl border border-twilight-border/70 bg-twilight-card/40 hover:bg-twilight-card hover:border-twilight-border transition-all duration-200 cursor-pointer" data-purpose="anime-entry">
+<label class="flex items-center cursor-pointer">
+<input class="w-5 h-5 rounded border-twilight-border bg-twilight-canvas text-coral focus:ring-coral focus:ring-offset-twilight-surface transition-colors cursor-pointer" type="checkbox"/>
+</label>
+<img alt="A Nobody's Way Up to an Exploration Hero Poster" class="w-12 h-16 object-cover rounded-md border border-twilight-border shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdOaDuHiCZoUfGDKsdP-A9qWlX6A07KFcb4idoT4HeJQ-gD7OjZ0pda5Y0hxTxMgBiI-IMb0DT2bywn_jCSdoYJXL-a6H_uGKwQiV2Rlsv0xmDA37jF3co58Xy8ABrC0ffAU4HFNTTOTzUBW8_i1ibSgnRncTrbvyup-4NGEx1hLQH7VxufAvjjtbD38_KCoZEwXiw4pBG1KmyEN37QH3qCZroPRDc4e1PQkiIyAo"/>
+<div class="flex-1 min-w-0">
+<h2 class="text-sm font-semibold text-white truncate font-heading">A Nobody's Way Up to an Exploration Hero</h2>
+<div class="flex items-center gap-2 mt-1 text-xs text-twilight-muted">
+<span class="inline-flex items-center font-medium">2 library entries</span>
+<span class="text-twilight-border">•</span>
+<span class="text-amber-400/90 font-medium">Not Downloaded</span>
+</div>
+</div>
+</article>
+<!-- Series Item 4: A Playthrough of a Certain Dude's VRMMO Life -->
+<article class="flex items-center gap-4 p-3.5 rounded-xl border border-twilight-border/70 bg-twilight-card/40 hover:bg-twilight-card hover:border-twilight-border transition-all duration-200 cursor-pointer" data-purpose="anime-entry">
+<label class="flex items-center cursor-pointer">
+<input class="w-5 h-5 rounded border-twilight-border bg-twilight-canvas text-coral focus:ring-coral focus:ring-offset-twilight-surface transition-colors cursor-pointer" type="checkbox"/>
+</label>
+<img alt="A Playthrough of a Certain Dude's VRMMO Life Poster" class="w-12 h-16 object-cover rounded-md border border-twilight-border shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8aAKOorp63meZGfaNFtu8I90KCoLi-vJbK-T5afZSgvHewdCvmyF5WLfg7gdqR3KzaerOqzrqj0SJL7wruCtTStkRLXhgUQ5ENTXRXZbFfHPcyKsbQaCnGiI1M8hHJso5WKShHxszbxj2DSP6pD6yq0S41dHLjmfKI98J--gEtOKAwSe3b-UHeK-C3dZOXnJEusyvI4aDUXR7MzQyGF_D9BNXKsVcAj48qrm9Ckk"/>
+<div class="flex-1 min-w-0">
+<h2 class="text-sm font-semibold text-white truncate font-heading">A Playthrough of a Certain Dude's VRMMO Life</h2>
+<div class="flex items-center gap-2 mt-1 text-xs text-twilight-muted">
+<span class="inline-flex items-center font-medium">1 library entry</span>
+<span class="text-twilight-border">•</span>
+<span class="text-emerald-400 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                On Disk
+              </span>
+</div>
+</div>
+</article>
+<!-- Series Item 5: A Returner's Magic Should Be Special -->
+<article class="flex items-center gap-4 p-3.5 rounded-xl border border-twilight-border/70 bg-twilight-card/40 hover:bg-twilight-card hover:border-twilight-border transition-all duration-200 cursor-pointer" data-purpose="anime-entry">
+<label class="flex items-center cursor-pointer">
+<input class="w-5 h-5 rounded border-twilight-border bg-twilight-canvas text-coral focus:ring-coral focus:ring-offset-twilight-surface transition-colors cursor-pointer" type="checkbox"/>
+</label>
+<img alt="A Returner's Magic Should Be Special Poster" class="w-12 h-16 object-cover rounded-md border border-twilight-border shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqMbdXr3CSk4bmFTj_FWIMFHPIVWnei5k-d3N2abh0Kl9d8U9hZDgTC7w1MLqm6h0nRgphi45nux7p3lh0DflxyqXTD_mCXK-cxMlTeuIQ2dWocT1uEAIDggpyDCXlE_-K39p_StgS4IcV-Suxyi0D459p8czEZh8p_tVOZoto_agnHBnIbZ5zI0KajURfaQNzAkZNVhdGx9-6DpXF0q9NRHHS8Kt-r9K5nBfdCIQ"/>
+<div class="flex-1 min-w-0">
+<h2 class="text-sm font-semibold text-white truncate font-heading">A Returner's Magic Should Be Special</h2>
+<div class="flex items-center gap-2 mt-1 text-xs text-twilight-muted">
+<span class="inline-flex items-center font-medium">3 library entries</span>
+<span class="text-twilight-border">•</span>
+<span class="text-emerald-400 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                On Disk
+              </span>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- END: AnimeSelectionList -->
+<!-- Status Summary Bar -->
+<div class="mt-4 px-2 py-2 flex items-center justify-between text-xs text-twilight-muted">
+<div class="flex items-center gap-2">
+<svg class="w-4 h-4 text-coral" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>
+          Main series: <strong class="text-twilight-text font-semibold">A Gatherer's Adventure in Isekai</strong> · 0 additional entries checked
+        </span>
+</div>
+<span class="hidden sm:inline text-twilight-muted/70">5 potential matches available</span>
+</div>
+<!-- BEGIN: BottomActionControls -->
+<div class="mt-6 pt-5 border-t border-twilight-border flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+<!-- Reset Action -->
+<button class="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold tracking-wide text-twilight-muted hover:text-white bg-twilight-surface hover:bg-twilight-card border border-twilight-border rounded-lg transition-colors cursor-pointer text-center" type="button">
+        Reset manual grouping for this series
+      </button>
+<!-- Review Grouping Primary Action -->
+<button class="w-full sm:w-auto px-7 py-2.5 text-sm font-semibold tracking-wide text-white bg-coral hover:bg-coral-hover rounded-lg shadow-lg shadow-coral/25 hover:shadow-coral/40 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95" type="button">
+<span>Review grouping</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- END: BottomActionControls -->
+</main>
+<!-- END: MainWorkflowContent -->
+<!-- BEGIN: StandardTelemetryFooter -->
+<footer class="mt-auto border-t border-twilight-border bg-twilight-surface/60 py-4 px-6 text-xs text-twilight-muted">
+<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Vault Daemon v2.14.0 Connected
+        </span>
+<span class="text-twilight-border">|</span>
+<span>Indexer: SQLite (WAL Mode)</span>
+</div>
+<div class="flex items-center gap-4">
+<span>Latency: 12ms</span>
+<span>Sync Engine: Active</span>
+</div>
+</div>
+</footer>
+<!-- END: StandardTelemetryFooter -->
+</body></html>

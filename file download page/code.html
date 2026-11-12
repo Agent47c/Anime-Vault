@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault — Find Download Files &amp; Release Search</title>
+<!-- External Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            twilight: {
+              950: '#0f0e17',
+              900: '#14121d',
+              850: '#181524',
+              800: '#1f1b2e',
+              750: '#262138',
+              700: '#2e293f',
+              600: '#3d3753',
+              500: '#544c70',
+              400: '#7e759e',
+              300: '#aaa0cc',
+              200: '#d7d0ed',
+              100: '#f0edf9',
+            },
+            sakura: {
+              coral: '#ff6584',
+              hover: '#ff4d72',
+              glow: 'rgba(255, 101, 132, 0.25)',
+              soft: '#ffe4ea'
+            },
+            accent: {
+              cyan: '#38bdf8',
+              amber: '#ffb86c',
+              emerald: '#10b981',
+              violet: '#a78bfa'
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Scrollbar & Micro-details -->
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e293f;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3d3753;
+    }
+  </style>
+<style data-purpose="custom-radios-and-effects">
+    .glow-coral {
+      box-shadow: 0 0 20px rgba(255, 101, 132, 0.22);
+    }
+    .tooltip-arrow::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 32px;
+      border-width: 0 6px 6px 6px;
+      border-style: solid;
+      border-color: transparent transparent #262138 transparent;
+    }
+  </style>
+</head>
+<body class="bg-twilight-900 text-twilight-200 font-sans antialiased min-h-screen flex flex-col selection:bg-sakura-coral selection:text-white">
+<!-- BEGIN: TopHeader -->
+<header class="border-b border-twilight-700 bg-twilight-950/80 backdrop-blur sticky top-0 z-40 px-6 py-3.5">
+<div class="max-w-[1720px] mx-auto flex items-center justify-between gap-4">
+<!-- Back Navigation & Title Section -->
+<div class="flex items-center gap-4">
+<a class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-twilight-700 bg-twilight-850 hover:bg-twilight-800 hover:border-twilight-600 text-twilight-200 text-xs font-semibold tracking-wide transition" href="#back">
+<svg class="w-3.5 h-3.5 text-twilight-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Back
+        </a>
+<div class="h-5 w-px bg-twilight-700 hidden sm:block"></div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-xl font-extrabold text-white tracking-tight">Find Download Files</h1>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sakura-coral/15 text-sakura-coral border border-sakura-coral/30">Release Search</span>
+</div>
+<p class="text-xs text-twilight-400 font-medium truncate max-w-xl">
+            Reborn as a Space Mercenary: I Woke Up Piloting the Strongest Starship!
+          </p>
+</div>
+</div>
+<!-- System Connectivity Badges -->
+<div class="flex items-center gap-3">
+<!-- Aria2 Pill -->
+<div class="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full border border-twilight-700 bg-twilight-850 text-xs text-twilight-300">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-emerald opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-accent-emerald"></span>
+</span>
+<span class="font-mono text-[11px]">Aria2 Core active</span>
+</div>
+<!-- AniList Pill -->
+<div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full border border-twilight-700 bg-twilight-850 text-xs text-twilight-300">
+<span class="w-2 h-2 rounded-full bg-accent-cyan"></span>
+<span class="font-mono text-[11px]">AniList Synced</span>
+</div>
+<!-- Storage Pill -->
+<div class="flex items-center gap-2 px-3.5 py-1 rounded-full border border-twilight-700 bg-twilight-850 text-xs">
+<svg class="w-3.5 h-3.5 text-twilight-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M9 11h.01M9 15h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="text-twilight-400 font-mono text-[11px]">Free Disk:</span>
+<span class="text-accent-emerald font-mono font-bold text-[11px]">258.44 GB</span>
+<span class="text-twilight-500 font-mono text-[11px]">(E:\)</span>
+</div>
+</div>
+</div>
+</header>
+<!-- END: TopHeader -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 max-w-[1720px] w-full mx-auto p-4 sm:p-6 space-y-4">
+<!-- BEGIN: SearchControlsPanel -->
+<section class="bg-twilight-850 border border-twilight-700 rounded-xl p-4 sm:p-5 shadow-xl space-y-4" data-purpose="search-configuration">
+<!-- Primary Selector Row (Season & Provider) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+<!-- Season Selection Dropdown -->
+<div class="md:col-span-8">
+<label class="block text-[11px] font-bold text-twilight-400 uppercase tracking-wider mb-1.5">Anime Series &amp; Season Context</label>
+<div class="relative">
+<select class="w-full bg-twilight-900 border border-twilight-700 text-white rounded-lg px-3.5 py-2.5 text-sm font-medium focus:ring-1 focus:ring-sakura-coral focus:border-sakura-coral appearance-none cursor-pointer">
+<option>Season 1 · Reborn as a Space Mercenary: I Woke Up Piloting the Strongest Starship!</option>
+<option>OVA / Specials · Reborn as a Space Mercenary (Bonus Material)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-twilight-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Indexer Provider Dropdown -->
+<div class="md:col-span-4">
+<label class="block text-[11px] font-bold text-twilight-400 uppercase tracking-wider mb-1.5">Source Provider</label>
+<div class="relative">
+<select class="w-full bg-twilight-900 border border-twilight-700 text-white rounded-lg px-3.5 py-2.5 text-sm font-medium focus:ring-1 focus:ring-sakura-coral focus:border-sakura-coral appearance-none cursor-pointer">
+<option>Nyaa (Default &amp; Fast Index)</option>
+<option>SubsPlease Direct Feeds</option>
+<option>Tokyo Toshokan</option>
+<option>Erai-raws Multi-sub</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-twilight-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+</div>
+<!-- Search Title Selection & Action -->
+<div>
+<label class="block text-[11px] font-bold text-twilight-400 uppercase tracking-wider mb-1.5">Search Title Mapping</label>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+<div class="relative flex-1">
+<select class="w-full bg-twilight-900 border border-twilight-700 text-twilight-200 rounded-lg px-3.5 py-2 text-sm font-medium focus:ring-1 focus:ring-sakura-coral focus:border-sakura-coral appearance-none cursor-pointer pr-10">
+<option>Release · English · Reborn as a Space Mercenary: I Woke Up Piloting the Strongest Starship!</option>
+<option>Release · Romaji · Mezametara Saikyou Soubi to Uchuusen-mochi Datta node</option>
+<option>Release · Canonical Short · Saikyosoubi</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-twilight-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+<button class="px-4 py-2 bg-twilight-800 hover:bg-twilight-750 text-twilight-100 border border-twilight-600 hover:border-twilight-500 rounded-lg text-xs font-semibold transition shrink-0" type="button">
+            Use Title
+          </button>
+</div>
+</div>
+<!-- Fallback Option Checkbox -->
+<div class="flex items-center gap-2 pt-0.5">
+<input checked="" class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" id="tryOtherTitles" type="checkbox"/>
+<label class="text-xs text-twilight-300 font-medium select-none cursor-pointer" for="tryOtherTitles">
+          Try other saved titles if this query has no results
+        </label>
+</div>
+<!-- Search Input Bar & CTAs -->
+<div class="pt-1">
+<div class="flex flex-col sm:flex-row items-stretch gap-2">
+<!-- Text Input with clear icon -->
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-twilight-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<input class="w-full bg-twilight-900 border border-twilight-600 text-white rounded-lg pl-10 pr-9 py-2.5 text-sm font-mono focus:border-sakura-coral focus:ring-1 focus:ring-sakura-coral" placeholder="Enter keywords or release group..." type="text" value="[ASW] Saikyosoubi"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-twilight-400 hover:text-white" title="Clear query" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Primary Search Button -->
+<button class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider text-white bg-sakura-coral hover:bg-sakura-hover transition glow-coral shrink-0" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Search Releases
+          </button>
+<!-- Cancel Search Button -->
+<button class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-medium text-xs text-twilight-300 bg-twilight-800 hover:bg-twilight-750 border border-twilight-700 hover:text-white transition shrink-0" type="button">
+            Cancel Search
+          </button>
+</div>
+</div>
+<!-- Raw Search URL Preview Box -->
+<div class="flex items-center gap-3 pt-1 text-xs">
+<span class="text-twilight-400 font-mono text-[11px] shrink-0">Search URL</span>
+<div class="flex-1 bg-twilight-950/70 border border-twilight-700/80 rounded px-3 py-1.5 font-mono text-[11px] text-accent-cyan truncate select-all">
+          https://nyaa.si/?q=%5BASW%5D+Saikyosoubi&amp;f=0&amp;c=0_0
+        </div>
+<button class="p-1.5 rounded hover:bg-twilight-800 text-twilight-400 hover:text-white transition" title="Copy raw URL" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</section>
+<!-- END: SearchControlsPanel -->
+<!-- BEGIN: ResultsMetaFilterBar -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-1" data-purpose="results-filter-bar">
+<!-- Query Summary Status -->
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-accent-emerald"></span>
+<p class="text-xs text-twilight-300">
+<strong class="text-white font-semibold">6 releases found.</strong> Seeder counts do not guarantee peer availability. Searched:
+          <code class="text-twilight-100 font-mono bg-twilight-850 px-1.5 py-0.5 rounded border border-twilight-750 text-[11px]">[ASW] Saikyosoubi</code>
+</p>
+</div>
+<!-- Filters & Sorting Controls -->
+<div class="flex flex-wrap items-center gap-2">
+<!-- Availability Dropdown -->
+<div class="relative">
+<select class="bg-twilight-850 border border-twilight-700 hover:border-twilight-600 text-twilight-200 text-xs rounded-lg pl-3 pr-8 py-1.5 focus:ring-1 focus:ring-sakura-coral appearance-none cursor-pointer">
+<option>All Results</option>
+<option>Missing Releases Only</option>
+<option>Match Uncertain</option>
+<option>In Library / Queued</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-twilight-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+<!-- Filter Text Search -->
+<div class="relative w-48 sm:w-56">
+<input class="w-full bg-twilight-850 border border-twilight-700 hover:border-twilight-600 text-twilight-200 text-xs rounded-lg pl-3 pr-7 py-1.5 focus:border-sakura-coral focus:ring-1 focus:ring-sakura-coral placeholder-twilight-500 font-sans" placeholder="Filter quality / group..." type="text"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-twilight-500">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+<!-- Sort Selection -->
+<div class="relative">
+<select class="bg-twilight-850 border border-twilight-700 hover:border-twilight-600 text-twilight-200 text-xs rounded-lg pl-3 pr-8 py-1.5 focus:ring-1 focus:ring-sakura-coral appearance-none cursor-pointer">
+<option>Most seeders</option>
+<option>Title A–Z</option>
+<option>Episode Number</option>
+<option>File Size (Small to Large)</option>
+<option>File Size (Large to Small)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-twilight-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+</div>
+<!-- END: ResultsMetaFilterBar -->
+<!-- BEGIN: ReleasesLedgerTable -->
+<div class="relative bg-twilight-850 border border-twilight-700 rounded-xl overflow-hidden shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse text-xs">
+<thead>
+<tr class="border-b border-twilight-700 bg-twilight-950/60 text-[11px] font-bold uppercase tracking-wider text-twilight-400">
+<th class="py-3 px-4 w-12 text-center" scope="col">
+<span class="sr-only">Selection</span>
+</th>
+<th class="py-3 px-3" scope="col">Select / Release Title</th>
+<th class="py-3 px-3" scope="col">Episodes</th>
+<th class="py-3 px-3" scope="col">Quality / Group</th>
+<th class="py-3 px-3 text-right" scope="col">Size</th>
+<th class="py-3 px-3 text-center" scope="col">Seeders</th>
+<th class="py-3 px-3" scope="col">Source</th>
+<th class="py-3 px-4" scope="col">Availability Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-twilight-750">
+<!-- Row 1: Selected & Highlighted with Active Tooltip -->
+<tr class="bg-twilight-800/90 hover:bg-twilight-750 transition-colors border-l-4 border-l-sakura-coral">
+<td class="py-3.5 px-4 text-center">
+<input checked="" class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-2">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">[ASW] Saikyosoubi - 02 [1080p HEVC x265 10Bit][AAC]</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-twilight-700 text-twilight-300">HEVC</span>
+</div>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap">
+<span class="text-twilight-300 font-medium">Confirm match</span>
+<span class="text-sakura-coral font-bold ml-1 font-mono">(Ep 02)</span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-300 font-mono">1080p / ASW</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-right font-mono font-semibold text-twilight-200">212.0 MiB</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-bold text-xs bg-accent-emerald/15 text-accent-emerald border border-accent-emerald/30">
+                  84
+                </span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap font-medium text-twilight-300">Nyaa</td>
+<td class="py-3.5 px-4 whitespace-nowrap relative">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-accent-amber/15 text-accent-amber border border-accent-amber/30">
+<svg class="w-3 h-3" fill="currentColor" viewbox="0 0 20 20"><path clip-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" fill-rule="evenodd"></path></svg>
+                  Match Uncertain
+                </span>
+</td>
+</tr>
+<!-- Contextual Tooltip Popover (Floating below Row 1 as shown in screenshot) -->
+<tr class="bg-twilight-900/60">
+<td class="p-0" colspan="8">
+<div class="px-8 pb-3 pt-1 flex justify-end">
+<!-- Tooltip Card Box -->
+<div class="w-full max-w-md bg-twilight-750 border border-twilight-600 rounded-lg p-3 shadow-2xl relative text-xs space-y-1">
+<div class="font-mono text-[11px] font-bold text-white tracking-wide truncate">
+                      [ASW] Saikyosoubi - 02 [1080p HEVC x265 10Bit][AAC]
+                    </div>
+<div class="text-accent-amber font-semibold text-[11px] flex items-center gap-1.5">
+<span>• Title needs confirmation</span>
+</div>
+<p class="text-twilight-300 text-[11px] leading-relaxed">
+                      A source result is not proof that peers can currently deliver it. Episode detected as 02 based on filename tokenization.
+                    </p>
+</div>
+</div>
+</td>
+</tr>
+<!-- Row 2: Selected Missing Ep 01 -->
+<tr class="hover:bg-twilight-800 transition-colors">
+<td class="py-3.5 px-4 text-center">
+<input checked="" class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-2">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">[ASW] Saikyosoubi - 01 [1080p HEVC x265 10Bit][AAC]</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-twilight-700 text-twilight-300">HEVC</span>
+</div>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap">
+<span class="text-twilight-300 font-medium">Confirm match</span>
+<span class="text-sakura-coral font-bold ml-1 font-mono">(Ep 01)</span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-300 font-mono">1080p / ASW</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-right font-mono font-semibold text-twilight-200">210.5 MiB</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-bold text-xs bg-accent-emerald/15 text-accent-emerald border border-accent-emerald/30">
+                  62
+                </span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap font-medium text-twilight-300">Nyaa</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-accent-emerald/15 text-accent-emerald border border-accent-emerald/30">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-emerald"></span>
+                  Missing — Release Found
+                </span>
+</td>
+</tr>
+<!-- Row 3: Full Season Batch -->
+<tr class="hover:bg-twilight-800 transition-colors opacity-85 hover:opacity-100">
+<td class="py-3.5 px-4 text-center">
+<input class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-2">
+<span class="font-mono text-xs font-semibold text-twilight-100 tracking-tight">[SubsPlease] Saikyosoubi - 01-12 (1080p) [Batch]</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30">Season Batch</span>
+</div>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap font-mono text-twilight-300">Eps 01–12 (Full Season)</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-300 font-mono">1080p / SubsPlease</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-right font-mono font-semibold text-twilight-200">14.2 GiB</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-bold text-xs bg-accent-emerald/15 text-accent-emerald border border-accent-emerald/30">
+                  148
+                </span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap font-medium text-twilight-300">Nyaa</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30">
+                  Batch Available
+                </span>
+</td>
+</tr>
+<!-- Row 4: Alternative Group -->
+<tr class="hover:bg-twilight-800 transition-colors opacity-80 hover:opacity-100">
+<td class="py-3.5 px-4 text-center">
+<input class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-2">
+<span class="font-mono text-xs text-twilight-200">[Erai-raws] Saikyou Koujo - 02 [720p][Multiple Subtitle]</span>
+</div>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap font-mono text-twilight-400">Ep 02</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-400 font-mono">720p / Erai-raws</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-right font-mono text-twilight-300">450.0 MiB</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-medium text-xs bg-twilight-750 text-twilight-300 border border-twilight-650">
+                  29
+                </span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-400">Nyaa</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-twilight-750 text-twilight-300 border border-twilight-700">
+                  Alternative Group
+                </span>
+</td>
+</tr>
+<!-- Row 5: Judas In Library -->
+<tr class="hover:bg-twilight-800 transition-colors opacity-65 hover:opacity-90">
+<td class="py-3.5 px-4 text-center">
+<input class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-2">
+<span class="font-mono text-xs text-twilight-300">[Judas] Reborn as a Space Mercenary - S01 Complete [1080p x265]</span>
+</div>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap font-mono text-twilight-400">Eps 01–12</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-400 font-mono">1080p / Judas</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-right font-mono text-twilight-400">8.6 GiB</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-medium text-xs bg-twilight-750 text-twilight-300 border border-twilight-650">
+                  95
+                </span>
+</td>
+<td class="py-3.5 px-3 whitespace-nowrap text-twilight-400">Nyaa</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-twilight-800 text-twilight-400 border border-twilight-700">
+                  In Library / Queued
+                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- END: ReleasesLedgerTable -->
+<!-- BEGIN: EpisodeAvailabilityDrawer -->
+<section class="bg-twilight-850 border border-twilight-700 rounded-xl p-4 sm:p-5 space-y-3" data-purpose="episode-availability">
+<!-- Drawer Header & Controls -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-twilight-750">
+<div class="flex items-center gap-3">
+<input checked="" class="w-4 h-4 text-sakura-coral bg-twilight-900 border-twilight-600 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" id="toggleEpisodes" type="checkbox"/>
+<label class="text-sm font-bold text-white select-none cursor-pointer flex items-center gap-2" for="toggleEpisodes">
+            Show episode availability
+            <span class="text-xs font-normal text-twilight-400">(In Library: <span class="font-mono text-accent-emerald font-semibold">1 / 12</span> episodes)</span>
+</label>
+</div>
+<div class="text-xs text-twilight-400 flex items-center gap-3">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-accent-emerald"></span> In Library</span>
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-sakura-coral"></span> Missing (Matched)</span>
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-twilight-500"></span> Unreleased</span>
+</div>
+</div>
+<!-- Episode Grid/Ledger -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+<!-- Ep 01 -->
+<div class="bg-twilight-900/90 border border-accent-emerald/30 rounded-lg p-2.5 flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold text-xs text-white">EP 01</span>
+<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-accent-emerald/20 text-accent-emerald uppercase tracking-wider">In Library</span>
+</div>
+<p class="font-mono text-[10px] text-twilight-400 truncate max-w-[190px] mt-1" title="E:\Anime\Saikyosoubi\S01E01.mkv">
+              E:\Anime\Saikyosoubi\S01E01.mkv
+            </p>
+</div>
+<span class="font-mono text-[11px] text-accent-emerald">1080p</span>
+</div>
+<!-- Ep 02 -->
+<div class="bg-twilight-900/90 border border-sakura-coral/50 rounded-lg p-2.5 flex items-start justify-between bg-sakura-coral/5">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold text-xs text-sakura-coral">EP 02</span>
+<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sakura-coral/20 text-sakura-coral uppercase tracking-wider">Candidate Match</span>
+</div>
+<p class="font-mono text-[10px] text-twilight-300 truncate max-w-[190px] mt-1">
+              [ASW] Saikyosoubi - 02.mkv
+            </p>
+</div>
+<span class="font-mono text-[11px] text-sakura-coral font-bold">+212 MB</span>
+</div>
+<!-- Ep 03 -->
+<div class="bg-twilight-900/60 border border-twilight-700 rounded-lg p-2.5 flex items-start justify-between opacity-80">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold text-xs text-twilight-200">EP 03</span>
+<span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-twilight-800 text-twilight-400 uppercase tracking-wider">Missing</span>
+</div>
+<p class="font-sans text-[10px] text-twilight-400 mt-1">Available on Nyaa via batch</p>
+</div>
+<span class="font-mono text-[11px] text-twilight-500">—</span>
+</div>
+<!-- Ep 04 -->
+<div class="bg-twilight-900/60 border border-twilight-700 rounded-lg p-2.5 flex items-start justify-between opacity-80">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold text-xs text-twilight-200">EP 04</span>
+<span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-twilight-800 text-twilight-400 uppercase tracking-wider">Missing</span>
+</div>
+<p class="font-sans text-[10px] text-twilight-400 mt-1">Available on Nyaa via batch</p>
+</div>
+<span class="font-mono text-[11px] text-twilight-500">—</span>
+</div>
+</div>
+</section>
+<!-- END: EpisodeAvailabilityDrawer -->
+<!-- BEGIN: PrimaryActionToolbar -->
+<section class="bg-twilight-950/70 border border-twilight-700 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-3" data-purpose="actions-toolbar">
+<!-- Left Sub-actions -->
+<div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+<button class="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg border border-twilight-700 bg-twilight-850 hover:bg-twilight-800 hover:border-twilight-600 text-twilight-200 text-xs font-semibold transition inline-flex items-center justify-center gap-2" type="button">
+<svg class="w-3.5 h-3.5 text-accent-cyan" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Confirm highlighted match
+        </button>
+<button class="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg border border-twilight-700 bg-twilight-850 hover:bg-twilight-800 hover:border-twilight-600 text-twilight-200 text-xs font-semibold transition inline-flex items-center justify-center gap-2" type="button">
+<svg class="w-3.5 h-3.5 text-twilight-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Paste magnet / torrent
+        </button>
+<button class="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg border border-twilight-700 bg-twilight-850 hover:bg-twilight-800 hover:border-twilight-600 text-twilight-200 text-xs font-semibold transition inline-flex items-center justify-center gap-2" type="button">
+<svg class="w-3.5 h-3.5 text-twilight-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Open source in Chrome
+        </button>
+</div>
+<!-- Center & Right Primary Actions -->
+<div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+<button class="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg border border-twilight-600 bg-twilight-800 hover:bg-twilight-750 text-white text-xs font-semibold transition" type="button">
+          Download Missing Episodes
+        </button>
+<button class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-white bg-sakura-coral hover:bg-sakura-hover transition glow-coral" type="button">
+<span>Review selected downloads (2)</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</section>
+<!-- END: PrimaryActionToolbar -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: FooterTelemetry -->
+<footer class="border-t border-twilight-800 bg-twilight-950/90 py-2.5 px-6 mt-auto" data-purpose="footer-daemon-telemetry">
+<div class="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] font-mono text-twilight-400">
+<!-- Daemon Status -->
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-accent-emerald"></span>
+<span>Streaming API running</span>
+<span class="text-twilight-600">•</span>
+<span class="text-accent-cyan">http://127.0.0.1:8765</span>
+<span class="text-twilight-600">•</span>
+<span>Last scan just now</span>
+<span class="text-twilight-600">•</span>
+<span>230 anime indexed</span>
+</div>
+<!-- Sync Status & Storage -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/25 px-2 py-0.5 rounded text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-emerald"></span>
+<span>Online · AniList &amp; Jikan</span>
+</div>
+<span class="text-twilight-600 hidden sm:inline">•</span>
+<div>
+<span class="text-twilight-300 font-bold">258.44 GB</span> free
+          <span class="text-twilight-500 font-bold ml-1">E:\</span>
+</div>
+</div>
+</div>
+</footer>
+<!-- END: FooterTelemetry -->
+</body></html>
