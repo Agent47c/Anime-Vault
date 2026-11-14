@@ -733,6 +733,8 @@ def apply_theme(app: QApplication, theme: str = "dark"):
     from app.ui.components.wheel_routing import install_wheel_routing
     install_wheel_routing(app)
     requested = theme
+    from app.ui.theme_catalog import SAKURA_FAMILY
+    app.setProperty('animevaultThemeFamily',SAKURA_FAMILY)
     if theme == "system":
         theme = "light" if prefs.windows_light_theme() else "dark"
     scale = prefs.text_scale()

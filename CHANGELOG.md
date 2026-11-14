@@ -1,5 +1,14 @@
 # Changelog
 
+## Preserved Sakura theme family — 14 November 2026
+
+- Name the current designs Sakura Dark and Sakura Light, with a Sakura Match
+  Windows option. Preserve saved `dark`, `light`, and `system` preference IDs.
+- Identify the existing runtime visual family as Sakura without changing its
+  colors, layouts or features. Preserve the full source baseline with the tag
+  `sakura-ui-baseline-2026-11-14` before adding the new Neo Manga design separately.
+- See the [Sakura preservation contract](docs/themes/SAKURA_BASELINE.md).
+
 ## Pre-redesign source baseline — 14 November 2026
 
 - Publish the current source, regression tests, packaging scripts and organized

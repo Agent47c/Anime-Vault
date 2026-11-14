@@ -212,7 +212,8 @@ class SettingsPage(QWidget):
 
         panel, box = self._panel("Appearance and accessibility")
         self.theme_combo = QComboBox()
-        for label, value in (("Match Windows", "system"), ("Dark", "dark"), ("Light", "light")):
+        from app.ui.theme_catalog import SAKURA_CHOICES
+        for label, value in SAKURA_CHOICES:
             self.theme_combo.addItem(label, value)
         self.theme_combo.setCurrentIndex(max(0, self.theme_combo.findData(get_theme())))
         self.theme_combo.currentIndexChanged.connect(self._on_theme_changed)

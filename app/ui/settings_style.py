@@ -81,7 +81,9 @@ def apply_layout(page):
     page.theme_cards=[]
     panel=next(p for p in page.findChildren(QFrame) if p.property('settings_section')=='Appearance and accessibility')
     page.theme_combo.parentWidget().hide();cards=QWidget();cards.setObjectName('settings_choices');grid=QGridLayout(cards);grid.setContentsMargins(0,0,0,0);grid.setSpacing(12)
-    for n,(label,hint,value) in enumerate([('Match Windows','Follow system appearance','system'),('Twilight Sakura','Warm dark canvas','dark'),('Sakura Paper','Light canvas','light')]):
+    from app.ui.theme_catalog import SAKURA_CHOICES
+    hints=('Follow system appearance','Warm dark canvas','Light canvas')
+    for n,((label,value),hint) in enumerate(zip(SAKURA_CHOICES,hints)):
         button=ThemeCard(label,hint,value);button.clicked.connect(lambda checked=False,v=value:(page.theme_combo.setCurrentIndex(page.theme_combo.findData(v)),sync_theme()));grid.addWidget(button,0,n);page.theme_cards.append(button)
     panel.layout().insertWidget(2,cards)
     def sync_theme():
