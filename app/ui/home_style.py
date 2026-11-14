@@ -19,14 +19,14 @@ def load_fonts():
 
 def colors():
     app=QApplication.instance()
-    if app.property('animevaultHighContrast'):
+    if app and app.property('animevaultHighContrast'):
         palette=app.palette()
         return dict(bg=palette.window().color().name(),panel=palette.base().color().name(),raised=palette.alternateBase().color().name(),
                     text=palette.windowText().color().name(),muted=palette.text().color().name(),line=palette.windowText().color().name(),
-                    coral=palette.highlight().color().name(),on_coral=palette.highlightedText().color().name(),amber=palette.text().color().name(),ok=palette.text().color().name())
-    if app.property('animevaultTheme')=='light':
-        return dict(bg='#f7f3f6',panel='#ffffff',raised='#eee6ee',text='#292335',muted='#66586f',line='#d4c6d6',coral='#b0284b',on_coral='#ffffff',amber='#86500c',ok='#087b60')
-    return dict(bg='#14121d',panel='#201e2a',raised='#2b2834',text='#f5f3f8',muted='#b6afc7',line='#353047',coral='#ff6584',on_coral='#15131e',amber='#ffb86c',ok='#24d3a4')
+                    coral=palette.highlight().color().name(),on_coral=palette.highlightedText().color().name(),amber=palette.text().color().name(),ok=palette.text().color().name(),blue=palette.highlight().color().name(),orange=palette.highlight().color().name())
+    if app and app.property('animevaultTheme')=='light':
+        return dict(bg='#f7f3f6',panel='#ffffff',raised='#eee6ee',text='#292335',muted='#66586f',line='#d4c6d6',coral='#b0284b',on_coral='#ffffff',amber='#86500c',ok='#087b60',blue='#1865b4',orange='#d97706')
+    return dict(bg='#14121d',panel='#201e2a',raised='#2b2834',text='#f5f3f8',muted='#b6afc7',line='#353047',coral='#ff6584',on_coral='#15131e',amber='#ffb86c',ok='#24d3a4',blue='#6cb6ff',orange='#ff922b')
 
 def px(value):return round(value*(QApplication.instance().property('animevaultScale') or 1))
 

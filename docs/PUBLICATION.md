@@ -14,7 +14,7 @@ This publication includes the current Python desktop application, Chrome-extensi
 
 Before publication, `python scripts/check.py` passed **502 tests**, source compilation and the 500-file scanner heartbeat check. Maximum heartbeat gap was **60.1 ms** in that run. The two Chrome-extension test files passed **18 tests**. The publication check and screenshot rendering were also run. CI independently checks the pushed revision.
 
-This is a source snapshot, not a newly certified stable release or installer. The original `v1.0.0` tag is preserved. Open findings in the [whole-app audit](../WHOLE_APP_AUDIT_2026-11-12.md), including scattered-location season counting, remain unresolved by this documentation/publication pass.
+This is a source snapshot, not a newly certified stable release or installer. The original `v1.0.0` tag is preserved. Open findings in the [whole-app audit](history/WHOLE_APP_AUDIT_2026-11-12.md), including scattered-location season counting, remain unresolved by this documentation/publication pass.
 
 The initial remote run exposed two API-test import errors: fresh Starlette
 requires HTTPX2, while the developer machine already had a compatible test client.

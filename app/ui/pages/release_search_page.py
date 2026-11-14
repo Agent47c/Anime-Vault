@@ -165,7 +165,12 @@ class ReleaseSearchPage(QDialog):
         self.source=QComboBox()
         self.sources=discovery.sources()
         for source in self.sources:self.source.addItem(source['name'],source)
-        selected=next((i for i,s in enumerate(self.sources) if s['url']==downloads.settings()['source']),0);self.source.setCurrentIndex(selected)
+        is_adult_series = bool(series.get('is_adult'))
+        if is_adult_series:
+            selected = next((i for i, s in enumerate(self.sources) if 'sukebei.nyaa.si' in s.get('url', '')), 0)
+        else:
+            selected = next((i for i, s in enumerate(self.sources) if s['url'] == downloads.settings()['source']), 0)
+        self.source.setCurrentIndex(selected)
         options.addWidget(self.season,2);options.addWidget(self.source,1);form.addLayout(options)
         form.addWidget(label('SEARCH TITLE MAPPING'))
         title_row=QHBoxLayout();self.title_choice=QComboBox()

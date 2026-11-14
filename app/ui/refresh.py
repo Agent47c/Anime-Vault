@@ -81,6 +81,20 @@ def refresh_image_exists(path):
     return path.is_file()
 
 
+def patch_update_choices(snapshot, records):
+    """Keep a pending read snapshot consistent with already committed UI choices."""
+    index=snapshot.get('library_index')
+    if index:index.apply_update_choices(records)
+    connection=snapshot['connection']
+    for fid,record in records.items():
+        fields={key:record[key] for key in ('has_new_update','update_details','watch_status') if key in record}
+        if fields:connection.execute('UPDATE franchises SET '+','.join(key+'=?' for key in fields)+' WHERE id=?',(*fields.values(),fid))
+        disposition=record.get('_update_disposition','new')
+        for key,value in ((f'update_disposition:{fid}',disposition),(f'muted_updates:{fid}','0' if disposition=='new' else '1')):
+            connection.execute('INSERT INTO app_state(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(key,value))
+    snapshot.pop('stats',None)
+
+
 class RefreshWorker(QThread):
     ready = pyqtSignal(object)
     failed = pyqtSignal(str)

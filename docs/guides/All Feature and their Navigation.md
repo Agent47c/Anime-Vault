@@ -385,22 +385,22 @@ relevant anime; there is no need to recreate the removed global muted-anime comb
 
 Configured roots and Merge preview source paths now have clickable Open folder
 buttons with full-path tooltips. Shared button rules and vertical Updates actions
-are documented in [Unified buttons and release dates](UNIFIED_BUTTONS_AND_RELEASE_DATES.md).
+are documented in [Unified buttons and release dates](../history/UNIFIED_BUTTONS_AND_RELEASE_DATES.md).
 
 Completed downloads now appear by their linked anime after Scan now. Review uses
 the dedicated completed-download move preview; torrent staging is excluded from
-generic season organization. See [Download organization and UI fixes](DOWNLOAD_ORGANIZER_AND_UI_POLISH.md).
+generic season organization. See [Download organization and UI fixes](../history/DOWNLOAD_ORGANIZER_AND_UI_POLISH.md).
 
 Current navigation: **Organize seasons and folders**, **Merge all anime into one
 root library**, and **Review duplicate files** are separate Organizer tabs.
 Duplicate review has moved out of the season/folder screen; its scan remains
 manual. Merge and Duplicate Review follow the new supplied references while
-retaining existing operations. See [Merge and Duplicate Review UI](MERGE_DUPLICATE_REFERENCE_UI.md).
+retaining existing operations. See [Merge and Duplicate Review UI](../history/MERGE_DUPLICATE_REFERENCE_UI.md).
 
 Organizer visual update: the Organize seasons and folders tab follows the
 `organizer screen` reference, with rules/roots above the preview. Scan remains
 manual; Merge library is retained. Review duplicate files opens the existing
-workflow without exposing hash/encryption details. See [Organizer reference UI](ORGANIZER_REFERENCE_UI.md).
+workflow without exposing hash/encryption details. See [Organizer reference UI](../history/ORGANIZER_REFERENCE_UI.md).
 
 **Path:** sidebar Organizer → Organize seasons and folders tab.
 
@@ -545,7 +545,7 @@ Native Retry keeps the queue ID, selected files and partial destination. Row men
 retain their original target across refreshes. The default staging destination for
 new downloads follows the main library; explicit custom destinations are preserved.
 Move completed to library uses a reviewed, no-overwrite journal and updates library
-paths/history references after each file. See [Download retry and library moves](DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md)
+paths/history references after each file. See [Download retry and library moves](../history/DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md)
 for navigation, recovery behavior and validation.
 
 ## 12. Release search and download review
@@ -569,7 +569,7 @@ switch back; the saved custom option remains in the title mapping list.
 This destination follows the supplied `file download page` reference: grouped
 search panel, virtual release table with rounded availability pills, optional
 episode availability cards and wrapping actions. Review shows the checked-release
-count. Existing search/review logic is preserved. See [Find Download screen](FIND_DOWNLOAD_SCREEN.md)
+count. Existing search/review logic is preserved. See [Find Download screen](../history/FIND_DOWNLOAD_SCREEN.md)
 for the UI changes, skipped reference-only features and validation.
 
 ### Search controls and result fields
@@ -674,13 +674,13 @@ Preserve this alternate entry flow alongside newer search/queue pages:
 Current design follows `setting ui screen`: eight separate category pages grouped
 in the sidebar. Naming & Organization and Metadata & AniList have dedicated pages;
 existing Appearance, Scanning, Watchers, Media Player, Downloads and Database links
-retain their category indices. See [Settings UI Screen](SETTINGS_UI_SCREEN.md).
+retain their category indices. See [Settings UI Screen](../history/SETTINGS_UI_SCREEN.md).
 
 The `Sertting UI` reference is applied through a left category navigator and
 separate category pages. Only the selected category's options are shown; navigation
 does not scroll between sections. Theme previews and player cards use the existing saved
 controls. Settings continue saving immediately. The six-category page container
-preserves existing in-app links. See [Settings reference UI](SETTINGS_REFERENCE_UI.md)
+preserves existing in-app links. See [Settings reference UI](../history/SETTINGS_REFERENCE_UI.md)
 for preserved controls, skipped mockup features and validation.
 
 Anime selection is available through **All anime → Select anime**, alongside

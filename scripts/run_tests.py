@@ -1,5 +1,6 @@
 """Run regression tests with a fresh, temporary application data directory."""
 import gc
+import json
 import os
 from pathlib import Path
 import sys
@@ -32,6 +33,7 @@ def main():
             stack.enter_context(patch.object(db, "DB_PATH", root / "library.db"))
             db.init_db()
             suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"))
+            expected = suite.countTestCases()
             result = unittest.TextTestRunner(verbosity=2).run(suite)
             from PyQt5.QtWidgets import QApplication
             from PyQt5.QtCore import QCoreApplication, QEvent
@@ -40,6 +42,9 @@ def main():
                 app.processEvents()
                 QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
             gc.collect()
+            completion = os.environ.get('ANIMEVAULT_TEST_COMPLETION_FILE')
+            if completion:
+                Path(completion).write_text(json.dumps({'expected':expected,'ran':result.testsRun,'successful':result.wasSuccessful()}),encoding='utf-8')
             return 0 if result.wasSuccessful() else 1
 
 

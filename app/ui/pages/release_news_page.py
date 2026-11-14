@@ -16,7 +16,9 @@ from app.ui.components.tag_picker import TagPicker
 
 class NewsArtwork(QThread):
     image_ready=pyqtSignal(int,object)
-    def __init__(self,items,allow_network=False):super().__init__(QApplication.instance());self.items=items;self.allow_network=allow_network
+    banner_ready=pyqtSignal(int,object)
+    failed=pyqtSignal(str)
+    def __init__(self,items,allow_network=False,banners=False):super().__init__(QApplication.instance());self.items=items;self.allow_network=allow_network;self.banners=banners
     def run(self):
         from app.core import anilist_client as api
         from app.core.image_profiles import load_cached_image
@@ -25,10 +27,15 @@ class NewsArtwork(QThread):
             with api.cancellable(self.isInterruptionRequested):
                 for media in self.items:
                     if self.isInterruptionRequested():break
+                    if not media.get('id'):continue
                     from app.config import is_offline
                     name=api.download_cover(media,media['id'],allow_network=self.allow_network and not is_offline())
                     if name:self.image_ready.emit(media['id'],load_cached_image(COVERS_DIR/name))
+                    if self.banners:
+                        name=api.download_banner(media,media['id'],allow_network=self.allow_network and not is_offline())
+                        if name:self.banner_ready.emit(media['id'],load_cached_image(COVERS_DIR/name))
         except (InterruptedError,ValueError,OSError):pass
+        except Exception as error:self.failed.emit(str(error))
 
 class ReleaseNewsPage(QDialog):
     full_page=True
@@ -43,7 +50,7 @@ class ReleaseNewsPage(QDialog):
         self.setObjectName('release_news');self.setWindowTitle('Broadcast & Release Updates' if media_id else 'New anime releases');self.resize(1200,820);self.setStyleSheet(qss('release_news'))
         layout=QVBoxLayout(self);layout.setContentsMargins(24,20,24,20);layout.setSpacing(16)
         title=QLabel(self.windowTitle());title.setObjectName('transfer_heading');heading=QHBoxLayout();heading.addWidget(title,1)
-        refresh=QPushButton('Check updates');refresh.clicked.connect(lambda:self.load(True));heading.addWidget(refresh);layout.addLayout(heading)
+        refresh=QPushButton('Refresh release details' if media_id else 'Check new animes');self.refresh_button=refresh;refresh.clicked.connect(lambda:self.load(True));heading.addWidget(refresh);layout.addLayout(heading)
         controls=QHBoxLayout()
         self.period=QComboBox();self.period.addItems(['Released in the last 30 days','Upcoming in the next 90 days','Announced · date may be unknown']);self.period.setAccessibleName('Release period');self.period.setVisible(not media_id);controls.addWidget(self.period)
         self.sort=TagPicker('Sort releases',multiple=False);self.sort.addItems(['Premiere: newest first','Premiere: earliest first','English title A–Z','Most popular']);self.sort.setAccessibleName('Sort releases');self.sort.setVisible(not media_id);self.sort.currentIndexChanged.connect(self.reset);controls.addWidget(self.sort)
@@ -62,6 +69,8 @@ class ReleaseNewsPage(QDialog):
         self.adult_filter=QCheckBox('Include adult (18+)');self.adult_filter.setChecked(enabled('allow_mature'));self.adult_filter.setEnabled(enabled('allow_mature'))
         self.adult_filter.setToolTip('Follows Settings → Metadata and AniList → Allow mature (18+) titles.');self.adult_filter.setCursor(Qt.PointingHandCursor)
         filters.addWidget(self.adult_filter);self.adult_filter.toggled.connect(self.reset)
+        self.adult_only=QCheckBox('Only adult (18+)');filters.addWidget(self.adult_only);self.adult_only.toggled.connect(self.reset)
+        self._adult_allowed=enabled('allow_mature');self.apply_preferences(reload=False)
         self.discovery_filters.setVisible(not media_id);layout.addWidget(self.discovery_filters)
         self.status=QLabel('Times use your computer’s local timezone. Historical schedules may be incomplete.');self.status.setWordWrap(True);layout.addWidget(self.status)
         scroll=QScrollArea();self.scroll=scroll;scroll.setWidgetResizable(True);scroll.setFrameShape(QFrame.NoFrame);scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff);scroll.viewport().installEventFilter(self)
@@ -75,8 +84,27 @@ class ReleaseNewsPage(QDialog):
         if self.worker:self.worker.requestInterruption()
         if getattr(self,'_artwork',None):self._artwork.requestInterruption()
 
-    def reset(self,*_):self.page=1;self.load()
-    def change_page(self,delta):self.page=max(1,self.page+delta);self.load()
+    def reset(self,*_):self.page=1;self._fetch_missing=True;self.load()
+    def change_page(self,delta):self.page=max(1,self.page+delta);self._fetch_missing=True;self.load()
+
+    def apply_preferences(self,reload=True):
+        from app.preferences import enabled
+        from app.core.adult_content import is_adult_unlocked
+        allowed = is_adult_unlocked() and enabled('allow_mature')
+        changed=allowed!=getattr(self,'_adult_allowed',allowed);self._adult_allowed=allowed
+        self.adult_filter.blockSignals(True);self.adult_only.blockSignals(True)
+        self.adult_filter.setVisible(allowed);self.adult_only.setVisible(allowed);self.adult_filter.setEnabled(allowed)
+        if changed:self.adult_filter.setChecked(allowed)
+        if not allowed:self.adult_filter.setChecked(False);self.adult_only.setChecked(False)
+        self.genre_filter.replaceItems([('All genres',None)]+[(v,v) for v in news.GENRES if allowed or v!='Hentai'])
+        self.adult_filter.blockSignals(False);self.adult_only.blockSignals(False)
+        if changed and reload and hasattr(self,'status'):
+            self.stop();self.page=1
+            if hasattr(self,'_last_result'):self.render(self._last_result)
+            self.load()
+
+    def showEvent(self,event):
+        super().showEvent(event);self.apply_preferences()
 
     def run(self,operation,ready,on_error=None):
         if self.worker:self.worker.requestInterruption()
@@ -97,19 +125,22 @@ class ReleaseNewsPage(QDialog):
     def load(self,force=False):
         self.status.setText('Checking AniList…' if force else 'Loading release details…' if self.media_id else 'Loading saved results…');page=self.page;upcoming=self.period.currentIndex()==1;mid=self.media_id;announced=self.period.currentIndex()==2;sort=('START_DATE_DESC','START_DATE','TITLE_ENGLISH','POPULARITY_DESC')[self.sort.currentIndex()]
         genre=self.genre_filter.currentData();theme=self.theme_filter.currentData();media_format=self.format_filter.currentData();include_adult=self.adult_filter.isChecked()
+        fetch_missing=getattr(self,'_fetch_missing',False);self._fetch_missing=False;adult_only=self.adult_only.isChecked()
         def operation():
             from app.core import anilist_client
             with anilist_client.cancellable(QThread.currentThread().isInterruptionRequested):
                 info={}
                 try:
                     if not mid:
-                        result=news.discover(upcoming,page,force,announced,sort,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info)
+                        result=news.discover(upcoming,page,force,announced,sort,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info,fetch_missing=fetch_missing,adult_only=adult_only)
                         return result,info
                     result=news.timeline(mid,page,force,cache_info=info)
                 except news.CacheMiss as error:
                     return ({} if mid else ([],False)),dict(source='empty',warning=str(error))
                 from app.core.download_discovery import library_context
-                with closing(db.get_connection()) as conn:row=conn.execute('SELECT franchise_id,season_number FROM seasons WHERE anilist_id=?',(mid,)).fetchone()
+                with closing(db.get_connection()) as conn:
+                    row=conn.execute('SELECT franchise_id,season_number FROM seasons WHERE anilist_id=?',(mid,)).fetchone()
+                    if not row:row=conn.execute('SELECT id AS franchise_id, NULL AS season_number FROM franchises WHERE anilist_id=?',(mid,)).fetchone()
                 if row:
                     result=dict(result);result['_library']=library_context(row['franchise_id'],row['season_number'])
                 return result,info
@@ -128,6 +159,35 @@ class ReleaseNewsPage(QDialog):
         label=QLabel(detail);label.setTextFormat(Qt.PlainText);label.setWordWrap(True);box.addWidget(label);self.rows.addWidget(frame)
         return box
 
+    def release_hero(self,media):
+        from app.ui.components.workflow import thumbnail
+        from app.ui.home_style import colors
+        from app.ui.pages.detail_modal import format_synopsis
+        import html,re
+        c=colors();frame=QFrame();frame.setObjectName('release_hero');box=QVBoxLayout(frame);box.setContentsMargins(24,24,24,24);box.setSpacing(20)
+        self.release_banner=QLabel();self.release_banner.setFixedHeight(170);self.release_banner.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);self.release_banner.setAlignment(Qt.AlignCenter);self.release_banner.setText('Release overview');self.release_banner.setStyleSheet(f'background:{c["raised"]};border-radius:16px;color:{c["muted"]};');box.addWidget(self.release_banner)
+        row=QHBoxLayout();row.setSpacing(28);self.release_poster=thumbnail(resolve_display_title(media),None,180,260);row.addWidget(self.release_poster,0,Qt.AlignTop)
+        info=QVBoxLayout();info.setSpacing(14);row.addLayout(info,1)
+        self.release_title=QLabel(resolve_display_title(media));self.release_title.setWordWrap(True);self.release_title.setTextFormat(Qt.PlainText);self.release_title.setStyleSheet(f'font-size:28px;font-weight:700;color:{c["text"]};');info.addWidget(self.release_title)
+        titles=media.get('title') or {};alternates=list(dict.fromkeys(t for t in (titles.get('romaji'),titles.get('english'),titles.get('native')) if t and t!=self.release_title.text()))
+        subtitle=QLabel(' · '.join(alternates));subtitle.setWordWrap(True);subtitle.setTextFormat(Qt.PlainText);subtitle.setObjectName('transfer_meta');info.addWidget(subtitle)
+        meta=QLabel(f"{media.get('format') or 'Format unknown'} · {str(media.get('status') or 'Unknown').replace('_',' ').title()} · Premiere: {news.date_label(media.get('startDate'))}");meta.setWordWrap(True);info.addWidget(meta)
+        genres=QLabel(' · '.join(media.get('genres') or []) or 'Genres not published');genres.setWordWrap(True);genres.setStyleSheet(f'color:{c["coral"]};');info.addWidget(genres)
+        plot=QLabel(format_synopsis(html.unescape(re.sub(r'<[^>]+>','',media.get('description') or ''))));plot.setTextFormat(Qt.PlainText);plot.setWordWrap(True);plot.setTextInteractionFlags(Qt.TextSelectableByMouse);info.addWidget(plot)
+        actions=FlowLayout();import_button=QPushButton('Import as Watching');import_button.clicked.connect(lambda:self.import_media(media,import_button));actions.addWidget(import_button);info.addLayout(actions)
+        box.addLayout(row);self.rows.addWidget(frame)
+        if 'coverImage' not in media and 'bannerImage' not in media:return
+        worker=NewsArtwork([media],allow_network=getattr(self,'_allow_artwork_network',False),banners=True);self._artwork=worker;track(worker)
+        from PyQt5 import sip
+        def show_image(mid,image,banner=False):
+            if sip.isdeleted(self) or self._artwork is not worker or worker.isInterruptionRequested() or mid!=self.media_id:return
+            label=self.release_banner if banner else self.release_poster
+            label.setPixmap(QPixmap.fromImage(image).scaled(max(1,label.width()),label.height(),Qt.KeepAspectRatioByExpanding,Qt.SmoothTransformation))
+        def finished():
+            if not sip.isdeleted(self) and self._artwork is worker:self._artwork=None
+            worker.deleteLater()
+        worker.image_ready.connect(show_image);worker.banner_ready.connect(lambda mid,image:show_image(mid,image,True));worker.finished.connect(finished);worker.start()
+
     def render(self,result):
         if getattr(self,'_artwork',None):self._artwork.requestInterruption()
         self._last_result=result
@@ -139,11 +199,18 @@ class ReleaseNewsPage(QDialog):
             # Issue: Nullable Page/airingSchedules/relations subfields in AniList responses could raise KeyError/TypeError.
             # Fix: Guard nested response keys safely before rendering panels.
             media=result.get('Media') or {};schedule=result.get('Page') or {};self.next.setEnabled(bool((schedule.get('pageInfo') or {}).get('hasNextPage')))
-            self.panel(resolve_display_title(media),f"Premiere: {news.date_label(media.get('startDate'))} · {media.get('status','Unknown')}\n"+(media.get('description') or 'No synopsis available.'))
+            if not media:
+                self.panel('No saved release details',getattr(self,'_cache_info',{}).get('warning') or 'Refresh release details to check this anime.');return
+            from app.preferences import enabled
+            if media.get('isAdult') and not enabled('allow_mature'):
+                self.panel('Adult content is hidden','Enable mature (18+) titles in Settings to view this release.');return
+            if media.get('id') and media['id']!=self.media_id:
+                self.panel('Release identity mismatch','Refresh release details to load the selected anime.');return
+            self.release_hero(media)
             for edge in (media.get('relations') or {}).get('edges') or []:
                 node=(edge or {}).get('node') or {}
-                if node.get('type')=='ANIME' and node.get('id') and edge.get('relationType') in ('SEQUEL','PREQUEL'):
-                    box=self.panel(resolve_display_title(node),f"{edge['relationType']} · {node.get('status','Unknown')} · Premiere {news.date_label(node.get('startDate'))}")
+                if node.get('type')=='ANIME' and node.get('id') and edge.get('relationType') in ('SEQUEL','PREQUEL') and (enabled('allow_mature') or not node.get('isAdult')):
+                    box=self.panel('Related release · '+resolve_display_title(node),f"{edge['relationType']} · Separate title, not this anime’s episodes · {node.get('status','Unknown')} · Premiere {news.date_label(node.get('startDate'))}")
                     button=QPushButton('Release details');button.clicked.connect(lambda checked=False,mid=node['id']:open_release_news(self,mid));box.addWidget(button,0,Qt.AlignLeft)
             schedules=schedule.get('airingSchedules') or []
             mode=self.broadcast_filter.currentIndex();now=datetime.now().timestamp()
@@ -167,7 +234,8 @@ class ReleaseNewsPage(QDialog):
                 table.setCellWidget(i,4,action);table.setRowHeight(i,64)
             if not schedules:self.panel('No episode schedule published','No dates are assumed. Check updates again later.')
         else:
-            items,more=result;self.next.setEnabled(more)
+            from app.preferences import enabled
+            items,more=result;items=[m for m in items if enabled('allow_mature') or not m.get('isAdult')];self.next.setEnabled(more)
             grid_widget=QWidget();grid_widget.setObjectName('transfer_clear');grid=QGridLayout(grid_widget);grid.setContentsMargins(0,0,0,0);grid.setSpacing(20);self.rows.addWidget(grid_widget)
             self._discovery_cards=[];self._discovery_grid=grid;posters={}
             for media in items:
@@ -182,7 +250,7 @@ class ReleaseNewsPage(QDialog):
                 details=QPushButton('Release details');details.clicked.connect(lambda checked=False,mid=media['id']:open_release_news(self,mid));actions.addWidget(details)
                 button=QPushButton('Import as Watching');button.clicked.connect(lambda checked=False,m=media,b=button:self.import_media(m,b));actions.addWidget(button)
                 self._discovery_cards.append(frame)
-            self.arrange_cards()
+            self.arrange_cards();QTimer.singleShot(0,self._arrange_after_resize)
             if items:
                 worker=NewsArtwork(items,allow_network=getattr(self,'_allow_artwork_network',False));self._artwork=worker;track(worker)
                 from PyQt5 import sip
@@ -198,12 +266,12 @@ class ReleaseNewsPage(QDialog):
             if not items:
                 info=getattr(self,'_cache_info',{})
                 if info.get('source')=='empty':self.panel('No saved results for these filters yet','Click Check updates to fetch and save this release period and filter combination.')
-                else:self.panel('No releases found for this period and filters','Try clearing selected tags or click Check updates to check the latest information. Previously saved results are kept until you refresh.')
+                else:self.panel('No releases found for this period and filters','Try clearing selected tags or click Check new animes. Previously saved results are kept until you refresh.')
         info=getattr(self,'_cache_info',{})
         stamp=info.get('saved_at')
         checked=datetime.fromtimestamp(stamp).astimezone().strftime('%d %b %Y · %H:%M') if stamp else 'not checked yet'
         message=info.get('warning') or ('Updated and saved' if info.get('source')=='network' else 'Saved results')
-        self.status.setText(f'{message} · Page {self.page} · Last checked: {checked}. Click Check updates to refresh online.')
+        self.status.setText(f'{message} · Page {self.page} · Last checked: {checked}. Use the check button to refresh online.')
 
     def arrange_cards(self):
         if not hasattr(self,'_discovery_grid'):return
@@ -219,6 +287,7 @@ class ReleaseNewsPage(QDialog):
             # poster; otherwise Qt can squeeze labels over the image.
             card.setMinimumHeight(max(card.layout().minimumSize().height(),card.layout().totalHeightForWidth(card_width)))
             self._discovery_grid.addWidget(card,i//cols,i%cols)
+        grid.activate();self.rows.activate();self.scroll.widget().setMinimumHeight(self.rows.minimumSize().height());self.scroll.widget().updateGeometry()
     def resizeEvent(self,event):
         super().resizeEvent(event)
         if not self.media_id:self.arrange_cards()

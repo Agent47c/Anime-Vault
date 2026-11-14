@@ -22,7 +22,8 @@ import traceback
 from datetime import datetime, timezone
 
 ENABLED = os.environ.get('APP_PROFILE') == '1'
-LOG_PATH = Path(__file__).resolve().parents[1] / 'audit_logs' / 'profile.jsonl'
+from app.paths import FROZEN, DATA_DIR as PROFILE_DATA_DIR
+LOG_PATH = (PROFILE_DATA_DIR if FROZEN else Path(__file__).resolve().parents[1]) / 'audit_logs' / 'profile.jsonl'
 _recorder = None
 _original_connect = sqlite3.connect
 _installed = False

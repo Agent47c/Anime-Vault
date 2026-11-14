@@ -1,7 +1,73 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Anime Vault site capture</title><link rel="stylesheet" href="popup.css"></head>
-<body><h1>Anime Vault</h1><p>Catch magnet clicks on one selected website. Other websites keep their usual handler.</p>
-<label for="site">Download website</label><input id="site" type="url" value="https://nyaa.si" placeholder="https://example.org">
-<button id="enable">Enable on this website</button><button id="disable" class="secondary">Disable capture</button>
-<p id="status" role="status"></p><p class="hint">Copy the extension ID from chrome://extensions into Anime Vault → Settings → Downloads, then connect it. Reload the selected website after enabling.</p>
-<script src="logic.js"></script><script src="popup.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anime Vault · Browser Bridge</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <span class="brand-mark" aria-hidden="true">✦</span>
+    <div>
+      <h1>Anime Vault</h1>
+      <span class="eyebrow">BROWSER BRIDGE</span>
+    </div>
+    <span class="local-pill">LOCAL</span>
+  </header>
+  <main>
+    <section class="intro">
+      <h2>Your sources. Your library.</h2>
+      <p>Send releases from your chosen websites straight to Anime Vault for review.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-label">
+        <span class="status-dot" aria-hidden="true"></span> Connected websites
+      </div>
+      <p class="hint">Magnet links and searches will be captured from any website enabled below.</p>
+
+      <div id="sites-container" class="sites-container">
+        <ul id="sites-list" class="sites-list" role="list"></ul>
+      </div>
+
+      <div class="add-site-section">
+        <label for="new-site">Add another website</label>
+        <div class="add-row">
+          <input id="new-site" type="url" placeholder="https://example.org" spellcheck="false" autocomplete="off">
+          <button id="add-btn" class="compact-btn" type="button">+ Add</button>
+        </div>
+        <div class="quick-presets">
+          <span class="preset-label">Quick add:</span>
+          <button type="button" class="chip-btn" data-url="https://nyaa.si">Nyaa</button>
+          <button type="button" class="chip-btn" data-url="https://sukebei.nyaa.si">Sukebei (18+)</button>
+        </div>
+      </div>
+
+      <div class="toggle-actions">
+        <button id="enable">Enable capture on all websites <span aria-hidden="true">↗</span></button>
+        <button id="disable" class="secondary">Turn off capture</button>
+      </div>
+    </section>
+
+    <section class="connection">
+      <span class="status-dot" aria-hidden="true"></span>
+      <p id="status" role="status" aria-live="polite">Checking local connection…</p>
+    </section>
+
+    <section class="setup">
+      <h3>Connect the desktop app</h3>
+      <p>Open <strong>Settings → Downloads &amp; Sources</strong> in Anime Vault. Paste the extension ID from <code>chrome://extensions</code>, then connect. Reload your chosen websites after enabling capture.</p>
+    </section>
+
+    <section class="privacy">
+      <strong>Private by design</strong>
+      <p>No analytics or browsing-history collection. Website access is limited strictly to the sources you choose; links and searches route to your local Anime Vault app only.</p>
+      <a href="privacy.html" target="_blank" rel="noopener">Privacy &amp; data use <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+  <footer>Review in Anime Vault before a download starts.</footer>
+  <script src="logic.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

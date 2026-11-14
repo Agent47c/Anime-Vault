@@ -9,6 +9,9 @@ const magnet = 'magnet:?xt=urn:btih:' + 'a'.repeat(40) + '&dn=Example';
 test('only the exact chosen website and top-level tab are accepted', () => {
   const sender = {frameId: 0, tab: {url: 'https://nyaa.si/?q=test'}, url: 'https://nyaa.si/'};
   assert.equal(allowedSender(sender, 'https://nyaa.si'), true);
+  assert.equal(allowedSender(sender, ['https://nyaa.si', 'https://sukebei.nyaa.si']), true);
+  const sukebeiSender = {frameId: 0, tab: {url: 'https://sukebei.nyaa.si/?q=test'}, url: 'https://sukebei.nyaa.si/'};
+  assert.equal(allowedSender(sukebeiSender, ['https://nyaa.si', 'https://sukebei.nyaa.si']), true);
   assert.equal(allowedSender({...sender, frameId: 1}, 'https://nyaa.si'), false);
   assert.equal(allowedSender({...sender, url: 'https://other.example/'}, 'https://nyaa.si'), false);
   assert.equal(allowedSender({...sender, tab: {url: 'https://nyaa.si.evil.example/'}}, 'https://nyaa.si'), false);

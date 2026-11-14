@@ -1,5 +1,111 @@
 # Changelog
 
+## Pre-redesign source baseline — 14 November 2026
+
+- Publish the current source, regression tests, packaging scripts and organized
+  design/documentation references before starting the next UI redesign.
+- Include the recent immediate update-choice propagation fix, completed/seeding
+  presentation, PotPlayer integration, transfer-limit controls, window-state
+  persistence, cached release discovery, profile backups and installer work below.
+- Record the previously added adult-content password/recovery controls and
+  multi-site Chrome extension (1.2.0), alongside the 1.0.1 application source.
+- Preserve existing features and the original v1.0.0 tag. This source baseline
+  is not a new installer or a claim that the open audit findings are resolved.
+- Next phase: apply the user's incoming UI screens one at a time after receiving
+  the new guidelines. No new redesign has been implemented in this checkpoint.
+- Validation reused from the unchanged code: 539 completed Python tests and
+  compilation; Chrome extension and publication hygiene checks verified separately.
+- See the [baseline and remaining risks](docs/maintenance/PRE_UI_REDESIGN_BASELINE.md).
+
+## Unreleased — Immediate update choices on both screens
+
+- Apply Later, Not interested, Mute, Watched and ignore, Dismiss and Restore to
+  the cached Library index/release strip and Updates categories after saving.
+- Reconcile empty lists immediately, retain unaffected cards, and avoid full
+  Library/hero/calendar refreshes for notification choices.
+- Protect committed choices against older in-flight refresh snapshots; preserve
+  grouped-series update aggregation and failure recovery.
+- Add four focused regressions. See the [propagation fix report](docs/maintenance/UPDATE_CHOICE_PROPAGATION_FIX.md).
+- Validation: all 539 Python tests and compilation checks passed; focused
+  temporary-data propagation measured 78.8 ms maximum across suppressing choices.
+
+## Workspace maintenance and source review — 14 November 2026
+
+- Consolidate supplied UI references under `design/references`, local previews
+  under `design/previews`, and implementation reports under `docs/history`.
+  Retain guides/planning notes separately and repair local Markdown links.
+- Preserve runtime locations, personal database/media and existing installers;
+  update the build's moved master-icon reference. Record 165 file move checksums.
+- Fix exit-test watchdog leakage and require a regression-suite completion record
+  so premature process termination with exit code 0 cannot falsely pass validation.
+- Review the new adult-content password/recovery lock and multi-site Chrome
+  capture changes, which were absent from the latest release notes. These remain
+  source-reviewed additions with unresolved findings, not newly approved features.
+- Document shutdown, installer termination, PotPlayer ABI, visibility-policy and
+  credential-update risks in the [current review](docs/maintenance/CODEBASE_REVIEW_2026-11-14.md).
+- Verification completed: 535 Python tests, compilation checks and 18 Chrome
+  extension tests passed with the new full-suite completion guard.
+
+## Version 1.0.1 — Downloads queue colors, PotPlayer playback tracking and upgraded installer
+
+- Fixed downloads queue progress calculation for completed and restored torrents:
+  clamped completed and seeding jobs to 100% progress and total / total bytes,
+  eliminating stale partial progress counters from restored database snapshots.
+- Updated download status colors: completed downloads now display in blue (`#6cb6ff`),
+  seeding torrents display in orange (`#ff922b`), and active transfers display in coral.
+  Selected row borders match the status tint.
+- Added native Windows IPC playback tracking for PotPlayer via SendMessageTimeoutW
+  (`POT_GET_TOTAL_TIME`, `POT_GET_CURRENT_TIME`, `POT_GET_PLAY_STATUS`). Anime Vault
+  now tracks seconds watched, seconds remaining, and playback progress for PotPlayer.
+- Added `/seek=` command-line argument for PotPlayer resuming and updated Settings
+  player auto-detection to discover PotPlayer alongside VLC, MPV and MPC-HC.
+- Bundled the multi-resolution master app icon from `Anime Valt Installer Pkg` into
+  `assets/app.ico` for the executable, desktop shortcut, window chrome and system tray.
+- Built versioned standalone installer `AnimeVault-Setup-1.0.1-windows-x64.exe` with
+  matching `AppId={{BB4AB6A4-91CC-4BBF-B367-BC22D14E8C37}}` for seamless in-place
+  upgrade over version 1.0.0 while preserving previous installer and user data.
+- Fixed clean process shutdown on Exit / Close: eliminated background zombie processes
+  caused by indefinite thread wait loops. Added a 2.5s exit watchdog, instant window/tray
+  hiding, torrent host process kill on exit, and immediate kernel-level teardown via `os._exit()`.
+- Resolved installer upgrade error (`DeleteFile failed; code 5. Access is denied.`):
+  updated Inno Setup with `CloseApplications=yes`, automated process cleanup in `PrepareToInstall`,
+  and `restartreplace` flags to cleanly replace files when updating over an installed version.
+- Added comprehensive regression tests in `test_playback_potplayer.py` and `test_exit_completely.py`;
+  all 526 Python tests pass.
+
+
+## Unreleased — Download controls, release discovery and portable backups
+
+- Apply saved transfer limits to the running built-in engine immediately; share
+  readable 512 KB/s presets and exact custom values across both settings views.
+- Remember normal window geometry and maximized state, including tray-close paths.
+- Restyle the Chrome popup without changing permissions or capture logic, and
+  include an offline privacy page and application privacy documentation.
+- Rename discovery refresh to Check new animes; fetch uncached pagination/filter
+  results automatically while reusing cached pages. Keep every card scrollable.
+- Enforce the mature-content setting immediately; hide adult controls/Hentai when
+  disabled and offer adult-only discovery only when enabled.
+- Add selected-release artwork, alternate titles, plot, genres and premiere/status;
+  verify identity and label related releases separately. Reuse cached artwork.
+- Add ZIP profile backups with native resume metadata and optional image caches;
+  validate restores and retain rollback backups. Exclude videos and code.
+- Add nine regression tests; all 519 Python checks and 18 extension checks pass.
+
+See [the complete change report](docs/history/DOWNLOAD_DISCOVERY_BACKUP_FIXES.md).
+
+## Unreleased — Standalone Windows setup and installed-profile isolation
+
+- Build a one-folder standalone application inside an Inno Setup installer for
+  C:\Program Files\Anime Vault; include Python/Qt, fonts, extension files and native dependencies.
+- Keep installed state in %LOCALAPPDATA%\AnimeVault while preserving the source
+  checkout's data directory. Do not ship, migrate or delete any personal database.
+- Package libtorrent in a separate Qt-free helper to avoid the GUI runtime-hook
+  native crash; keep hidden pipe-based worker startup and recover windowed Chrome pipes.
+- Add an installed-app mutex, leave post-install launch unchecked, and preserve
+  user data on uninstall/update. Add backup/restore and standalone verification guides.
+- Verify real packaged navigation, Details, isolated SQLite backup/restore,
+  native helper and Chrome pipe handling without installing the app on the user's PC.
+
 ## Unreleased — Public repository documentation and source snapshot
 
 - Declare HTTPX2 in a separate development requirements file and install it in

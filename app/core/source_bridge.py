@@ -15,15 +15,23 @@ def connection():
     return state
 
 
-def heartbeat(site,enabled):
-    db.set_state('source_bridge.connection',json.dumps(dict(site=site,enabled=bool(enabled),seen=time.time())))
+def heartbeat(site_or_sites, enabled):
+    if isinstance(site_or_sites, list):
+        sites = site_or_sites
+        site = sites[0] if sites else ''
+    else:
+        site = site_or_sites or ''
+        sites = [site] if site else []
+    db.set_state('source_bridge.connection', json.dumps(dict(site=site, sites=sites, enabled=bool(enabled), seen=time.time())))
 
 
 def enqueue(url,source_name='Source'):
     from app.core.chrome_bridge import origin
-    if not connection()['connected']:
+    conn = connection()
+    if not conn['connected']:
         raise ValueError('Chrome extension is disconnected. Open Chrome, reload the Anime Vault extension and enable your selected website, then retry.')
-    if not connection().get('enabled') or connection().get('site')!=origin(url):
+    allowed_sites = set(conn.get('sites') or ([conn['site']] if conn.get('site') else []))
+    if not conn.get('enabled') or origin(url) not in allowed_sites:
         raise ValueError('Enable this source website in the Chrome extension popup, then retry.')
     identifier=uuid.uuid4().hex
     value=dict(id=identifier,url=url,source=source_name,state='PENDING',created=time.time())
@@ -31,8 +39,9 @@ def enqueue(url,source_name='Source'):
     return identifier
 
 
-def claim(site):
+def claim(site_or_sites):
     from app.core.chrome_bridge import origin
+    allowed_sites = set(site_or_sites if isinstance(site_or_sites, list) else ([site_or_sites] if site_or_sites else []))
     with closing(db.get_connection()) as conn,conn:
         conn.execute('BEGIN IMMEDIATE')
         rows=conn.execute("SELECT key,value FROM app_state WHERE key LIKE ? ORDER BY key",(PREFIX+'%',)).fetchall()
@@ -41,7 +50,7 @@ def claim(site):
             if time.time()-value['created']>180:
                 conn.execute('DELETE FROM app_state WHERE key=?',(row['key'],));continue
             if value['state']!='PENDING': continue
-            if origin(value['url'])!=site:
+            if origin(value['url']) not in allowed_sites:
                 value.update(state='ERROR',error='The extension source differs from this search. Enable the selected website and retry.')
             else:
                 value['state']='DISPATCHED'
@@ -50,16 +59,17 @@ def claim(site):
     return None
 
 
-def finish(identifier,site,entries=None,error=None):
+def finish(identifier,site_or_sites,entries=None,error=None):
     from app.core.chrome_bridge import origin
     from app.core.magnet_capture import validate
     if not isinstance(identifier,str) or len(identifier)!=32: raise ValueError('Invalid search identity.')
+    allowed_sites = set(site_or_sites if isinstance(site_or_sites, list) else ([site_or_sites] if site_or_sites else []))
     with closing(db.get_connection()) as conn,conn:
         conn.execute('BEGIN IMMEDIATE')
         row=conn.execute('SELECT value FROM app_state WHERE key=?',(PREFIX+identifier,)).fetchone()
         if not row: raise ValueError('Search expired.')
         value=json.loads(row['value'])
-        if value['state']!='DISPATCHED' or origin(value['url'])!=site: raise ValueError('Search was cancelled or source changed.')
+        if value['state']!='DISPATCHED' or origin(value['url']) not in allowed_sites: raise ValueError('Search was cancelled or source changed.')
         if error:
             value.update(state='ERROR',error=str(error)[:500])
         else:

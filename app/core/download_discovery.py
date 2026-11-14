@@ -34,6 +34,9 @@ def remember_download_alias(fid,season,title):
     db.set_state(f"download_aliases:{series['id']}:{season or 0}",json.dumps(values))
 
 
+SUKEBEI_SOURCE = dict(name='Sukebei (18+)', url='https://sukebei.nyaa.si/?q={query}&f=0&c=0_0')
+
+
 def sources():
     try: saved=json.loads(db.get_state('downloads.sources','[]'))
     except (TypeError,ValueError): saved=[]
@@ -42,6 +45,8 @@ def sources():
         from urllib.parse import urlsplit
         host=urlsplit(current).hostname or 'Selected source'
         saved.append(dict(name='Nyaa' if host=='nyaa.si' else host,url=current))
+    if not any('sukebei.nyaa.si' in row.get('url','') for row in saved):
+        saved.append(SUKEBEI_SOURCE)
     return saved
 
 

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anime Vault • Broadcast &amp; Release Updates</title>
+<!-- Tailwind CSS v3 with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Custom Theme Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vault: {
+              bg: '#14121d',
+              surface: '#1c1a27',
+              card: '#221f30',
+              cardHover: '#282439',
+              border: '#2d293d',
+              borderLight: '#3f3a54',
+              coral: '#ff6584',
+              coralHover: '#ff4d72',
+              coralGlow: 'rgba(255, 101, 132, 0.25)',
+              accentPurple: '#a78bfa',
+              textMuted: '#948ea5',
+              textBright: '#f3f1f8'
+            }
+          },
+          fontFamily: {
+            heading: ['"Space Grotesk"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Scrollbars and Glass Glow -->
+<style data-purpose="custom-styling">
+    /* Custom Scrollbar for Anime Vault desktop client */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14121d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d293d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff6584;
+    }
+
+    .coral-glow {
+      box-shadow: 0 0 20px -2px rgba(255, 101, 132, 0.35);
+    }
+    .coral-glow-sm {
+      box-shadow: 0 0 10px -1px rgba(255, 101, 132, 0.3);
+    }
+    .hero-mesh {
+      background: radial-gradient(circle at 80% 20%, rgba(255, 101, 132, 0.12) 0%, transparent 45%),
+                  radial-gradient(circle at 20% 80%, rgba(167, 139, 250, 0.08) 0%, transparent 50%),
+                  #1c1a27;
+    }
+  </style>
+</head>
+<body class="bg-vault-bg text-vault-textBright font-sans antialiased min-h-screen flex flex-col select-none overflow-x-hidden">
+<!-- BEGIN: WindowTitleBar -->
+<div class="h-10 bg-[#100e18] border-b border-vault-border flex items-center justify-between px-4 text-xs select-none sticky top-0 z-50">
+<div class="flex items-center space-x-3">
+<!-- Window Controls (macOS / Custom Desktop client style) -->
+<div class="flex items-center space-x-2">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block cursor-pointer hover:opacity-80 transition-opacity"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block cursor-pointer hover:opacity-80 transition-opacity"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block cursor-pointer hover:opacity-80 transition-opacity"></span>
+</div>
+<div class="h-4 w-px bg-vault-border mx-1"></div>
+<div class="flex items-center space-x-2 text-vault-textMuted font-medium">
+<svg class="w-4 h-4 text-vault-coral" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+</svg>
+<span class="text-vault-textBright font-semibold tracking-wide">ANIME VAULT</span>
+<span class="text-vault-textMuted">•</span>
+<span class="text-vault-coral font-heading tracking-tight">Broadcast &amp; Release Radar</span>
+</div>
+</div>
+<!-- Center System Status indicator -->
+<div class="hidden md:flex items-center space-x-4 text-[11px] text-vault-textMuted">
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span>AniList Sync: <strong class="text-emerald-300">Live</strong></span>
+</div>
+<span>•</span>
+<div>Torrent Tracker: <strong class="text-vault-textBright">Nyaa / TokyoTosho (Connected)</strong></div>
+</div>
+<!-- Client Quick Status badge -->
+<div class="flex items-center space-x-2 text-xs">
+<span class="px-2.5 py-0.5 rounded-full bg-vault-card border border-vault-border text-vault-textMuted text-[11px]">
+        v2.4.1 Nightly
+      </span>
+</div>
+</div>
+<!-- END: WindowTitleBar -->
+<!-- BEGIN: MainContentWrapper -->
+<div class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 max-w-[1720px] w-full mx-auto space-y-6">
+<!-- BEGIN: TopNavigationHeader -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-vault-border" data-purpose="page-header">
+<!-- Title & Context Breadcrumb -->
+<div class="space-y-1.5">
+<div class="flex items-center space-x-3">
+<a class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-vault-card hover:bg-vault-cardHover border border-vault-border hover:border-vault-coral transition-colors text-sm text-vault-textBright group" href="#">
+<svg class="w-4 h-4 text-vault-coral group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Back to Library</span>
+</a>
+<h1 class="text-2xl md:text-3xl font-heading font-bold text-white tracking-tight flex items-center space-x-2">
+<span>Broadcast &amp; Release Updates</span>
+<span class="text-xs font-sans px-2.5 py-0.5 rounded-full bg-vault-coral/10 text-vault-coral border border-vault-coral/20 font-medium">Auto-Tracker Active</span>
+</h1>
+</div>
+<p class="text-xs md:text-sm text-vault-textMuted flex items-center space-x-2">
+<span>Saved query results</span>
+<span>•</span>
+<span>Page 1</span>
+<span>•</span>
+<span>Last synchronized: <span class="text-vault-textBright font-mono">13 Nov 2026 · 21:23 PST</span></span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-vault-textMuted"></span>
+<span>Auto-grab schedule armed</span>
+</p>
+</div>
+<!-- Action Controls & Filters -->
+<div class="flex items-center flex-wrap gap-2.5" data-purpose="header-controls">
+<!-- Filter Dropdown -->
+<div class="relative">
+<select class="appearance-none bg-vault-card border border-vault-border text-vault-textBright text-sm rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-vault-coral focus:ring-1 focus:ring-vault-coral cursor-pointer shadow-sm">
+<option selected="">All broadcasts (28 items)</option>
+<option>Today's Airings (5 items)</option>
+<option>Sequels &amp; Movies (8 items)</option>
+<option>Unlinked / Missing in Library (14 items)</option>
+<option>Already Grabbed (9 items)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-vault-textMuted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<!-- Refresh / Check Updates Button -->
+<button class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-vault-coral hover:bg-vault-coralHover text-white font-medium text-sm transition-all coral-glow active:scale-[0.98]">
+<svg class="w-4 h-4 animate-spin-reverse" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Check for Updates</span>
+</button>
+</div>
+</header>
+<!-- END: TopNavigationHeader -->
+<!-- BEGIN: HighlightedHeroReleaseCard -->
+<!-- Featured Release: Rakuen Tsuihou Sequel (Expelled from Paradise) as in user screen -->
+<section class="relative overflow-hidden rounded-2xl border border-vault-border bg-vault-surface hero-mesh p-6 lg:p-7 shadow-xl" data-purpose="featured-release">
+<!-- Glow Accent Ring -->
+<div class="absolute -right-24 -top-24 w-80 h-80 bg-vault-coral/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative z-10">
+<!-- Visual Banner/Poster Mockup -->
+<div class="w-full lg:w-72 xl:w-80 flex-shrink-0">
+<div class="relative group rounded-xl overflow-hidden border border-vault-border shadow-2xl bg-vault-bg aspect-[16/10] lg:aspect-[3/4]">
+<img alt="Rakuen Tsuihou: Kokoro no Resonance poster artwork" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhfBwH6o2zCK8Isv63AadyD0TsSNhTP97h4XN6gjzEgTRUe-r0W-etq0CnjOUOE-j_6IyPZw_LnyFcBFNwD2KsDx5bEsDk5E_kIIXiel7B_h9gtQyZFfiqQSCEFHe59b9wxK77Box7CR4dgSov22N_F41SVd1OoGR48QssVJdPzb2gle4OojdU317xgOje5tPMwVHO2C3zZ0YM6wNh9qvMDdZhvpzSqSDzB1AiEOo"/>
+<div class="absolute inset-0 bg-gradient-to-t from-vault-bg via-vault-bg/40 to-transparent"></div>
+<span class="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-vault-coral text-white text-[11px] font-bold tracking-wider uppercase shadow-md">
+              Sequel Premiere
+            </span>
+<span class="absolute top-3 right-3 px-2 py-1 rounded-md bg-black/70 backdrop-blur text-xs font-mono text-emerald-400 border border-emerald-500/30">
+              1080p Web-DL
+            </span>
+<div class="absolute bottom-3 left-3 right-3">
+<span class="text-xs text-vault-textMuted uppercase font-semibold tracking-wider">Original Cyberpunk Mech</span>
+<p class="text-sm font-bold text-white">Toei Animation x Graphinica</p>
+</div>
+</div>
+</div>
+<!-- Release Info & Metadata -->
+<div class="flex-1 flex flex-col justify-between space-y-4">
+<div>
+<!-- Status Badges Strip -->
+<div class="flex flex-wrap items-center gap-2 mb-2.5 text-xs">
+<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center space-x-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>FINISHED BROADCAST</span>
+</span>
+<span class="px-2.5 py-0.5 rounded-full bg-vault-card border border-vault-border text-vault-textMuted">
+                PREMIERE: <strong class="text-vault-textBright font-mono">2026-11-13</strong>
+</span>
+<span class="px-2.5 py-0.5 rounded-full bg-vault-card border border-vault-border text-vault-textMuted">
+                FORMAT: <strong class="text-vault-textBright">Theatrical Movie / Sequel</strong>
+</span>
+<span class="px-2.5 py-0.5 rounded-full bg-vault-card border border-vault-border text-vault-textMuted">
+                GENRES: <strong class="text-vault-textBright">Sci-Fi, Mecha, Post-Apocalyptic</strong>
+</span>
+</div>
+<!-- Anime Main Titles -->
+<h2 class="text-2xl lg:text-3xl font-heading font-bold text-white tracking-tight leading-snug">
+              Rakuen Tsuihou: Kokoro no Resonance
+            </h2>
+<div class="flex items-center space-x-2 text-sm text-vault-coral font-medium mt-1">
+<span>Expelled From Paradise: Heart Resonance</span>
+<span class="text-vault-textMuted">•</span>
+<span class="text-vault-textMuted italic">Official Sequel to the 2014 Cyberpunk Classic</span>
+</div>
+<!-- Synopsis Paragraph -->
+<p class="mt-3.5 text-sm text-vault-textMuted leading-relaxed max-w-4xl">
+              A direct sequel movie to the 2014 Gen Urobuchi masterpiece <em>Expelled From Paradise (Rakuen Tsuihou)</em>. Set years after Angela Balzac decided to remain on the devastated surface of Earth with Dingo, a newly evolved rogue consciousness reawakens the orbital habitat of DEVA, challenging humanity's digital definition of existence.
+            </p>
+<!-- Prequel Linked Relation Box -->
+<div class="mt-4 p-3 rounded-xl bg-vault-bg/70 border border-vault-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-3xl">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-lg bg-vault-card flex items-center justify-center text-vault-coral border border-vault-border">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-xs text-vault-textMuted uppercase font-semibold">Prequel Franchise Matched</div>
+<div class="text-sm font-medium text-vault-textBright">Expelled From Paradise (2014) • In Vault Library (BD 1080p FLAC)</div>
+</div>
+</div>
+<span class="text-xs px-2.5 py-1 rounded bg-purple-500/10 text-vault-accentPurple border border-purple-500/20 font-medium">Franchise Synced</span>
+</div>
+</div>
+<!-- Hero Action Buttons -->
+<div class="pt-3 flex flex-wrap items-center gap-3">
+<button class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-vault-coral hover:bg-vault-coralHover text-white font-semibold text-sm transition-all coral-glow active:scale-[0.98]">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Auto-Grab Full Release</span>
+</button>
+<button class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textBright border border-vault-border hover:border-vault-borderLight text-sm font-medium transition-colors">
+<svg class="w-4 h-4 text-vault-coral" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Import to Library</span>
+</button>
+<button class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textMuted hover:text-white border border-vault-border text-sm font-medium transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Release Details</span>
+</button>
+<button class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textMuted hover:text-white border border-vault-border text-sm font-medium transition-colors ml-auto">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Search Mirrors / Nyaa</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- END: HighlightedHeroReleaseCard -->
+<!-- BEGIN: BroadcastTableSection -->
+<section class="space-y-4" data-purpose="broadcast-schedule-table">
+<div class="flex items-center justify-between px-1">
+<div>
+<h3 class="text-lg font-heading font-semibold text-white tracking-wide">Detected Broadcast Streams &amp; Episodes</h3>
+<p class="text-xs text-vault-textMuted">Real-time timetable converted to your local timezone (Pakistan Standard Time • PKT / UTC+5)</p>
+</div>
+<div class="text-xs text-vault-textMuted font-mono">
+          Showing 4 verified broadcast entries
+        </div>
+</div>
+<!-- Main Desktop Table Card -->
+<div class="rounded-xl border border-vault-border bg-vault-surface overflow-hidden shadow-lg">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm border-collapse" id="broadcasts-table">
+<thead>
+<tr class="border-b border-vault-border bg-[#191724] text-[11px] font-semibold text-vault-textMuted tracking-wider uppercase">
+<th class="py-3.5 px-4 w-72" scope="col">Episode / Title</th>
+<th class="py-3.5 px-4" scope="col">Broadcast • Local Time</th>
+<th class="py-3.5 px-4 text-center w-28" scope="col">State</th>
+<th class="py-3.5 px-4 text-center w-36" scope="col">Library Status</th>
+<th class="py-3.5 px-4 text-right w-56" scope="col">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-vault-border">
+<!-- Row 1: Rakuen Tsuihou: Kokoro no Resonance (As shown in screenshot) -->
+<tr class="hover:bg-vault-card/60 transition-colors group">
+<td class="py-4 px-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-vault-card border border-vault-border flex items-center justify-center font-heading font-bold text-vault-coral flex-shrink-0">
+                      EP 1
+                    </div>
+<div>
+<div class="font-semibold text-vault-textBright group-hover:text-vault-coral transition-colors">
+                        Rakuen Tsuihou: Kokoro no Resonance
+                      </div>
+<div class="text-xs text-vault-textMuted">Complete Theatrical Feature (104 min)</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center space-x-2">
+<span class="inline-block p-1 rounded bg-vault-card text-vault-coral">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<span class="font-mono text-xs md:text-sm text-vault-textBright">Thursday, 12 November 2026 · 20:00 Pakistan Standard Time</span>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+<span>Aired</span>
+</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-300 border border-rose-500/20">
+<svg class="w-3 h-3 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Not linked</span>
+</span>
+</td>
+<td class="py-4 px-4 text-right">
+<div class="inline-flex items-center space-x-2">
+<button class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-vault-coral hover:bg-vault-coralHover text-white text-xs font-semibold shadow-sm coral-glow-sm transition-all active:scale-95">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Auto-Grab</span>
+</button>
+<button class="p-1.5 rounded-lg bg-vault-card hover:bg-vault-border border border-vault-border text-vault-textMuted hover:text-white transition-colors" title="Manual Download Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Dandadan Season 2 -->
+<tr class="hover:bg-vault-card/60 transition-colors group">
+<td class="py-4 px-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-vault-card border border-vault-border flex items-center justify-center font-heading font-bold text-vault-accentPurple flex-shrink-0">
+                      EP 07
+                    </div>
+<div>
+<div class="font-semibold text-vault-textBright group-hover:text-vault-coral transition-colors">
+                        Dandadan • Episode 7
+                      </div>
+<div class="text-xs text-vault-textMuted">Subbed • Crunchyroll Simulcast (MBS/TBS)</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center space-x-2">
+<span class="inline-block p-1 rounded bg-vault-card text-vault-accentPurple">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<span class="font-mono text-xs md:text-sm text-vault-textBright">Friday, 13 November 2026 · 21:00 Pakistan Standard Time</span>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>Aired</span>
+</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+<svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>In Library (E01-06)</span>
+</span>
+</td>
+<td class="py-4 px-4 text-right">
+<div class="inline-flex items-center space-x-2">
+<button class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-vault-coral hover:bg-vault-coralHover text-white text-xs font-semibold shadow-sm coral-glow-sm transition-all active:scale-95">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Auto-Grab</span>
+</button>
+<button class="p-1.5 rounded-lg bg-vault-card hover:bg-vault-border border border-vault-border text-vault-textMuted hover:text-white transition-colors" title="Manual Download Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Re:Zero Season 3 -->
+<tr class="hover:bg-vault-card/60 transition-colors group">
+<td class="py-4 px-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-vault-card border border-vault-border flex items-center justify-center font-heading font-bold text-sky-400 flex-shrink-0">
+                      EP 08
+                    </div>
+<div>
+<div class="font-semibold text-vault-textBright group-hover:text-vault-coral transition-colors">
+                        Re:Zero kara Hajimeru Isekai Seikatsu S3
+                      </div>
+<div class="text-xs text-vault-textMuted">Attack Arc: Episode 8 • AT-X Japan</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center space-x-2">
+<span class="inline-block p-1 rounded bg-vault-card text-sky-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<span class="font-mono text-xs md:text-sm text-vault-textBright">Sunday, 15 November 2026 · 18:30 Pakistan Standard Time</span>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+<span>In 1 day</span>
+</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20">
+<span>Tracked</span>
+</span>
+</td>
+<td class="py-4 px-4 text-right">
+<div class="inline-flex items-center space-x-2">
+<button class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-vault-card hover:bg-vault-cardHover text-vault-textBright border border-vault-border text-xs font-medium transition-colors">
+<svg class="w-3.5 h-3.5 text-vault-coral" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Pre-arm Grab</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Solo Leveling Season 2 -->
+<tr class="hover:bg-vault-card/60 transition-colors group">
+<td class="py-4 px-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-vault-card border border-vault-border flex items-center justify-center font-heading font-bold text-vault-coral flex-shrink-0">
+                      EP 12
+                    </div>
+<div>
+<div class="font-semibold text-vault-textBright group-hover:text-vault-coral transition-colors">
+                        Solo Leveling: Arise from the Shadow
+                      </div>
+<div class="text-xs text-vault-textMuted">Season Finale • Tokyo MX / Aniplex</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center space-x-2">
+<span class="inline-block p-1 rounded bg-vault-card text-emerald-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<span class="font-mono text-xs md:text-sm text-vault-textBright">Wednesday, 11 November 2026 · 22:00 Pakistan Standard Time</span>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>Aired</span>
+</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+<svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Grabbed (1080p HEVC)</span>
+</span>
+</td>
+<td class="py-4 px-4 text-right">
+<div class="inline-flex items-center space-x-2">
+<button class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-vault-card hover:bg-vault-cardHover text-vault-textMuted hover:text-white border border-vault-border text-xs font-medium transition-colors">
+<svg class="w-3.5 h-3.5 text-vault-textMuted" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Play in Player</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- END: BroadcastTableSection -->
+<!-- BEGIN: QuickBulkActionBar -->
+<section class="p-4 rounded-xl border border-vault-border bg-vault-surface flex flex-col md:flex-row items-center justify-between gap-4" data-purpose="bulk-action-bar">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-lg bg-vault-coral/10 border border-vault-coral/20 flex items-center justify-center text-vault-coral">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h4 class="text-sm font-semibold text-white">Smart Auto-Grab Daemon</h4>
+<p class="text-xs text-vault-textMuted">3 newly aired ungrabbed episodes detected across monitored watchlist series</p>
+</div>
+</div>
+<div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+<button class="px-4 py-2 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textBright border border-vault-border text-xs font-semibold transition-colors">
+          Configure Grab Filters
+        </button>
+<button class="px-5 py-2 rounded-xl bg-vault-coral hover:bg-vault-coralHover text-white text-xs font-semibold coral-glow transition-all">
+          ⚡ Auto-Grab All 3 Aired Releases
+        </button>
+</div>
+</section>
+<!-- END: QuickBulkActionBar -->
+<!-- BEGIN: BottomPaginationControls -->
+<!-- Matches original screenshot's Previous, Next and Back controls with elevated desktop UI styling -->
+<div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4" data-purpose="pagination-controls">
+<!-- Left: Pagination buttons -->
+<div class="flex items-center space-x-2">
+<button class="px-4 py-2 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textMuted hover:text-white border border-vault-border text-xs font-semibold transition-colors flex items-center space-x-1.5 disabled:opacity-50" disabled="">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Previous</span>
+</button>
+<button class="px-4 py-2 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textBright hover:border-vault-coral border border-vault-border text-xs font-semibold transition-colors flex items-center space-x-1.5 group">
+<span>Next</span>
+<svg class="w-3.5 h-3.5 text-vault-coral group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<span class="text-xs text-vault-textMuted ml-3 font-mono">Page 1 of 4 <span class="text-vault-textMuted/60">(28 broadcasts)</span></span>
+</div>
+<!-- Right: Direct Back button matching original layout -->
+<div class="flex items-center space-x-3">
+<a class="px-6 py-2 rounded-xl bg-vault-card hover:bg-vault-cardHover text-vault-textBright hover:border-vault-coral border border-vault-border text-xs font-semibold transition-all" href="#">
+          Back
+        </a>
+</div>
+</div>
+<!-- END: BottomPaginationControls -->
+</div>
+<!-- END: MainContentWrapper -->
+<!-- BEGIN: DesktopFooterStatusBar -->
+<footer class="mt-auto h-8 bg-[#100e18] border-t border-vault-border px-4 flex items-center justify-between text-[11px] text-vault-textMuted select-none" data-purpose="desktop-status-bar">
+<div class="flex items-center space-x-4">
+<span class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="text-vault-textBright">Daemon v2.4.1 Online</span>
+</span>
+<span>•</span>
+<span>Latency: <span class="text-vault-textBright font-mono">38ms</span></span>
+<span>•</span>
+<span>Engine: <span class="text-vault-textBright">libtorrent 2.0.9</span></span>
+</div>
+<div class="flex items-center space-x-4">
+<span>Active Storage: <span class="text-vault-textBright font-mono">E:\Anime Library\Seasonal</span></span>
+<span>•</span>
+<span>Free Disk: <span class="text-emerald-400 font-mono font-medium">257.98 GB free</span></span>
+</div>
+</footer>
+<!-- END: DesktopFooterStatusBar -->
+</body></html>

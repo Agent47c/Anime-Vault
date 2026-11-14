@@ -14,11 +14,14 @@ function validMagnet(value) {
     url.searchParams.getAll('xt').some(xt =>
       /^urn:btih:(?:[a-f0-9]{40}|[a-z2-7]{32})$/i.test(xt) || /^urn:btmh:1220[a-f0-9]{64}$/i.test(xt));
 }
-function allowedSender(sender, site) {
+function allowedSender(sender, siteOrSites) {
   try {
-    return sender.frameId === 0 && !!sender.tab &&
-      sourceOrigin(sender.tab.url) === sourceOrigin(site) &&
-      sourceOrigin(sender.url) === sourceOrigin(site);
+    if (sender.frameId !== 0 || !sender.tab) return false;
+    const tabOrigin = sourceOrigin(sender.tab.url);
+    const frameOrigin = sourceOrigin(sender.url);
+    if (tabOrigin !== frameOrigin) return false;
+    const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+    return sites.some(s => sourceOrigin(s) === tabOrigin);
   } catch { return false; }
 }
 if (typeof module !== 'undefined') module.exports = {sourceOrigin, validMagnet, allowedSender};

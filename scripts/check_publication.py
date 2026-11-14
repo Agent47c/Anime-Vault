@@ -27,6 +27,9 @@ def main():
     errors=[];total=0;text_count=0
     for name in sorted(names):
         path=ROOT/name
+        # Unstaged workspace reorganizations leave deleted paths in git's index;
+        # the current-tree check should inspect their new locations instead.
+        if not args.staged and not path.is_file():continue
         raw=subprocess.check_output(['git','show',':'+name],cwd=ROOT) if args.staged else path.read_bytes()
         total+=len(raw)
         if path.suffix.lower() in PRIVATE_SUFFIXES or path.name=='.env' or (name.startswith('data/') or (name.startswith('audit_logs/') and name!='audit_logs/CHANGES.md')):

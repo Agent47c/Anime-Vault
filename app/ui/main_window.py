@@ -679,6 +679,9 @@ class MainWindow(QMainWindow):
         worker.succeeded.connect(ready);worker.finished.connect(finished);worker.start()
 
     def _generate_app_icon(self) -> QIcon:
+        icon_path = Path(__file__).resolve().parents[2] / 'assets' / 'app.ico'
+        if icon_path.is_file():
+            return QIcon(str(icon_path))
         pixmap = QPixmap(64, 64)
         pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap)
@@ -855,7 +858,13 @@ class MainWindow(QMainWindow):
         self._update_nav_selection(self._active_nav_index)
 
     def _apply_settings_preferences(self):
+        for page in getattr(self,'_navigation_pages',[]):
+            workflow=getattr(page,'workflow',page)
+            apply=getattr(workflow,'apply_preferences',None)
+            if callable(apply):apply()
         self.library_page.apply_release_position()
+        self.library_page.refresh()
+        self._refresh_metrics()
         from app import preferences as prefs
         if hasattr(self, "_scan_schedule_timer"):
             self._scan_schedule_timer.stop()
@@ -897,7 +906,18 @@ class MainWindow(QMainWindow):
     def _on_update_choices_changed(self, records):
         # A notification choice does not require scanning disks, decoding artwork,
         # or rebuilding the visible Updates page.
-        self._dirty_pages.update((self.library_page, self.storage_page))
+        self._update_choice_revision=getattr(self,'_update_choice_revision',0)+1
+        if not hasattr(self,'_recent_update_choices'):self._recent_update_choices={}
+        for fid,record in records.items():self._recent_update_choices[fid]=(self._update_choice_revision,record)
+        pending=getattr(self,'_refresh_snapshot',None)
+        if pending:
+            from app.ui.refresh import patch_update_choices
+            patch_update_choices(pending,records)
+        apply=getattr(self.library_page,'apply_update_choices',None)
+        # Preserve pre-existing dirty markers from real scans, but a notification
+        # choice alone must not schedule another disk/artwork refresh.
+        if not (callable(apply) and apply(records)):self._dirty_pages.add(self.library_page)
+        if any(record.get('_previous_watch_status')!=record.get('watch_status') for record in records.values()):self._dirty_pages.add(self.storage_page)
         self._unread_updates = len(self.updates_page._updates)
         badge = self.findChild(QLabel, 'nav_badge_2')
         if badge:
@@ -947,6 +967,7 @@ class MainWindow(QMainWindow):
             return
         from app.ui.refresh import RefreshWorker
         self._refresh_busy = True
+        self._refresh_choice_revision=getattr(self,'_update_choice_revision',0)
         self._refresh_invalidates_others = bool(scan_library or sync_internet)
         self._refresh_pending = False
         self.refresh_button.setEnabled(False)
@@ -968,6 +989,9 @@ class MainWindow(QMainWindow):
         if getattr(self, "_shutdown_pending", False):
             snapshot["connection"].close()
             return
+        from app.ui.refresh import patch_update_choices
+        recent={fid:record for fid,(revision,record) in getattr(self,'_recent_update_choices',{}).items() if revision>getattr(self,'_refresh_choice_revision',0)}
+        if recent:patch_update_choices(snapshot,recent)
         for fid,fields in getattr(self,'_recent_user_edits',{}).items():
             index=snapshot.get('library_index')
             if index and fid in index.by_id:
@@ -1127,11 +1151,14 @@ class MainWindow(QMainWindow):
                     self.setGeometry(parts[0], parts[1], parts[2], parts[3])
             except Exception:
                 pass
+        if db.get_state('window_maximized','0')=='1':self.setWindowState(self.windowState() | Qt.WindowMaximized)
 
     def _save_geometry(self):
-        rect = self.geometry()
+        maximized=self.isMaximized()
+        rect = self.normalGeometry() if maximized or self.isFullScreen() else self.geometry()
         geo_str = f"{rect.x()},{rect.y()},{rect.width()},{rect.height()}"
         set_window_geometry(geo_str)
+        db.set_state('window_maximized','1' if maximized else '0')
 
     def _running_threads(self):
         from app.ui.io_task import running
@@ -1150,14 +1177,28 @@ class MainWindow(QMainWindow):
 
     def _finish_pending_exit(self):
         from app.ui.artwork import artwork_loader
-        if self._running_threads() or artwork_loader().pool.activeThreadCount():
+        self._shutdown_ticks = getattr(self, '_shutdown_ticks', 0) + 1
+        if (self._running_threads() or artwork_loader().pool.activeThreadCount()) and self._shutdown_ticks < 20:
             return
-        self._shutdown_timer.stop()
+        if hasattr(self, '_shutdown_timer'):
+            self._shutdown_timer.stop()
         self._exit_ready = True
-        server.stop_server()
-        if hasattr(self, "tray_icon"):
+        try:
+            from app.core.downloads import shutdown_builtin
+            shutdown_builtin()
+        except Exception:
+            pass
+        try:
+            server.stop_server()
+        except Exception:
+            pass
+        if hasattr(self, "tray_icon") and self.tray_icon:
             self.tray_icon.hide()
+        self.hide()
+        QApplication.closeAllWindows()
         QApplication.quit()
+        import os
+        os._exit(0)
 
     def _active_task_page(self, protect_only=False):
         pages = [self.organizer_page] + ([self.updates_page] if hasattr(self, "updates_page") else []) + ([self.organizer_page.merge_page] if hasattr(self.organizer_page, "merge_page") else []) + list(getattr(self, "_navigation_pages", []))
@@ -1201,14 +1242,23 @@ class MainWindow(QMainWindow):
         pref = get_quit_preference()
 
         if pref == "tray":
+            self._save_geometry()
             event.ignore()
             self.hide()
             return
 
         if pref == "exit":
             self._save_geometry()
+            if hasattr(self, "tray_icon") and self.tray_icon:
+                self.tray_icon.hide()
+            self.hide()
+            import os
+            QTimer.singleShot(2500, lambda: os._exit(0))
             if self._cleanup_and_exit():
                 event.accept()
+                QApplication.closeAllWindows()
+                QApplication.quit()
+                os._exit(0)
             else:
                 event.ignore()
             return
@@ -1216,12 +1266,21 @@ class MainWindow(QMainWindow):
         dialog = QuitConfirmDialog(self)
         if dialog.exec_() == QDialog.Accepted:
             if dialog.choice == "tray":
+                self._save_geometry()
                 event.ignore()
                 self.hide()
             elif dialog.choice == "exit":
                 self._save_geometry()
+                if hasattr(self, "tray_icon") and self.tray_icon:
+                    self.tray_icon.hide()
+                self.hide()
+                import os
+                QTimer.singleShot(2500, lambda: os._exit(0))
                 if self._cleanup_and_exit():
                     event.accept()
+                    QApplication.closeAllWindows()
+                    QApplication.quit()
+                    os._exit(0)
                 else:
                     event.ignore()
             else:
@@ -1230,15 +1289,24 @@ class MainWindow(QMainWindow):
             event.ignore()
 
     def _force_exit(self):
-        if getattr(self, "_shutdown_pending", False):
-            return
-        if self._active_task_page(protect_only=True) is not None:
-            self.show()
-            self._update_task_status()
-            return
+        self._force_exiting = True
         self._save_geometry()
-        if self._cleanup_and_exit():
+        if hasattr(self, "tray_icon") and self.tray_icon:
+            self.tray_icon.hide()
+        self.hide()
+        import os
+        QTimer.singleShot(2500, lambda: os._exit(0))
+        if getattr(self, "_shutdown_pending", False):
+            QApplication.closeAllWindows()
             QApplication.quit()
+            os._exit(0)
+            return
+        if self._cleanup_and_exit():
+            QApplication.closeAllWindows()
+            QApplication.quit()
+            os._exit(0)
+        else:
+            self.hide()
 
     def _cleanup_and_exit(self):
         from app.ui.artwork import artwork_loader
@@ -1272,9 +1340,10 @@ class MainWindow(QMainWindow):
                 worker.requestInterruption()
                 if hasattr(worker, "cancel"):
                     worker.cancel()
-            self.show()
-            self.task_status_button.show()
-            self.task_status_button.setText("Closing — stopping background tasks safely. Waiting for active requests to finish…")
+            if not getattr(self, '_force_exiting', False):
+                self.show()
+                self.task_status_button.show()
+                self.task_status_button.setText("Closing — stopping background tasks safely. Waiting for active requests to finish…")
             self._shutdown_timer = QTimer(self)
             self._shutdown_timer.setInterval(100)
             self._shutdown_timer.timeout.connect(self._finish_pending_exit)

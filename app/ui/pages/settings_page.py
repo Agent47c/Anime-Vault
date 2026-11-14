@@ -267,7 +267,7 @@ class SettingsPage(QWidget):
         self.custom_path_box = self._row(box, "Executable", "", path_control)
         self.custom_path_box.setVisible(get_media_player_type() == "custom")
         self.player_combo.currentIndexChanged.connect(self._on_player_changed)
-        self._row(box, "Installed players", "Find VLC, MPV and MPC-HC", self._button("Detect players", self._auto_detect_players))
+        self._row(box, "Installed players", "Find VLC, MPV, MPC-HC and PotPlayer", self._button("Detect players", self._auto_detect_players))
         self.player_status = QLabel("")
         self.player_status.setObjectName("settings_hint")
         self.player_status.setWordWrap(True)
@@ -279,6 +279,21 @@ class SettingsPage(QWidget):
         self._toggle(box, "Prefer official English titles", "Fall back to Romaji and Japanese; applies to new matches", "prefer_english")
         self._toggle(box, "Allow mature (18+) titles", "Include adult titles in search results", "allow_mature")
         self._toggle(box, "Rematch low-confidence titles", "Allow automatic exact-title checks for entries needing review", "rematch_low_confidence")
+
+        # Adult content library visibility and password protection
+        from app.core import adult_content as sec
+        self.adult_library_switch = SettingsSwitch(sec.is_adult_unlocked())
+        self.adult_library_switch.toggled.connect(self._on_adult_library_toggled)
+        self.adult_library_row = self._row(box, "Show adult (18+) anime in library", "Display adult anime in library, statistics, and release updates. Protected by password.", self.adult_library_switch)
+
+        self.adult_autolock_switch = SettingsSwitch(sec.get_auto_lock_on_restart())
+        self.adult_autolock_switch.toggled.connect(sec.set_auto_lock_on_restart)
+        self.adult_autolock_row = self._row(box, "Auto-lock on app restart", "Automatically hide and lock adult anime whenever Anime Vault closes or restarts.", self.adult_autolock_switch)
+
+        self.adult_change_pwd_btn = self._button("Change password", self._open_change_adult_password)
+        self.adult_change_pwd_row = self._row(box, "Adult access password", "Update PIN/password and security recovery questions.", self.adult_change_pwd_btn)
+        self._update_adult_subcontrols()
+
         self._add_panel(panel)
 
         panel, box = self._panel("Application behavior")
@@ -318,6 +333,12 @@ class SettingsPage(QWidget):
         panel, box = self._panel("Database and backup")
         self._row(box, "Database", "library.db - SQLite (WAL)")
         self._row(box, "Backup", "Save a copy of the library before making changes", self._button("Create backup", self._backup_db))
+        self.full_backup=QCheckBox('Full app-state backup (ZIP)');self.full_backup.setChecked(db.get_state('backup.full_profile','0')=='1');box.addWidget(self.full_backup)
+        self.backup_caches=QCheckBox('Include cached posters, banners and thumbnails — can be very large');self.backup_caches.setChecked(db.get_state('backup.include_caches','0')=='1');box.addWidget(self.backup_caches)
+        self.backup_caches.setEnabled(self.full_backup.isChecked())
+        self.full_backup.toggled.connect(lambda value:(db.set_state('backup.full_profile','1' if value else '0'),self.backup_caches.setEnabled(value)))
+        self.backup_caches.toggled.connect(lambda value:db.set_state('backup.include_caches','1' if value else '0'))
+        note=QLabel('Full backup includes library paths, watch history, ratings, notes, window/settings state, download records and resume metadata. Video files, API tokens and Chrome registration are excluded.');note.setWordWrap(True);note.setObjectName('settings_hint');box.addWidget(note)
         self._row(box, "Restore", "Restore a saved library; a safety copy is kept", self._button("Restore backup", self._restore_db))
         exports = QWidget()
         buttons = QHBoxLayout(exports)
@@ -367,6 +388,43 @@ class SettingsPage(QWidget):
         self._add_panel(panel)
         self._refresh_dirs_list()
         self._extend_settings()
+
+    def _update_adult_subcontrols(self):
+        from app.core import adult_content as sec
+        is_pwd_set = sec.is_password_configured()
+        is_unlocked = sec.is_adult_unlocked()
+        if hasattr(self, 'adult_autolock_row'):
+            self.adult_autolock_row.setVisible(is_pwd_set)
+        if hasattr(self, 'adult_change_pwd_row'):
+            self.adult_change_pwd_row.setVisible(is_pwd_set)
+        if hasattr(self, 'adult_library_switch'):
+            self.adult_library_switch.blockSignals(True)
+            self.adult_library_switch.setChecked(is_unlocked)
+            self.adult_library_switch.blockSignals(False)
+
+    def _on_adult_library_toggled(self, checked):
+        from app.core import adult_content as sec
+        from app.ui.dialogs.adult_password_dialog import AdultPasswordDialog
+        if checked:
+            mode = AdultPasswordDialog.MODE_UNLOCK if sec.is_password_configured() else AdultPasswordDialog.MODE_SET_INITIAL
+            dlg = AdultPasswordDialog(self, mode=mode)
+            if dlg.exec_() == AdultPasswordDialog.Accepted:
+                self._update_adult_subcontrols()
+                self.preferences_changed.emit()
+            else:
+                self.adult_library_switch.blockSignals(True)
+                self.adult_library_switch.setChecked(False)
+                self.adult_library_switch.blockSignals(False)
+        else:
+            sec.lock()
+            self._update_adult_subcontrols()
+            self.preferences_changed.emit()
+
+    def _open_change_adult_password(self):
+        from app.ui.dialogs.adult_password_dialog import AdultPasswordDialog
+        dlg = AdultPasswordDialog(self, mode=AdultPasswordDialog.MODE_CHANGE)
+        dlg.exec_()
+        self._update_adult_subcontrols()
 
     def _set_text_size(self, value):
         db.set_state("text_scale", value)
@@ -477,11 +535,17 @@ class SettingsPage(QWidget):
 
     def _backup_db(self):
         from app.ui.io_task import start
-        start(self,db.backup_database,lambda path:self.backup_status.setText('Backup created: '+str(path)))
+        operation=db.backup_database
+        if self.full_backup.isChecked():
+            caches=self.backup_caches.isChecked()
+            if QMessageBox.question(self,'Create full app backup?', 'This saves private library paths, history, settings and download state. '+('Cached images can make the backup very large and take longer. ' if caches else '')+'Video files are not included. Keep the backup private. Continue?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
+            from app.core.profile_backup import create_backup
+            operation=lambda:create_backup(caches)
+        start(self,operation,lambda path:self.backup_status.setText('Backup created: '+str(path)))
 
     def _restore_db(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, "Select Database Backup to Restore", "", "SQLite Databases (*.db);;All Files (*.*)"
+            self, "Select Backup to Restore", "", "Anime Vault backups (*.db *.zip);;All Files (*.*)"
         )
         if not path:
             return
@@ -498,14 +562,20 @@ class SettingsPage(QWidget):
             from app.core import builtin_torrents
             from app.core.downloads import jobs
             from app.core.download_queue import status
-            if running() or builtin_torrents.active() or any(status(item) in ('Queued','Downloading') for item in jobs()):
+            active=getattr(self.window(),'_running_threads',lambda:[])()
+            from app.ui.user_edits import user_edits
+            if running() or active or user_edits().pending or builtin_torrents.active() or any(status(item) in ('Queued','Downloading') for item in jobs()):
                 self.backup_status.setText('Stop transfers and wait for background tasks before restoring. Disabled downloads can be resumed afterward.')
                 return
             def restored(_):
                 self.backup_status.setText('Database restored. A safety backup was kept.')
                 self._refresh_dirs_list()
                 self.scan_completed.emit()
-            start(self,lambda:db.restore_database(path),restored)
+            if path.lower().endswith('.zip'):
+                from app.core.profile_backup import restore_backup
+                operation=lambda:restore_backup(path)
+            else:operation=lambda:db.restore_database(path)
+            start(self,operation,restored)
             host=self.window()
             host.setEnabled(False)
             self._apply_worker.finished.connect(lambda:host.setEnabled(True))

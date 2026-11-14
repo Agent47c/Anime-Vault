@@ -94,10 +94,12 @@ class DownloadsDrawer(DrawerDialog):
                 body.addWidget(button('Choose destination…',self._browse_destination))
         self.test_button=button('Test connection',self._test)
         body.addWidget(self.test_button)
-        self.download_limit=QSpinBox();self.upload_limit=QSpinBox()
-        for control,key,label in ((self.download_limit,'download_limit_kib','Built-in download limit (KiB/s)'),(self.upload_limit,'upload_limit_kib','Built-in upload limit (KiB/s)')):
-            control.setRange(0,1000000);control.setSpecialValueText('Unlimited')
+        from app.ui.components.rate_limit import RateLimitPicker
+        self.download_limit=RateLimitPicker();self.upload_limit=RateLimitPicker()
+        for control,key,label in ((self.download_limit,'download_limit_kib','Download speed limit'),(self.upload_limit,'upload_limit_kib','Upload speed limit')):
             control.setValue(config[key]);field(body,label,control)
+        from app.ui.settings_events import settings_events
+        settings_events().downloads_changed.connect(self._limits_saved)
         self.seed=QCheckBox('Keep seeding completed downloads')
         self.seed.setChecked(config['seed_completed']);body.addWidget(self.seed)
         body.addWidget(text('Built-in downloads continue in the tray. Exiting completely saves progress and stops transfers. Cancel keeps downloaded files.'))
@@ -171,15 +173,22 @@ class DownloadsDrawer(DrawerDialog):
         return None
 
     def _save(self):
-        config,secret=self._config(),self._secret()
+        try:config,secret=self._config(),self._secret()
+        except ValueError as error:self.status.setText(str(error));return
         start(self,lambda:service.save_settings(config,secret),self._saved)
 
     def _saved(self,_):
-        self.status.setText('Settings saved. Downloads are tracked while Anime Vault is open.')
+        from app.ui.settings_events import settings_events
+        settings_events().downloads_changed.emit(_ or service.settings())
+        self.status.setText('Settings saved and applied to active downloads.')
         monitor().check()
 
+    def _limits_saved(self,config):
+        self.download_limit.setValue(config['download_limit_kib']);self.upload_limit.setValue(config['upload_limit_kib'])
+
     def _test(self):
-        config,secret=self._config(),self._secret()
+        try:config,secret=self._config(),self._secret()
+        except ValueError as error:self.status.setText(str(error));return
         start(self,lambda:service.test_connection(config,secret),self.status.setText)
 
     def _search(self):
@@ -196,7 +205,8 @@ class DownloadsDrawer(DrawerDialog):
 
     def _add(self):
         from PyQt5.QtWidgets import QMessageBox
-        config,secret=self._config(),self._secret()
+        try:config,secret=self._config(),self._secret()
+        except ValueError as error:self.status.setText(str(error));return
         source=self.source.text().strip();season=self.season.value();fid=self.fid
         if not config['enabled']:
             QMessageBox.information(self,'Enable downloads','Enable downloads and save settings first.');return

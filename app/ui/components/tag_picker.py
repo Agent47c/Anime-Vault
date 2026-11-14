@@ -24,6 +24,12 @@ class TagPicker(QPushButton):
         self._refresh_label()
     def addItems(self,labels):
         for label in labels:self.addItem(label,label)
+    def replaceItems(self,items):
+        previous={self.items[i][1] for i in self.selected}
+        if self.popup:self.popup.hide();self.popup.deleteLater();self.popup=None
+        self.items=list(items);self.selected={i for i,(_,value) in enumerate(self.items) if value in previous and value is not None}
+        if not self.multiple and not self.selected and self.items:self.selected={0}
+        self._refresh_label()
     def count(self):return len(self.items)
     def currentIndex(self):return min(self.selected) if self.selected else 0
     def currentData(self):

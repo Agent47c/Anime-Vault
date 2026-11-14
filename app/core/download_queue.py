@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from app.core import downloads as service
 
-STATUSES=('Queued','Downloading','Paused','Stopped','Completed','Failed','Incomplete or missing files')
+STATUSES=('Queued','Downloading','Paused','Stopped','Completed','Seeding','Failed','Incomplete or missing files')
 
 
 def bulk_action(command,identifiers,cancelled=lambda:False):
@@ -19,10 +19,10 @@ def bulk_action(command,identifiers,cancelled=lambda:False):
                 item=next((i for i in service.jobs() if i['id']==identifier),None)
                 if item is None:continue
                 if command=='clear_completed':
-                    if status(item)!='Completed':continue
+                    if status(item) not in ('Completed','Seeding'):continue
                     action(identifier,'remove')
                 else:
-                    seeding=status(item)=='Completed' and (item.get('upload_rate') or 0)>0
+                    seeding=status(item)=='Seeding' or (status(item)=='Completed' and (item.get('upload_rate') or 0)>0)
                     if item.get('engine')!='builtin' or not (status(item) in ('Downloading','Queued') or seeding):continue
                     action(identifier,'pause')
                 done+=1
@@ -36,14 +36,31 @@ def status(item):
     value=item.get('status','').lower()
     if item.get('desired') in ('cancelled','stopped'): return 'Stopped'
     if 'missingfiles' in value:return 'Incomplete or missing files' if item.get('completed_once') or item.get('indexed') else 'Failed'
-    if item.get('indexed') or value in ('indexed','complete','seeding'): return 'Completed'
     if any(word in value for word in ('error','unconfirmed','needs review','not found','failed')):
         return 'Failed'
+    if value=='seeding' and item.get('desired') not in ('paused','stopped','cancelled'):return 'Seeding'
+    # An indexed library record is not evidence that a newly attached native
+    # torrent has finished verifying its files after a restore.
+    if value in ('checking files','fetching torrent metadata','downloading'):
+        if value!='downloading':return 'Queued'
+        return 'Paused' if item.get('desired')=='paused' else 'Downloading'
+    if item.get('indexed') or value in ('indexed','complete','completed','seeding'): return 'Completed'
     if item.get('desired')=='paused' or any(word in value for word in ('paused','stopped','choose files')):
         return 'Paused'
     if any(word in value for word in ('submitting','waiting','metadata','checking','queued','stall')):
         return 'Queued'
     return 'Downloading'
+
+
+def progress_values(item):
+    """Selected-content completion, independent of old payload-byte counters."""
+    total=item.get('total');done=item.get('downloaded')
+    if status(item) in ('Completed','Seeding'):
+        return 1.0,total if total is not None else done,total
+    import math
+    try:value=float(item.get('progress') or 0)
+    except (TypeError,ValueError):value=0
+    return max(0,min(1,value)) if math.isfinite(value) else 0,done,total
 
 
 def check_completed_files(item):

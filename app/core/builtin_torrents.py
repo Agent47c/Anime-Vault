@@ -278,8 +278,14 @@ class EngineClient:
         executable=Path(sys.executable)
         if executable.name.lower()=='pythonw.exe' and executable.with_name('python.exe').exists():
             executable=executable.with_name('python.exe')
-        command=([str(executable),'--builtin-torrent-host'] if getattr(sys,'frozen',False) else
-                 [str(executable),str(Path(__file__).resolve().parents[2]/'builtin_torrent_host.py')])
+        if getattr(sys,'frozen',False):
+            # The GUI bundle's automatic Qt runtime hooks load Qt DLLs even
+            # before main.py dispatches flags. Native libtorrent must use its
+            # own Qt-free bundle, not another instance of the GUI executable.
+            from app.paths import native_torrent_executable
+            command=[str(native_torrent_executable(executable))]
+        else:
+            command=[str(executable),str(Path(__file__).resolve().parents[2]/'builtin_torrent_host.py')]
         self.process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
                                       creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         self.reader=threading.Thread(target=self._read,daemon=True)
@@ -327,8 +333,8 @@ class EngineClient:
         if self.process.poll() is None:
             try: self.call('close')
             finally:
-                try: self.process.wait(timeout=10)
-                except Exception: self.process.kill();self.process.wait(timeout=5)
+                try: self.process.wait(timeout=2)
+                except Exception: self.process.kill();self.process.wait(timeout=1)
         self.reader.join(timeout=1)
         for stream in (self.process.stdin,self.process.stdout):
             try: stream.close()
@@ -349,6 +355,11 @@ def engine(config):
 
 def active():
     return _engine is not None
+
+
+def configure_active(config):
+    """Apply settings now without starting a new engine or a new torrent."""
+    if _engine is not None:_engine.configure(config)
 
 
 def restart_failed():

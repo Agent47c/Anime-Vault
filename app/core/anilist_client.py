@@ -343,8 +343,8 @@ def download_cover(media: Dict, franchise_id: int, *, allow_network=True) -> Opt
     return _cached_artwork(media, 'cover', url, f"{franchise_id}.jpg",allow_network=allow_network)
 
 
-def download_banner(media: Dict, franchise_id: int) -> Optional[str]:
-    return _cached_artwork(media, 'banner', media.get("bannerImage"), f"{franchise_id}-banner.jpg")
+def download_banner(media: Dict, franchise_id: int, *, allow_network=True) -> Optional[str]:
+    return _cached_artwork(media, 'banner', media.get("bannerImage"), f"{franchise_id}-banner.jpg",allow_network=allow_network)
 
 
 _artwork_locks_guard = threading.Lock()

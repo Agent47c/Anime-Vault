@@ -826,6 +826,22 @@ class LibraryPage(QWidget):
             self._request_home_facts()
         self.hero_card.refresh()
         self._refresh_airing_week()
+        self._refresh_release_cards()
+
+        total_anime = len(self._library_index.groups)
+        self.stats_subtitle.setText(f"{total_anime} anime")
+        self._refresh_filter_counts()
+        self.refresh_display()
+
+    def apply_update_choices(self,records):
+        if self._library_index is None:return False
+        self._library_index.apply_update_choices(records)
+        self._refresh_release_cards()
+        self._refresh_filter_counts()
+        self.refresh_display()
+        return True
+
+    def _refresh_release_cards(self):
         while self.release_layout.count():
             item = self.release_layout.takeAt(0)
             if item.widget():item.widget().hide()
@@ -851,16 +867,13 @@ class LibraryPage(QWidget):
         self.release_heading_widget.setVisible(bool(releases))
         self.apply_release_position()
 
-        total_anime = len(self._library_index.groups)
-        self.stats_subtitle.setText(f"{total_anime} anime")
+    def _refresh_filter_counts(self):
         names={'':'All','WATCHING':'Watching','PLAN_TO_WATCH':'Plan to watch','ON_DISK':'On disk','UPDATE':'Has update','REVIEW':'Needs review'}
         for key,pill in self.pill_buttons.items():
             if key=='UPDATE':count=sum(bool(f.get('has_new_update')) for f in self._library_index.groups)
             elif key=='REVIEW':count=sum(any(self._library_index.by_id[mid].get('needs_review') for mid in f['series_member_ids']) for f in self._library_index.groups)
             else:count=len(self._library_index.select(watch_status=key if key in ('WATCHING','PLAN_TO_WATCH') else None,storage_state='ON_DISK' if key=='ON_DISK' else None))
             pill.setText(f'{names[key]}  {count}')
-        self.refresh_display()
-
     def _request_home_facts(self):
         if getattr(self,'_facts_worker',None):return
         from app.ui.io_task import IOTask,track

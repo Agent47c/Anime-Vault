@@ -21,7 +21,7 @@ Use Pause, Resume, Stop and Retry on the existing queue entry. **Clear completed
 
 **Downloads → Move completed to library** generates a reviewed move preview. It attempts to reuse the anime's existing Library/season folder. Review every destination, especially custom arcs and absolute-numbered series. Existing targets are not silently overwritten.
 
-Two related issues are still open: completion indexing can ignore a manually confirmed assignment (**A02**), and one release split across staging/Library locations can appear as duplicate seasons (**A11**). See the [current audit](../WHOLE_APP_AUDIT_2026-11-12.md). The presence of a move button is not evidence that these issues are already fixed.
+Two related issues are still open: completion indexing can ignore a manually confirmed assignment (**A02**), and one release split across staging/Library locations can appear as duplicate seasons (**A11**). See the [current audit](history/WHOLE_APP_AUDIT_2026-11-12.md). The presence of a move button is not evidence that these issues are already fixed.
 
 ## Troubleshooting
 
@@ -31,6 +31,6 @@ Two related issues are still open: completion indexing can ignore a manually con
 | No peers or transfer progress | Check torrent availability, connectivity, queue status and configured limits |
 | Match uncertain | Confirm the actual anime/season/episode; do not assume similar filenames are sufficient |
 | Destination unavailable | Reconnect the drive or select an accessible folder; review again before moving |
-| Old external-client entry | Review legacy recovery guidance in [BUILTIN_ONLY_DOWNLOADS.md](../BUILTIN_ONLY_DOWNLOADS.md); external clients are no longer used for new submissions |
+| Old external-client entry | Review legacy recovery guidance in [BUILTIN_ONLY_DOWNLOADS.md](history/BUILTIN_ONLY_DOWNLOADS.md); external clients are no longer used for new submissions |
 
 Transfer only material you have permission to access and share. Source availability and third-party verification requirements are outside the application's control.

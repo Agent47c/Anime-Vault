@@ -45,8 +45,7 @@ from typing import Optional, List, Dict, Any
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+from app.paths import RESOURCE_DIR as BASE_DIR, DATA_DIR
 DB_PATH = DATA_DIR / "library.db"
 COVERS_DIR = DATA_DIR / "covers"
 EXPORTS_DIR = DATA_DIR / "exports"
@@ -325,6 +324,7 @@ def get_all_franchises(
     search: str = "",
     watch_status: Optional[str] = None,
     storage_state: Optional[str] = None,
+    include_adult: Optional[bool] = None,
 ) -> List[Dict[str, Any]]:
     """Retrieve franchises with optional filtering and sorting."""
     conn = get_connection()
@@ -333,6 +333,15 @@ def get_all_franchises(
     hidden=json.loads(get_state('library.removed_ids','[]'))
     if hidden:
         query+=' AND id NOT IN ('+','.join('?' for _ in hidden)+')';params.extend(hidden)
+
+    if include_adult is None:
+        try:
+            from app.core.adult_content import is_adult_unlocked
+            include_adult = is_adult_unlocked()
+        except Exception:
+            include_adult = True
+    if not include_adult:
+        query += " AND (is_adult = 0 OR is_adult IS NULL)"
 
     if search:
         query += " AND (display_title LIKE ? OR title_romaji LIKE ? OR title_native LIKE ?)"
@@ -636,68 +645,34 @@ def get_library_stats() -> Dict[str, Any]:
     snapshot=current_refresh_view()
     if snapshot is not None and 'stats' in snapshot:return dict(snapshot['stats'])
     conn = get_connection()
+    records = get_all_franchises()
     hidden = json.loads(get_state('library.removed_ids', '[]'))
-    if hidden:
-        records = get_all_franchises()
-        total_size = sum(r.get('total_size_bytes') or 0 for r in records)
-        placeholders = ','.join('?' for _ in hidden)
-        rows = conn.execute("SELECT video_files_json FROM seasons WHERE storage_state != 'WATCHED_REMOVED' AND franchise_id NOT IN ("+placeholders+")", hidden).fetchall()
-        total_files = 0
-        for row in rows:
-            try: total_files += len(json.loads(row['video_files_json'] or '[]'))
-            except (ValueError, TypeError): pass
-        conn.close()
-        return dict(total_franchises=len(records), on_disk=sum(r.get('storage_state')=='ON_DISK' for r in records),
-                    partially_on_disk=sum(r.get('storage_state')=='PARTIALLY_ON_DISK' for r in records),
-                    watched_removed=sum(r.get('storage_state')=='WATCHED_REMOVED' for r in records),
-                    watched_count=sum(r.get('watch_status')=='WATCHED' for r in records),
-                    total_size_bytes=total_size, total_bytes=total_size, total_files_indexed=total_files,
-                    potential_reclaim_bytes=sum((r.get('total_size_bytes') or 0) for r in records if r.get('watch_status')=='WATCHED' and r.get('storage_state') in ('ON_DISK','PARTIALLY_ON_DISK')))
-    total = conn.execute("SELECT COUNT(*) as c FROM franchises").fetchone()["c"]
-    on_disk = conn.execute(
-        "SELECT COUNT(*) as c FROM franchises WHERE storage_state = 'ON_DISK'"
-    ).fetchone()["c"]
-    partial = conn.execute(
-        "SELECT COUNT(*) as c FROM franchises WHERE storage_state = 'PARTIALLY_ON_DISK'"
-    ).fetchone()["c"]
-    removed = conn.execute(
-        "SELECT COUNT(*) as c FROM franchises WHERE storage_state = 'WATCHED_REMOVED'"
-    ).fetchone()["c"]
-    watched = conn.execute(
-        "SELECT COUNT(*) as c FROM franchises WHERE watch_status = 'WATCHED'"
-    ).fetchone()["c"]
-    total_size = conn.execute(
-        "SELECT COALESCE(SUM(total_size_bytes), 0) as s FROM franchises"
-    ).fetchone()["s"]
-    reclaim_size = conn.execute(
-        "SELECT COALESCE(SUM(total_size_bytes), 0) as s FROM franchises "
-        "WHERE watch_status = 'WATCHED' AND storage_state IN ('ON_DISK', 'PARTIALLY_ON_DISK')"
-    ).fetchone()["s"]
+    excluded = set(hidden)
+    try:
+        from app.core.adult_content import is_adult_unlocked
+        if not is_adult_unlocked():
+            all_raw = conn.execute("SELECT id FROM franchises WHERE is_adult = 1").fetchall()
+            excluded.update(r['id'] for r in all_raw)
+    except Exception:
+        pass
 
-    # Count indexed files
-    season_files_rows = conn.execute(
-        "SELECT video_files_json FROM seasons WHERE storage_state != 'WATCHED_REMOVED'"
-    ).fetchall()
+    total_size = sum(r.get('total_size_bytes') or 0 for r in records)
+    if excluded:
+        placeholders = ','.join('?' for _ in excluded)
+        rows = conn.execute("SELECT video_files_json FROM seasons WHERE storage_state != 'WATCHED_REMOVED' AND franchise_id NOT IN ("+placeholders+")", list(excluded)).fetchall()
+    else:
+        rows = conn.execute("SELECT video_files_json FROM seasons WHERE storage_state != 'WATCHED_REMOVED'").fetchall()
     total_files = 0
-    for r in season_files_rows:
-        try:
-            arr = json.loads(r["video_files_json"] or "[]")
-            total_files += len(arr)
-        except Exception:
-            pass
-
+    for row in rows:
+        try: total_files += len(json.loads(row['video_files_json'] or '[]'))
+        except (ValueError, TypeError): pass
     conn.close()
-    return {
-        "total_franchises": total,
-        "on_disk": on_disk,
-        "partially_on_disk": partial,
-        "watched_removed": removed,
-        "watched_count": watched,
-        "total_size_bytes": total_size,
-        "total_bytes": total_size,  # alias
-        "potential_reclaim_bytes": reclaim_size,
-        "total_files_indexed": total_files,
-    }
+    return dict(total_franchises=len(records), on_disk=sum(r.get('storage_state')=='ON_DISK' for r in records),
+                partially_on_disk=sum(r.get('storage_state')=='PARTIALLY_ON_DISK' for r in records),
+                watched_removed=sum(r.get('storage_state')=='WATCHED_REMOVED' for r in records),
+                watched_count=sum(r.get('watch_status')=='WATCHED' for r in records),
+                total_size_bytes=total_size, total_bytes=total_size, total_files_indexed=total_files,
+                potential_reclaim_bytes=sum((r.get('total_size_bytes') or 0) for r in records if r.get('watch_status')=='WATCHED' and r.get('storage_state') in ('ON_DISK','PARTIALLY_ON_DISK')))
 
 
 def rematch_franchise(fid: int, anilist_data: Dict[str, Any], cover_filename: Optional[str] = None):

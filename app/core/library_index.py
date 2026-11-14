@@ -15,6 +15,18 @@ class LibraryIndex:
         overrides = json.loads(db.get_state("series_overrides", "{}"))
         self.groups = build_groups(self.records, related, overrides)
 
+    def apply_update_choices(self, records):
+        """Patch notification state without querying SQLite or regrouping releases."""
+        for fid,record in records.items():
+            if fid in self.by_id:
+                for key in ('has_new_update','update_details','watch_status','_update_disposition'):
+                    if key in record:self.by_id[fid][key]=record[key]
+        for group in self.groups:
+            members=group['series_member_ids']
+            if not any(fid in records for fid in members):continue
+            group['has_new_update']=any(self.by_id[fid].get('has_new_update') for fid in members)
+            if group['id'] in records and 'watch_status' in records[group['id']]:group['watch_status']=records[group['id']]['watch_status']
+
     def select(self, sort_by="display_title", sort_order="ASC", search="", storage_state=None, watch_status=None):
         query = search.casefold()
         def matches(record):

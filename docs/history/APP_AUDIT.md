@@ -533,7 +533,7 @@ Avoiding >100 ms GUI stalls is a target, not an achieved guarantee.
 ## 11. Instrumentation inventory, launch, limits and removal
 
 Full touched-file list and exact safe removal procedure:
-[`audit_logs/CHANGES.md`](audit_logs/CHANGES.md).
+[`audit_logs/CHANGES.md`](../../audit_logs/CHANGES.md).
 
 PowerShell launch after closing any existing tray instance:
 

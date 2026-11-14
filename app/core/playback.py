@@ -1,4 +1,4 @@
-"""App-owned VLC/MPV control and progress stored by stable episode identity."""
+"""App-owned player control and progress stored by stable episode identity."""
 import json,math,os,secrets,socket,sys,threading,time,uuid
 from contextlib import closing
 from pathlib import Path
@@ -99,6 +99,9 @@ class Session:
             self.endpoint=r'\\.\pipe\animevault-'+uuid.uuid4().hex if sys.platform=='win32' else str(Path(self._ipc_directory.name)/'player.sock')
             self.arguments=['--input-ipc-server='+self.endpoint]
             if start:self.arguments.append('--start='+str(round(start,2)))
+        elif player=='potplayer':
+            self.arguments=['/new']
+            if start:self.arguments.append('/seek='+str(round(start,3)))
         else:raise ValueError('This player does not expose supported playback controls')
     def _vlc(self,command=None):
         import requests
@@ -113,6 +116,9 @@ class Session:
             current=data.get('currentplid')
             if self.playlist_id is not None and current is not None and current!=self.playlist_id:raise MediaChanged('Player changed media')
             if duration>0 and current is not None:self.playlist_id=current
+        elif self.player=='potplayer':
+            from app.core import potplayer
+            position,duration,paused=potplayer.poll(self.process,self.path)
         else:
             current=_pipe_command(self.endpoint,['get_property','path'])
             if current and path_key(current)!=path_key(self.path):raise MediaChanged('Player changed media')
@@ -127,10 +133,13 @@ class Session:
     def toggle(self):
         if self.process is None or self.process.poll() is not None:raise ValueError('No active app-launched player')
         if self.player=='vlc':self._vlc('pl_pause')
+        elif self.player=='potplayer':
+            from app.core import potplayer
+            potplayer.toggle(self.process,self.path)
         else:_pipe_command(self.endpoint,['cycle','pause'])
 
 def launch_session(player,path,resume=True):
-    return Session(player,path,resume) if player in ('vlc','mpv') else None
+    return Session(player,path,resume) if player in ('vlc','mpv','potplayer') else None
 
 def attach(session,process=None):
     global _session,_revision
@@ -163,11 +172,11 @@ def poll():
         if isinstance(error,MediaChanged) or time.monotonic()-session.started>15:
             with _lock:
                 if _session is session:_session=None
-        return {**last_progress(),'active':False,'notice':'Live playback is unavailable. Use app-launched VLC or MPV.'}
+        return {**last_progress(),'active':False,'notice':'Live playback is unavailable. Open the episode through Anime Vault in VLC, MPV or PotPlayer.'}
 
 def toggle():
     session=_session
-    if session is None:raise ValueError('Open an episode in VLC or MPV to use playback controls.')
+    if session is None:raise ValueError('Open an episode in VLC, MPV or PotPlayer to use playback controls.')
     session.toggle()
 
 def active():

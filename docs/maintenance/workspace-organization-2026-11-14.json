@@ -1,0 +1,939 @@
+{
+  "date": "2026-11-14",
+  "moves": {
+    "5 ui screen": "design/references/5 ui screen",
+    "add entry screen and txt importer screen": "design/references/add entry screen and txt importer screen",
+    "Anime Detail Screen": "design/references/Anime Detail Screen",
+    "Anime Library List View": "design/references/Anime Library List View",
+    "Anime Valt Installer Pkg": "design/references/Anime Valt Installer Pkg",
+    "Anime Vault — Unified Dropdown & Popover Menus System": "design/references/Anime Vault — Unified Dropdown & Popover Menus System",
+    "anime-vault-ui": "design/references/anime-vault-ui",
+    "choose episode page": "design/references/choose episode page",
+    "confirm series grouping screen": "design/references/confirm series grouping screen",
+    "edit season number ui screen": "design/references/edit season number ui screen",
+    "file download page": "design/references/file download page",
+    "final ui": "design/references/final ui",
+    "find download file page ui": "design/references/find download file page ui",
+    "Home Library Screen": "design/references/Home Library Screen",
+    "merge and duplicate ui": "design/references/merge and duplicate ui",
+    "new anime release screen": "design/references/new anime release screen",
+    "organizer screen": "design/references/organizer screen",
+    "Review duplicate files screen": "design/references/Review duplicate files screen",
+    "Sertting UI": "design/references/Sertting UI",
+    "setting ui screen": "design/references/setting ui screen",
+    "Unified Button Design System & Component Template": "design/references/Unified Button Design System & Component Template",
+    "update and download screen": "design/references/update and download screen",
+    "All Feature and their Navigation.md": "docs/guides/All Feature and their Navigation.md",
+    "anime_library_storage_manager_production_specification.md": "docs/planning/anime_library_storage_manager_production_specification.md",
+    "APP_AUDIT.md": "docs/history/APP_AUDIT.md",
+    "ARTWORK_ICC_FIX.md": "docs/history/ARTWORK_ICC_FIX.md",
+    "AUDIT_CALLBACK_SIGNATURE_FIX.md": "docs/history/AUDIT_CALLBACK_SIGNATURE_FIX.md",
+    "AUDIT_FIXES_APPLIED.md": "docs/history/AUDIT_FIXES_APPLIED.md",
+    "BREADCRUMB_NAVIGATION_HISTORY.md": "docs/history/BREADCRUMB_NAVIGATION_HISTORY.md",
+    "BROWSER_MAGNET_CAPTURE.md": "docs/history/BROWSER_MAGNET_CAPTURE.md",
+    "BUILTIN_DOWNLOADER.md": "docs/history/BUILTIN_DOWNLOADER.md",
+    "BUILTIN_ONLY_DOWNLOADS.md": "docs/history/BUILTIN_ONLY_DOWNLOADS.md",
+    "DETAILS_LOADING_AUDIT.md": "docs/history/DETAILS_LOADING_AUDIT.md",
+    "DETAIL_NAVIGATION_PERFORMANCE.md": "docs/history/DETAIL_NAVIGATION_PERFORMANCE.md",
+    "DETAIL_ORGANIZER_HOME_FIXES.md": "docs/history/DETAIL_ORGANIZER_HOME_FIXES.md",
+    "DETAIL_SCREEN_REDESIGN.md": "docs/history/DETAIL_SCREEN_REDESIGN.md",
+    "DOWNLOAD_DISCOVERY_BACKUP_FIXES.md": "docs/history/DOWNLOAD_DISCOVERY_BACKUP_FIXES.md",
+    "DOWNLOAD_INTEGRATION.md": "docs/history/DOWNLOAD_INTEGRATION.md",
+    "DOWNLOAD_ORGANIZER_AND_UI_POLISH.md": "docs/history/DOWNLOAD_ORGANIZER_AND_UI_POLISH.md",
+    "DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md": "docs/history/DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md",
+    "DROPDOWN_TEXT_AND_RELEASE_DETAILS_FIX.md": "docs/history/DROPDOWN_TEXT_AND_RELEASE_DETAILS_FIX.md",
+    "ENTRY_IMPORT_SAKURA_UI.md": "docs/history/ENTRY_IMPORT_SAKURA_UI.md",
+    "EPISODE_SELECTION_REFERENCE_UI.md": "docs/history/EPISODE_SELECTION_REFERENCE_UI.md",
+    "FIND_DOWNLOAD_SCREEN.md": "docs/history/FIND_DOWNLOAD_SCREEN.md",
+    "FIND_DOWNLOAD_SIMPLIFIED_UI.md": "docs/history/FIND_DOWNLOAD_SIMPLIFIED_UI.md",
+    "FIVE_UI_SCREENS_IMPLEMENTATION.md": "docs/history/FIVE_UI_SCREENS_IMPLEMENTATION.md",
+    "HOME_LIBRARY_REDESIGN.md": "docs/history/HOME_LIBRARY_REDESIGN.md",
+    "MERGE_DUPLICATE_REFERENCE_UI.md": "docs/history/MERGE_DUPLICATE_REFERENCE_UI.md",
+    "MOUSE_WHEEL_SCROLLING_FIX.md": "docs/history/MOUSE_WHEEL_SCROLLING_FIX.md",
+    "NAVIGATION_MEMORY_AND_COMPACT_HEADINGS.md": "docs/history/NAVIGATION_MEMORY_AND_COMPACT_HEADINGS.md",
+    "new feature to be added.md": "docs/planning/new feature to be added.md",
+    "ORGANIZER_REFERENCE_UI.md": "docs/history/ORGANIZER_REFERENCE_UI.md",
+    "ORGANIZER_UI_AND_SCAN_CHANGES.md": "docs/history/ORGANIZER_UI_AND_SCAN_CHANGES.md",
+    "ORGANIZER_USAGE.md": "docs/guides/ORGANIZER_USAGE.md",
+    "PERFORMANCE_SECURITY_AND_ARCHITECTURE_AUDIT.md": "docs/history/PERFORMANCE_SECURITY_AND_ARCHITECTURE_AUDIT.md",
+    "PHASE_1_DATA_SAFETY.md": "docs/history/PHASE_1_DATA_SAFETY.md",
+    "PHASE_2_TRUSTWORTHY_SCANNING.md": "docs/history/PHASE_2_TRUSTWORTHY_SCANNING.md",
+    "RELEASE_CALENDAR.md": "docs/history/RELEASE_CALENDAR.md",
+    "RELEASE_NEWS.md": "docs/history/RELEASE_NEWS.md",
+    "REMATCH_SEASON_NUMBERS_AND_DOWNLOAD_SEARCH.md": "docs/history/REMATCH_SEASON_NUMBERS_AND_DOWNLOAD_SEARCH.md",
+    "SEANIME_COMPARISON_AND_PRIORITIES.md": "docs/history/SEANIME_COMPARISON_AND_PRIORITIES.md",
+    "SEARCH_FOCUS_AND_RELEASE_FILTERS.md": "docs/history/SEARCH_FOCUS_AND_RELEASE_FILTERS.md",
+    "SERIES_GROUPING_AND_REMATCH.md": "docs/history/SERIES_GROUPING_AND_REMATCH.md",
+    "SETTINGS_DOWNLOAD_EXPERIENCE.md": "docs/history/SETTINGS_DOWNLOAD_EXPERIENCE.md",
+    "SETTINGS_REFERENCE_UI.md": "docs/history/SETTINGS_REFERENCE_UI.md",
+    "SETTINGS_UI_SCREEN.md": "docs/history/SETTINGS_UI_SCREEN.md",
+    "STANDALONE_INSTALLER_BUILD.md": "docs/history/STANDALONE_INSTALLER_BUILD.md",
+    "TEXT_IMPORT_FIXES.md": "docs/history/TEXT_IMPORT_FIXES.md",
+    "THREE_REFERENCE_SCREENS.md": "docs/history/THREE_REFERENCE_SCREENS.md",
+    "THUMBNAIL_DEADLOCK_FIX.md": "docs/history/THUMBNAIL_DEADLOCK_FIX.md",
+    "TXT_LIST_PRESENCE_AND_MATCHING.md": "docs/history/TXT_LIST_PRESENCE_AND_MATCHING.md",
+    "UNIFIED_BUTTONS_AND_RELEASE_DATES.md": "docs/history/UNIFIED_BUTTONS_AND_RELEASE_DATES.md",
+    "UNIFIED_MENUS_AND_LIBRARY_PERFORMANCE.md": "docs/history/UNIFIED_MENUS_AND_LIBRARY_PERFORMANCE.md",
+    "UPDATE_ACTIONS_AND_REMOVAL.md": "docs/history/UPDATE_ACTIONS_AND_REMOVAL.md",
+    "UPDATE_DETAILS_EPISODE_TIMING_AND_PROGRESS.md": "docs/history/UPDATE_DETAILS_EPISODE_TIMING_AND_PROGRESS.md",
+    "UPDATE_DOWNLOAD_SCREENS.md": "docs/history/UPDATE_DOWNLOAD_SCREENS.md",
+    "VAULT_MENUS_AND_UPDATE_REVIEW.md": "docs/history/VAULT_MENUS_AND_UPDATE_REVIEW.md",
+    "WHOLE_APP_AUDIT_2026-11-12.md": "docs/history/WHOLE_APP_AUDIT_2026-11-12.md",
+    "WINDOW_AND_LIBRARY_STATUS_LAYOUT.md": "docs/history/WINDOW_AND_LIBRARY_STATUS_LAYOUT.md",
+    "details-preview.png": "design/previews/details-preview.png",
+    "episode-coverage-preview.png": "design/previews/episode-coverage-preview.png",
+    "merge-tab-preview.png": "design/previews/merge-tab-preview.png",
+    "organizer-preview.png": "design/previews/organizer-preview.png",
+    "organizer-root-layout-preview.png": "design/previews/organizer-root-layout-preview.png",
+    "organizer-tabs-preview.png": "design/previews/organizer-tabs-preview.png",
+    "rematch-navigation-preview.png": "design/previews/rematch-navigation-preview.png",
+    "series-details-preview.png": "design/previews/series-details-preview.png",
+    "ui-preview.png": "design/previews/ui-preview.png",
+    "updates-preview.png": "design/previews/updates-preview.png",
+    "ui.html": "design/references/legacy-ui/ui.html",
+    "Deleted Seen Anime 1.txt": "data/import-lists/Deleted Seen Anime 1.txt",
+    "Seen And Deleted Animes.txt": "data/import-lists/Seen And Deleted Animes.txt",
+    "browser-extension.pem": "data/private/browser-extension.pem",
+    "browser-extension.crx": "dist/browser-extension/browser-extension.crx",
+    "Tac": "tools/external-installers/Tac"
+  },
+  "files": [
+    {
+      "from": "5 ui screen/anime_vault_broadcast_release_updates_twilight_sakura/code.html",
+      "to": "design/references/5 ui screen/anime_vault_broadcast_release_updates_twilight_sakura/code.html",
+      "original_sha256": "53c241dad309eb0840fe96fa33166c815ec5e079909db72c727f5cc986e39d3a"
+    },
+    {
+      "from": "5 ui screen/anime_vault_broadcast_release_updates_twilight_sakura/screen.png",
+      "to": "design/references/5 ui screen/anime_vault_broadcast_release_updates_twilight_sakura/screen.png",
+      "original_sha256": "9dde7a72b891b0c99b74d0e043f690d465e6e54019b2994375ef55b4de2110d1"
+    },
+    {
+      "from": "5 ui screen/anime_vault_episode_coverage_franchise_report_twilight_sakura/code.html",
+      "to": "design/references/5 ui screen/anime_vault_episode_coverage_franchise_report_twilight_sakura/code.html",
+      "original_sha256": "2559aeed1cdebe247f50e0592fcee85e8ee25f82695e7d47077e6fee32b6e485"
+    },
+    {
+      "from": "5 ui screen/anime_vault_episode_coverage_franchise_report_twilight_sakura/screen.png",
+      "to": "design/references/5 ui screen/anime_vault_episode_coverage_franchise_report_twilight_sakura/screen.png",
+      "original_sha256": "dc2cc17dd1aff3ea978542ab9c77494b1c703c7dd02549a4260239f92bca4fdf"
+    },
+    {
+      "from": "5 ui screen/anime_vault_group_seasons_arcs_twilight_sakura/code.html",
+      "to": "design/references/5 ui screen/anime_vault_group_seasons_arcs_twilight_sakura/code.html",
+      "original_sha256": "bbb5a28d4516e0ac427321de5e40b93ebe9f19865678d9503ec16eb5cbc3d68d"
+    },
+    {
+      "from": "5 ui screen/anime_vault_group_seasons_arcs_twilight_sakura/screen.png",
+      "to": "design/references/5 ui screen/anime_vault_group_seasons_arcs_twilight_sakura/screen.png",
+      "original_sha256": "541969f7a06907ff46e7a0a76c88ab82c49fae3dc474a930d963d82d63f6c55e"
+    },
+    {
+      "from": "5 ui screen/anime_vault_new_anime_releases_twilight_sakura/code.html",
+      "to": "design/references/5 ui screen/anime_vault_new_anime_releases_twilight_sakura/code.html",
+      "original_sha256": "68066805c610833b1c23878410af846e4a15efc1ca9798302b06a256fe8744f5"
+    },
+    {
+      "from": "5 ui screen/anime_vault_new_anime_releases_twilight_sakura/screen.png",
+      "to": "design/references/5 ui screen/anime_vault_new_anime_releases_twilight_sakura/screen.png",
+      "original_sha256": "b87a2da1ba65ba1a66615db5f68075a042b77a72ca192f55cade8fd7d83ffb06"
+    },
+    {
+      "from": "5 ui screen/anime_vault_rematch_anime_metadata_twilight_sakura/code.html",
+      "to": "design/references/5 ui screen/anime_vault_rematch_anime_metadata_twilight_sakura/code.html",
+      "original_sha256": "2332bf244c348e892967ef5f3d9f6150d0155e10757f047a82f0577572c445bc"
+    },
+    {
+      "from": "5 ui screen/anime_vault_rematch_anime_metadata_twilight_sakura/screen.png",
+      "to": "design/references/5 ui screen/anime_vault_rematch_anime_metadata_twilight_sakura/screen.png",
+      "original_sha256": "18c1b0e452d3d8a66998e963110ee202d306872488b475b57ed79071446ab955"
+    },
+    {
+      "from": "add entry screen and txt importer screen/anime_vault_add_custom_anime_entry_twilight_sakura/code.html",
+      "to": "design/references/add entry screen and txt importer screen/anime_vault_add_custom_anime_entry_twilight_sakura/code.html",
+      "original_sha256": "f8db297cbf52e69654f1e99ea54fc6ad29f7cba09ca6204eb49ee445fd7ce407"
+    },
+    {
+      "from": "add entry screen and txt importer screen/anime_vault_add_custom_anime_entry_twilight_sakura/screen.png",
+      "to": "design/references/add entry screen and txt importer screen/anime_vault_add_custom_anime_entry_twilight_sakura/screen.png",
+      "original_sha256": "5258bc14f51ced44dff55b5069cfe3f3ce364bc134012901c0ad143c7064e7a7"
+    },
+    {
+      "from": "add entry screen and txt importer screen/anime_vault_watched_list_importer_anilist_match_review_twilight_sakura_dark/code.html",
+      "to": "design/references/add entry screen and txt importer screen/anime_vault_watched_list_importer_anilist_match_review_twilight_sakura_dark/code.html",
+      "original_sha256": "7405c86fd682484519d8f4155e28512ec520a5594725160cd4e98f1e21a72693"
+    },
+    {
+      "from": "add entry screen and txt importer screen/anime_vault_watched_list_importer_anilist_match_review_twilight_sakura_dark/screen.png",
+      "to": "design/references/add entry screen and txt importer screen/anime_vault_watched_list_importer_anilist_match_review_twilight_sakura_dark/screen.png",
+      "original_sha256": "8d5327dfbeee981f7c1b0b4c052d4e224457aa4aad1d7ca0066d9a438f1dcc06"
+    },
+    {
+      "from": "Anime Detail Screen/code.html",
+      "to": "design/references/Anime Detail Screen/code.html",
+      "original_sha256": "8654ac6cbfef2a134849bc8cbdd4e0c7c94c8fda12a6e9345ae1057f8e761866"
+    },
+    {
+      "from": "Anime Detail Screen/DESIGN.md",
+      "to": "design/references/Anime Detail Screen/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "Anime Detail Screen/screen.png",
+      "to": "design/references/Anime Detail Screen/screen.png",
+      "original_sha256": "11c3a44133c9a7e627ae9d377cbe171261441662002ab4c0257d4711b9c0f048"
+    },
+    {
+      "from": "Anime Library List View/code.html",
+      "to": "design/references/Anime Library List View/code.html",
+      "original_sha256": "a106928bf7333ecc1932a44cc2179b843843817ecd8688c7a4b2b5feceac0591"
+    },
+    {
+      "from": "Anime Library List View/screen.png",
+      "to": "design/references/Anime Library List View/screen.png",
+      "original_sha256": "f35e54bbed64c07203715a3b0e3623f49999f101ae01365919170741a5b5d77d"
+    },
+    {
+      "from": "Anime Valt Installer Pkg/anime_vault_windows_app_packaging_spec.md",
+      "to": "design/references/Anime Valt Installer Pkg/anime_vault_windows_app_packaging_spec.md",
+      "original_sha256": "be30349c4d277bbc81d4a5c6406ff4b60d206a61563b7057d815af11aab26ecb"
+    },
+    {
+      "from": "Anime Valt Installer Pkg/Master App Icon.png",
+      "to": "design/references/Anime Valt Installer Pkg/Master App Icon.png",
+      "original_sha256": "e323a0274469d6e8276226125c65a3f9553b1e459b5d6bf1f7a2cb16be0c6271"
+    },
+    {
+      "from": "Anime Valt Installer Pkg/anime_vault_app_icon.ico_master/screen.png",
+      "to": "design/references/Anime Valt Installer Pkg/anime_vault_app_icon.ico_master/screen.png",
+      "original_sha256": "e23fae8594377c17d56d64d52601ebdcd580711b50f66fca4168da92741a93c4"
+    },
+    {
+      "from": "Anime Valt Installer Pkg/anime_vault_windows_app_packaging_modern_installer_v2.4.1/code.html",
+      "to": "design/references/Anime Valt Installer Pkg/anime_vault_windows_app_packaging_modern_installer_v2.4.1/code.html",
+      "original_sha256": "0770048a33dda52fc0efe724309574a3c365c4077e33b3de6dbec1f8af0c46be"
+    },
+    {
+      "from": "Anime Valt Installer Pkg/anime_vault_windows_app_packaging_modern_installer_v2.4.1/screen.png",
+      "to": "design/references/Anime Valt Installer Pkg/anime_vault_windows_app_packaging_modern_installer_v2.4.1/screen.png",
+      "original_sha256": "7a2a1bcce0816843a28ee55f56df75099af695a3caf19e6818898f6fbfc320ae"
+    },
+    {
+      "from": "Anime Valt Installer Pkg/twilight_sakura/DESIGN.md",
+      "to": "design/references/Anime Valt Installer Pkg/twilight_sakura/DESIGN.md",
+      "original_sha256": "e1391d01fa0e867f239a6ea8b77ac2fbfcefdf0439388d9c20f59991bc616cf8"
+    },
+    {
+      "from": "Anime Vault — Unified Dropdown & Popover Menus System/code.html",
+      "to": "design/references/Anime Vault — Unified Dropdown & Popover Menus System/code.html",
+      "original_sha256": "0ab39aa8377476bbac74e4e25d6d3762354ff68b3a602571353bc70b18e87861"
+    },
+    {
+      "from": "Anime Vault — Unified Dropdown & Popover Menus System/DESIGN.md",
+      "to": "design/references/Anime Vault — Unified Dropdown & Popover Menus System/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "Anime Vault — Unified Dropdown & Popover Menus System/screen.png",
+      "to": "design/references/Anime Vault — Unified Dropdown & Popover Menus System/screen.png",
+      "original_sha256": "0a6ef474549ed8561a86493ffa4861940806bf9a2fe16dcbf3d6c16eeb4eb6c3"
+    },
+    {
+      "from": "anime-vault-ui/customentry.html",
+      "to": "design/references/anime-vault-ui/customentry.html",
+      "original_sha256": "cf817fdccf63c84506156d67ab1731482b9649864de2d1470e013a6586990b03"
+    },
+    {
+      "from": "anime-vault-ui/deletefiles.html",
+      "to": "design/references/anime-vault-ui/deletefiles.html",
+      "original_sha256": "d3c8befc634e166327c422019cd6d9dd0c557292a4ec70a5d86bb80d9fd75bc6"
+    },
+    {
+      "from": "anime-vault-ui/details.html",
+      "to": "design/references/anime-vault-ui/details.html",
+      "original_sha256": "614aa9e3dca56b3f72b6678f49688eaf72f757b4bda5b1c83b81541f6bec372f"
+    },
+    {
+      "from": "anime-vault-ui/editentry.html",
+      "to": "design/references/anime-vault-ui/editentry.html",
+      "original_sha256": "906cc8d3b4e6e45f021fda5c5c14f0c7f16f8e8515e8cfbdbccb6e5c53d79176"
+    },
+    {
+      "from": "anime-vault-ui/import.html",
+      "to": "design/references/anime-vault-ui/import.html",
+      "original_sha256": "76b0327b30de05b5b2ea4c331328df33f1484d1d7c565465fcb71dcee0383279"
+    },
+    {
+      "from": "anime-vault-ui/index.html",
+      "to": "design/references/anime-vault-ui/index.html",
+      "original_sha256": "078b1a2647424936275d276508751e384d50163f96c0dc7b0825883976fbc417"
+    },
+    {
+      "from": "anime-vault-ui/main.html",
+      "to": "design/references/anime-vault-ui/main.html",
+      "original_sha256": "f34f0612e61ded21d3ba23169e1e0224db88e2f43b865f937110626606fc2e11"
+    },
+    {
+      "from": "anime-vault-ui/merge.html",
+      "to": "design/references/anime-vault-ui/merge.html",
+      "original_sha256": "6a43cdee24334844658729fc97220c8f06b767a450ce0e754cbe62954dbd2980"
+    },
+    {
+      "from": "anime-vault-ui/organizer.html",
+      "to": "design/references/anime-vault-ui/organizer.html",
+      "original_sha256": "12215be3e39d0b20781f80aa7c487d845863c5eb8ee61a15ae3310fd1a44abe8"
+    },
+    {
+      "from": "anime-vault-ui/rematch.html",
+      "to": "design/references/anime-vault-ui/rematch.html",
+      "original_sha256": "ad2424f3306ba3b13c4c152e4414cf2672398cc703c81d8e36fa2457c5e39ec0"
+    },
+    {
+      "from": "anime-vault-ui/settings.html",
+      "to": "design/references/anime-vault-ui/settings.html",
+      "original_sha256": "8cdfc415d7a51a0eb2b545cad7e1734b985d034b528f538f7483a44cc211e03f"
+    },
+    {
+      "from": "anime-vault-ui/shared.css",
+      "to": "design/references/anime-vault-ui/shared.css",
+      "original_sha256": "5abd62def37948b4a535794dbeec43c1ee0fbf33f5859da437cb6ef5428d4b2b"
+    },
+    {
+      "from": "anime-vault-ui/storage.html",
+      "to": "design/references/anime-vault-ui/storage.html",
+      "original_sha256": "021de35cd939f0457bb1944020262e58d6bd516e523df367c182abab61ac2835"
+    },
+    {
+      "from": "anime-vault-ui/updates.html",
+      "to": "design/references/anime-vault-ui/updates.html",
+      "original_sha256": "ba0e105eaf587067f845552ac503588593d0a90834bca0dc713325e281e19469"
+    },
+    {
+      "from": "choose episode page/code.html",
+      "to": "design/references/choose episode page/code.html",
+      "original_sha256": "dd57a8b4302ccfd631478d44a9401335114ab1839f9db78f4749acfa57446a1d"
+    },
+    {
+      "from": "choose episode page/screen.png",
+      "to": "design/references/choose episode page/screen.png",
+      "original_sha256": "b3f5a63d0ad096488ebbdf0b88cca0ffa95681e9e6a7ff9ade111cbfda64fb6e"
+    },
+    {
+      "from": "confirm series grouping screen/code.html",
+      "to": "design/references/confirm series grouping screen/code.html",
+      "original_sha256": "c93ff6f735f35ff1bedbefaf95393a48458a5b55c83dc4e8cc2a94f3a00bdb73"
+    },
+    {
+      "from": "confirm series grouping screen/screen.png",
+      "to": "design/references/confirm series grouping screen/screen.png",
+      "original_sha256": "adb108b380c159a54e6626321b97230bac12fb98db84cfc9076e01c749bc27c4"
+    },
+    {
+      "from": "edit season number ui screen/code.html",
+      "to": "design/references/edit season number ui screen/code.html",
+      "original_sha256": "363a08b22e950f5c59586fea8c7c18691e4de805cc686bc145f44734035981af"
+    },
+    {
+      "from": "edit season number ui screen/screen.png",
+      "to": "design/references/edit season number ui screen/screen.png",
+      "original_sha256": "e4fe38cf5c12224dc0754753f0258e28f13edee2f8862ea27d006301a355edc0"
+    },
+    {
+      "from": "file download page/code.html",
+      "to": "design/references/file download page/code.html",
+      "original_sha256": "ed55f71225861e2bb077945f711457dbc2b6340244aced57d0fddf80b001ff84"
+    },
+    {
+      "from": "file download page/DESIGN.md",
+      "to": "design/references/file download page/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "file download page/screen.png",
+      "to": "design/references/file download page/screen.png",
+      "original_sha256": "4a7c0f3df3bc9121e281ce78197faceebb2c255c36b46dc8d407b64ee382afc6"
+    },
+    {
+      "from": "final ui/Custom entry drawer.png",
+      "to": "design/references/final ui/Custom entry drawer.png",
+      "original_sha256": "c9c795713ceba23e9de9742ba06e70b40d20d2a80e1173e74bb879b4b302b3b2"
+    },
+    {
+      "from": "final ui/Delete confirmation.png",
+      "to": "design/references/final ui/Delete confirmation.png",
+      "original_sha256": "db3160f6031826eff341a33d30b10c4dbe0df85f9de107186b19f4ee11c22811"
+    },
+    {
+      "from": "final ui/Import drawer.png",
+      "to": "design/references/final ui/Import drawer.png",
+      "original_sha256": "ac5f849d5eb62c6d87fe64cec5f9072683620efac59acd97c3a590ca6d5c70b7"
+    },
+    {
+      "from": "final ui/Library.png",
+      "to": "design/references/final ui/Library.png",
+      "original_sha256": "44e1666162bb8557af5dabbd960f10df510cb31f5a68de8e7426943e0e0c5237"
+    },
+    {
+      "from": "final ui/Organizer.png",
+      "to": "design/references/final ui/Organizer.png",
+      "original_sha256": "e3e675e7eb9f8a91031a6ae22ac757484f6e031a42d029f37fe7f3f18a1d6aac"
+    },
+    {
+      "from": "final ui/Rematch drawer.png",
+      "to": "design/references/final ui/Rematch drawer.png",
+      "original_sha256": "120086903f6d651c63366f79613818147c2056a2c61dee6f859e7c184ff60ed2"
+    },
+    {
+      "from": "final ui/Series details.png",
+      "to": "design/references/final ui/Series details.png",
+      "original_sha256": "3ce55e602023a98e53a59cfcd0434538b0d759b554508eec87bd17862380b673"
+    },
+    {
+      "from": "final ui/Settings.png",
+      "to": "design/references/final ui/Settings.png",
+      "original_sha256": "5aaa7dfae9db3c8d23b8b413be3e0f07a94511e04bdf09f32ef61260fe6eb9d8"
+    },
+    {
+      "from": "final ui/Storage.png",
+      "to": "design/references/final ui/Storage.png",
+      "original_sha256": "0404c2e87e9aa501d58d8e71795609daf746c774719c34cdc5b0468d19856d1d"
+    },
+    {
+      "from": "final ui/Updates.png",
+      "to": "design/references/final ui/Updates.png",
+      "original_sha256": "7fd32bb15bff9e363a2824486e23b814aebd286b86ca944a8e66ac9a50b15a05"
+    },
+    {
+      "from": "find download file page ui/code.html",
+      "to": "design/references/find download file page ui/code.html",
+      "original_sha256": "4175866206d056097f47f7571dc6256ed0bd887b643d1a0f8eb8639846bc0907"
+    },
+    {
+      "from": "find download file page ui/screen.png",
+      "to": "design/references/find download file page ui/screen.png",
+      "original_sha256": "5ee6b8ce4f163d8ae81478c0f26abe54d1156f9e45992d7e91e5310b1b0634de"
+    },
+    {
+      "from": "Home Library Screen/code.html",
+      "to": "design/references/Home Library Screen/code.html",
+      "original_sha256": "d99229f0413acda5a6a0e4def7eab3d70a5f9b74900f1615475f6c56ded9b886"
+    },
+    {
+      "from": "Home Library Screen/DESIGN.md",
+      "to": "design/references/Home Library Screen/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "Home Library Screen/screen.png",
+      "to": "design/references/Home Library Screen/screen.png",
+      "original_sha256": "4ad95f74db202e257e98c5bade5076338c701177521037799cb692505ea96ae8"
+    },
+    {
+      "from": "merge and duplicate ui/stitch_untitled_project_creation/anime_vault_merge_libraries_into_root_twilight_sakura/code.html",
+      "to": "design/references/merge and duplicate ui/stitch_untitled_project_creation/anime_vault_merge_libraries_into_root_twilight_sakura/code.html",
+      "original_sha256": "5c55c313168429800d66f2fdcfa7dfccfaa6522651978fa57ad5ceab65988d53"
+    },
+    {
+      "from": "merge and duplicate ui/stitch_untitled_project_creation/anime_vault_merge_libraries_into_root_twilight_sakura/screen.png",
+      "to": "design/references/merge and duplicate ui/stitch_untitled_project_creation/anime_vault_merge_libraries_into_root_twilight_sakura/screen.png",
+      "original_sha256": "041f68f9cdfeb363cceb482187b7cdcf318d2bead3b95f92e780a9f0c0d2e848"
+    },
+    {
+      "from": "merge and duplicate ui/stitch_untitled_project_creation/anime_vault_review_duplicate_files_twilight_sakura/code.html",
+      "to": "design/references/merge and duplicate ui/stitch_untitled_project_creation/anime_vault_review_duplicate_files_twilight_sakura/code.html",
+      "original_sha256": "a6e5189e0d99d056d8d5465f3783ff62b4af6d99243aa5b1694652a7ca0c38a0"
+    },
+    {
+      "from": "merge and duplicate ui/stitch_untitled_project_creation/anime_vault_review_duplicate_files_twilight_sakura/screen.png",
+      "to": "design/references/merge and duplicate ui/stitch_untitled_project_creation/anime_vault_review_duplicate_files_twilight_sakura/screen.png",
+      "original_sha256": "f2597dae755e452c970f8782c927b8971cc9995f48dc9a2f6c046ea5e10f9c73"
+    },
+    {
+      "from": "merge and duplicate ui/stitch_untitled_project_creation/twilight_sakura/DESIGN.md",
+      "to": "design/references/merge and duplicate ui/stitch_untitled_project_creation/twilight_sakura/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "new anime release screen/code.html",
+      "to": "design/references/new anime release screen/code.html",
+      "original_sha256": "0da96ae9155d33064d4265ece5f8f220ea34e95f30f0425aa118b98e634c5ed5"
+    },
+    {
+      "from": "new anime release screen/screen.png",
+      "to": "design/references/new anime release screen/screen.png",
+      "original_sha256": "14d54eea7e83b8cef938e8ede55ee93cf6904c423eff1fbb99a3e78bae7c7025"
+    },
+    {
+      "from": "organizer screen/code.html",
+      "to": "design/references/organizer screen/code.html",
+      "original_sha256": "e4a1d5b057b1b0358bebd5cd116111d47e6afc72ccc906b39949f4c64e6fe401"
+    },
+    {
+      "from": "organizer screen/DESIGN.md",
+      "to": "design/references/organizer screen/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "organizer screen/screen.png",
+      "to": "design/references/organizer screen/screen.png",
+      "original_sha256": "01785c90f5daa13f3f8c4ae8c64259d539d85d162bd7164906519d6376e3c656"
+    },
+    {
+      "from": "Review duplicate files screen/code.html",
+      "to": "design/references/Review duplicate files screen/code.html",
+      "original_sha256": "4ef5755b08a4a4631af7904a94757ebb6ca9692bca4b1e08e1753d7b9f93e019"
+    },
+    {
+      "from": "Review duplicate files screen/screen.png",
+      "to": "design/references/Review duplicate files screen/screen.png",
+      "original_sha256": "d04e58856c2102a326d9fcfec339963bc382f3def7bec48474d33654b3de2faf"
+    },
+    {
+      "from": "Sertting UI/code.html",
+      "to": "design/references/Sertting UI/code.html",
+      "original_sha256": "ebf68767878115bdbccc2831f5a147b608955ba0c43420def28da3680aa459ad"
+    },
+    {
+      "from": "Sertting UI/DESIGN.md",
+      "to": "design/references/Sertting UI/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "Sertting UI/screen.png",
+      "to": "design/references/Sertting UI/screen.png",
+      "original_sha256": "6fd54ed55cdd43caadfb96f745f70ba6de813b3c0e391cd1c05de76b3ac3cfc0"
+    },
+    {
+      "from": "setting ui screen/code.html",
+      "to": "design/references/setting ui screen/code.html",
+      "original_sha256": "f66d7754375f0473d8b2436324e4da82f0f39c72f17af30d6b94a06a6ee924e6"
+    },
+    {
+      "from": "setting ui screen/DESIGN.md",
+      "to": "design/references/setting ui screen/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "setting ui screen/screen.png",
+      "to": "design/references/setting ui screen/screen.png",
+      "original_sha256": "112b2300f88297a4920d6bb137ff9553f3889b877efcc81bb059934ab4b02d88"
+    },
+    {
+      "from": "Unified Button Design System & Component Template/code.html",
+      "to": "design/references/Unified Button Design System & Component Template/code.html",
+      "original_sha256": "364106ed76df600e24a2e87f1e7dc34c67829ac05b9a33999509259c7b027304"
+    },
+    {
+      "from": "Unified Button Design System & Component Template/DESIGN.md",
+      "to": "design/references/Unified Button Design System & Component Template/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "Unified Button Design System & Component Template/screen.png",
+      "to": "design/references/Unified Button Design System & Component Template/screen.png",
+      "original_sha256": "11796230b42b24085fd5adc401a78dbaa700d31f9d2c3ab4d8ab206e01ae54e6"
+    },
+    {
+      "from": "update and download screen/download screen/code.html",
+      "to": "design/references/update and download screen/download screen/code.html",
+      "original_sha256": "e00457329a8e8785c0bcef54b810e984ab23a667af2079dd22b77b3304f26ac5"
+    },
+    {
+      "from": "update and download screen/download screen/screen.png",
+      "to": "design/references/update and download screen/download screen/screen.png",
+      "original_sha256": "68b9b8158086306a3f705d4f4db4f1057e12a05777f1efccf981a38166909730"
+    },
+    {
+      "from": "update and download screen/twilight_sakura/DESIGN.md",
+      "to": "design/references/update and download screen/twilight_sakura/DESIGN.md",
+      "original_sha256": "8d47a1dd35230f1ff637c8ffbedb40ea7a4366195546db31218f80cf6e7a859b"
+    },
+    {
+      "from": "update and download screen/update screen/code.html",
+      "to": "design/references/update and download screen/update screen/code.html",
+      "original_sha256": "c9083d1429f55d903cda247db571f22ff2c12c18547f94daa5bc95dd004f68ee"
+    },
+    {
+      "from": "update and download screen/update screen/screen.png",
+      "to": "design/references/update and download screen/update screen/screen.png",
+      "original_sha256": "2bac59d6b5c3670087ff92a870ae5b9189dbf19a39c5a9ec9f535ffd1ad844b7"
+    },
+    {
+      "from": "All Feature and their Navigation.md",
+      "to": "docs/guides/All Feature and their Navigation.md",
+      "original_sha256": "4b629524f916cba7ae860cda7858204073d6aec7b554b1e6156530c80c90efe0"
+    },
+    {
+      "from": "anime_library_storage_manager_production_specification.md",
+      "to": "docs/planning/anime_library_storage_manager_production_specification.md",
+      "original_sha256": "40052e4f03ca0557d6792a44b224cd2d8e4e78980f9094789db22e541275de56"
+    },
+    {
+      "from": "APP_AUDIT.md",
+      "to": "docs/history/APP_AUDIT.md",
+      "original_sha256": "ac6a4765e9f7e9a9619361ce3ec9b5ef921f1763fde02d85a0d18f30605ceea6"
+    },
+    {
+      "from": "ARTWORK_ICC_FIX.md",
+      "to": "docs/history/ARTWORK_ICC_FIX.md",
+      "original_sha256": "4791c23fec34d2bcf138a52fa19b728afcf2df805f69d487f49b00d2d2767d1d"
+    },
+    {
+      "from": "AUDIT_CALLBACK_SIGNATURE_FIX.md",
+      "to": "docs/history/AUDIT_CALLBACK_SIGNATURE_FIX.md",
+      "original_sha256": "bae7f22622dc9a9196aa99c7076cc9f406a6cb6be0f1932dd37571540c6cbd61"
+    },
+    {
+      "from": "AUDIT_FIXES_APPLIED.md",
+      "to": "docs/history/AUDIT_FIXES_APPLIED.md",
+      "original_sha256": "b2521a583a20b20f0656377c0a114f3365130b5fc28422ae22443f5822c132d3"
+    },
+    {
+      "from": "BREADCRUMB_NAVIGATION_HISTORY.md",
+      "to": "docs/history/BREADCRUMB_NAVIGATION_HISTORY.md",
+      "original_sha256": "63a4ed062dffb0d10075f37ea80c9bbf894528f2a3324a5c7fe0cfb9933deab7"
+    },
+    {
+      "from": "BROWSER_MAGNET_CAPTURE.md",
+      "to": "docs/history/BROWSER_MAGNET_CAPTURE.md",
+      "original_sha256": "3d811a203ee4b8cc70830e9e4754b0c190ca7f178315e2f5c07d7b6aafaf1036"
+    },
+    {
+      "from": "BUILTIN_DOWNLOADER.md",
+      "to": "docs/history/BUILTIN_DOWNLOADER.md",
+      "original_sha256": "d1f07950f090b2db9147334054c66c175def36a2551b740f3a60a1d047a33a5c"
+    },
+    {
+      "from": "BUILTIN_ONLY_DOWNLOADS.md",
+      "to": "docs/history/BUILTIN_ONLY_DOWNLOADS.md",
+      "original_sha256": "a6ca2b96e22f67644ce379359af36e8eab5aaeeae07850e6c1a870d202b8fbb5"
+    },
+    {
+      "from": "DETAILS_LOADING_AUDIT.md",
+      "to": "docs/history/DETAILS_LOADING_AUDIT.md",
+      "original_sha256": "b70792aa679a3eea9fea4c8c584c731c48490e4bb70d0546a17be0d0f133d398"
+    },
+    {
+      "from": "DETAIL_NAVIGATION_PERFORMANCE.md",
+      "to": "docs/history/DETAIL_NAVIGATION_PERFORMANCE.md",
+      "original_sha256": "a64d439e3a391a8ffa60003968cfbe9fbc0e474b74a8c57f61d4f557fa745082"
+    },
+    {
+      "from": "DETAIL_ORGANIZER_HOME_FIXES.md",
+      "to": "docs/history/DETAIL_ORGANIZER_HOME_FIXES.md",
+      "original_sha256": "b16ea941a646a481ec5ada849ec58ae6da697ac78e399dda932a9b3e08f0c31d"
+    },
+    {
+      "from": "DETAIL_SCREEN_REDESIGN.md",
+      "to": "docs/history/DETAIL_SCREEN_REDESIGN.md",
+      "original_sha256": "e9fa3f86e6eacd806a0f3e3ad40b59926323b0ea4acf1c1c60ef9c5e0cbbcc4b"
+    },
+    {
+      "from": "DOWNLOAD_DISCOVERY_BACKUP_FIXES.md",
+      "to": "docs/history/DOWNLOAD_DISCOVERY_BACKUP_FIXES.md",
+      "original_sha256": "7eb6dc06f7a329a0f9b9e46d8d98b3438218d84d510fe4276fd6f7b3f4f7fc61"
+    },
+    {
+      "from": "DOWNLOAD_INTEGRATION.md",
+      "to": "docs/history/DOWNLOAD_INTEGRATION.md",
+      "original_sha256": "6a957d09960c0600f865c6afc468bdf3f673ca05e0485119a38d63ba3b49fc9d"
+    },
+    {
+      "from": "DOWNLOAD_ORGANIZER_AND_UI_POLISH.md",
+      "to": "docs/history/DOWNLOAD_ORGANIZER_AND_UI_POLISH.md",
+      "original_sha256": "bcb2f850b2dfefe9860fe24a8f899681789f92cbeebdf6f9200337449f986905"
+    },
+    {
+      "from": "DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md",
+      "to": "docs/history/DOWNLOAD_RETRY_AND_LIBRARY_MOVES.md",
+      "original_sha256": "2df3e17224960aff0ba41c5e0d54ce96e28a276369e33aca8ed781b26ae352d1"
+    },
+    {
+      "from": "DROPDOWN_TEXT_AND_RELEASE_DETAILS_FIX.md",
+      "to": "docs/history/DROPDOWN_TEXT_AND_RELEASE_DETAILS_FIX.md",
+      "original_sha256": "520e549b70de2d878571cab67fe0cb112ab44f9f8024e38cd61d4dc7c927438b"
+    },
+    {
+      "from": "ENTRY_IMPORT_SAKURA_UI.md",
+      "to": "docs/history/ENTRY_IMPORT_SAKURA_UI.md",
+      "original_sha256": "52735a7e57e9e706286487affd4f37ca3e86d54f838fdf404b22ceeeb9d6800d"
+    },
+    {
+      "from": "EPISODE_SELECTION_REFERENCE_UI.md",
+      "to": "docs/history/EPISODE_SELECTION_REFERENCE_UI.md",
+      "original_sha256": "ed658844f568cb7ffd7fdab3886a199150e45ec42118651b82801c4596155f49"
+    },
+    {
+      "from": "FIND_DOWNLOAD_SCREEN.md",
+      "to": "docs/history/FIND_DOWNLOAD_SCREEN.md",
+      "original_sha256": "5bbc7a1594a3b4c43136d235079e30e3cf3308a872970ce611cac69c021a58b7"
+    },
+    {
+      "from": "FIND_DOWNLOAD_SIMPLIFIED_UI.md",
+      "to": "docs/history/FIND_DOWNLOAD_SIMPLIFIED_UI.md",
+      "original_sha256": "0810d0345d687d4a453ccbcba191b93b7af837c551340bc4f43882c4b88ce7db"
+    },
+    {
+      "from": "FIVE_UI_SCREENS_IMPLEMENTATION.md",
+      "to": "docs/history/FIVE_UI_SCREENS_IMPLEMENTATION.md",
+      "original_sha256": "7e9ea20a964f58d3774ef28d52e4da6d6a15eae6c70c746d66ad39df2f3cc5a9"
+    },
+    {
+      "from": "HOME_LIBRARY_REDESIGN.md",
+      "to": "docs/history/HOME_LIBRARY_REDESIGN.md",
+      "original_sha256": "edef2784eb3ce9174620c69478aa956081b50e1763e45993490e3ed3ae53c7b8"
+    },
+    {
+      "from": "MERGE_DUPLICATE_REFERENCE_UI.md",
+      "to": "docs/history/MERGE_DUPLICATE_REFERENCE_UI.md",
+      "original_sha256": "9323fd1e05094c9721d32ab6d3325a45b596ff9983407bfc8b639ec46ace3d9a"
+    },
+    {
+      "from": "MOUSE_WHEEL_SCROLLING_FIX.md",
+      "to": "docs/history/MOUSE_WHEEL_SCROLLING_FIX.md",
+      "original_sha256": "7d37a0b926136f577158b7adb0beacd79cf507594f413af5dbb3daf3cb7f2338"
+    },
+    {
+      "from": "NAVIGATION_MEMORY_AND_COMPACT_HEADINGS.md",
+      "to": "docs/history/NAVIGATION_MEMORY_AND_COMPACT_HEADINGS.md",
+      "original_sha256": "8137276bfaab70290c2a98a87d2afaf054edec2163fc9952f37170e3f3da4539"
+    },
+    {
+      "from": "new feature to be added.md",
+      "to": "docs/planning/new feature to be added.md",
+      "original_sha256": "5acd7312f126fb89223f56cfcf0b8903e0ea88d7672213f38647e2d227081c0a"
+    },
+    {
+      "from": "ORGANIZER_REFERENCE_UI.md",
+      "to": "docs/history/ORGANIZER_REFERENCE_UI.md",
+      "original_sha256": "9c73f8415c5a284a93beab93a07f2b04443a2cc9bc1c919906375806bc2ffe2f"
+    },
+    {
+      "from": "ORGANIZER_UI_AND_SCAN_CHANGES.md",
+      "to": "docs/history/ORGANIZER_UI_AND_SCAN_CHANGES.md",
+      "original_sha256": "1b154dadb8b2de58bf0bd36fab1e1c3ebb1d7f21ce7b69125519806cf5633679"
+    },
+    {
+      "from": "ORGANIZER_USAGE.md",
+      "to": "docs/guides/ORGANIZER_USAGE.md",
+      "original_sha256": "fe6d19c82972e09ed776f75d81bbbc0aed4d3e5d05dfa2c7981d59b93b8e670a"
+    },
+    {
+      "from": "PERFORMANCE_SECURITY_AND_ARCHITECTURE_AUDIT.md",
+      "to": "docs/history/PERFORMANCE_SECURITY_AND_ARCHITECTURE_AUDIT.md",
+      "original_sha256": "9eaf67019789445c26da4b978a535a6701cb0cbe3ab6eb99833ccbf0415f056d"
+    },
+    {
+      "from": "PHASE_1_DATA_SAFETY.md",
+      "to": "docs/history/PHASE_1_DATA_SAFETY.md",
+      "original_sha256": "53c367e53be4bb0656dd54becf1a53cc971849b30da781803ba3f97fa801d2af"
+    },
+    {
+      "from": "PHASE_2_TRUSTWORTHY_SCANNING.md",
+      "to": "docs/history/PHASE_2_TRUSTWORTHY_SCANNING.md",
+      "original_sha256": "c4ad997ddc2137092907cbb56960b7a8b726a06185eba1acf66f9f51f4eb6a00"
+    },
+    {
+      "from": "RELEASE_CALENDAR.md",
+      "to": "docs/history/RELEASE_CALENDAR.md",
+      "original_sha256": "44af24856b4f1ccd56cceffdf78a3fcc944a682b5b89e6896c4f8701d3a64490"
+    },
+    {
+      "from": "RELEASE_NEWS.md",
+      "to": "docs/history/RELEASE_NEWS.md",
+      "original_sha256": "9cdcd842d322ea4e9c888e87438212ef20be8e8cb97a54af1d64dbb588fdfb24"
+    },
+    {
+      "from": "REMATCH_SEASON_NUMBERS_AND_DOWNLOAD_SEARCH.md",
+      "to": "docs/history/REMATCH_SEASON_NUMBERS_AND_DOWNLOAD_SEARCH.md",
+      "original_sha256": "52b0700511450d27d4bbac52c8403aa770acf949754bfed9d943803228a0979c"
+    },
+    {
+      "from": "SEANIME_COMPARISON_AND_PRIORITIES.md",
+      "to": "docs/history/SEANIME_COMPARISON_AND_PRIORITIES.md",
+      "original_sha256": "d7d0b26f055d106cf36d65d8d27842bd7bd7f3ccb3d55d27c613186259a199e6"
+    },
+    {
+      "from": "SEARCH_FOCUS_AND_RELEASE_FILTERS.md",
+      "to": "docs/history/SEARCH_FOCUS_AND_RELEASE_FILTERS.md",
+      "original_sha256": "b56c10a67cf64fffc08716e090b4ed65508aabe9177080791ca15a780efc2535"
+    },
+    {
+      "from": "SERIES_GROUPING_AND_REMATCH.md",
+      "to": "docs/history/SERIES_GROUPING_AND_REMATCH.md",
+      "original_sha256": "2071cc88570c2e9d4011a655a9f0d8dbfa0b2e6db3bf1523ba42de30772a649c"
+    },
+    {
+      "from": "SETTINGS_DOWNLOAD_EXPERIENCE.md",
+      "to": "docs/history/SETTINGS_DOWNLOAD_EXPERIENCE.md",
+      "original_sha256": "511fe17050561a9bfed0ecc7c5844692adb7ce4de31b99c4ba35d8f83f2be527"
+    },
+    {
+      "from": "SETTINGS_REFERENCE_UI.md",
+      "to": "docs/history/SETTINGS_REFERENCE_UI.md",
+      "original_sha256": "ecc97ad6cbba8ff74e7be498698b6c407504e0373831d4abf6037d6751576ce3"
+    },
+    {
+      "from": "SETTINGS_UI_SCREEN.md",
+      "to": "docs/history/SETTINGS_UI_SCREEN.md",
+      "original_sha256": "4acc2d327bd761ff4a0da1370fb7b55df49621931d2543a3645e2dcdd2a07e16"
+    },
+    {
+      "from": "STANDALONE_INSTALLER_BUILD.md",
+      "to": "docs/history/STANDALONE_INSTALLER_BUILD.md",
+      "original_sha256": "8fdfd04ca443a7764970e5fbf02d26e03491764e831d904290f5366411aebc51"
+    },
+    {
+      "from": "TEXT_IMPORT_FIXES.md",
+      "to": "docs/history/TEXT_IMPORT_FIXES.md",
+      "original_sha256": "07d4e7a1d2e8fa723361d2513593229a0d9ae77619f096b2c12bd94891d2eae0"
+    },
+    {
+      "from": "THREE_REFERENCE_SCREENS.md",
+      "to": "docs/history/THREE_REFERENCE_SCREENS.md",
+      "original_sha256": "a487d971876820ac0af8675c9c210409fe4adeb3d224cee0a01c2d876ac5e99b"
+    },
+    {
+      "from": "THUMBNAIL_DEADLOCK_FIX.md",
+      "to": "docs/history/THUMBNAIL_DEADLOCK_FIX.md",
+      "original_sha256": "07e703f734cb87439a40c88d244782afc14c550528fd3fa0363ffc9221347659"
+    },
+    {
+      "from": "TXT_LIST_PRESENCE_AND_MATCHING.md",
+      "to": "docs/history/TXT_LIST_PRESENCE_AND_MATCHING.md",
+      "original_sha256": "0db007fd29e4193abe3fc8286eac87ba88ddef436607e4e9c63e597ac853f69c"
+    },
+    {
+      "from": "UNIFIED_BUTTONS_AND_RELEASE_DATES.md",
+      "to": "docs/history/UNIFIED_BUTTONS_AND_RELEASE_DATES.md",
+      "original_sha256": "54d9595677001a71fde6f1003c6824ee3d3db2521a085206fc272aa60f049ccc"
+    },
+    {
+      "from": "UNIFIED_MENUS_AND_LIBRARY_PERFORMANCE.md",
+      "to": "docs/history/UNIFIED_MENUS_AND_LIBRARY_PERFORMANCE.md",
+      "original_sha256": "e98f02da6701b822cda7db20b70c472487d445d259bfbd5a33c0b42dbf82a6cf"
+    },
+    {
+      "from": "UPDATE_ACTIONS_AND_REMOVAL.md",
+      "to": "docs/history/UPDATE_ACTIONS_AND_REMOVAL.md",
+      "original_sha256": "ce1187e512c7e0c6a2df00bf4c374011b13cd9d1b1cb43982b5a37803b41479b"
+    },
+    {
+      "from": "UPDATE_DETAILS_EPISODE_TIMING_AND_PROGRESS.md",
+      "to": "docs/history/UPDATE_DETAILS_EPISODE_TIMING_AND_PROGRESS.md",
+      "original_sha256": "77ca92124d2c17021b8c9dce5e3d22fd0b144d058c13595458390ec8aca30fae"
+    },
+    {
+      "from": "UPDATE_DOWNLOAD_SCREENS.md",
+      "to": "docs/history/UPDATE_DOWNLOAD_SCREENS.md",
+      "original_sha256": "1bd16cfe8e18da898c49c367663ede98fac8ad84758f163947b517f501c752a2"
+    },
+    {
+      "from": "VAULT_MENUS_AND_UPDATE_REVIEW.md",
+      "to": "docs/history/VAULT_MENUS_AND_UPDATE_REVIEW.md",
+      "original_sha256": "edfa7f65aba2334553be228a38998a10908d93c91481addecaae4121c7b248a0"
+    },
+    {
+      "from": "WHOLE_APP_AUDIT_2026-11-12.md",
+      "to": "docs/history/WHOLE_APP_AUDIT_2026-11-12.md",
+      "original_sha256": "95a79b7073f17b522549fa23d6503779c2b401df3d49c53fc452a5d3445a8105"
+    },
+    {
+      "from": "WINDOW_AND_LIBRARY_STATUS_LAYOUT.md",
+      "to": "docs/history/WINDOW_AND_LIBRARY_STATUS_LAYOUT.md",
+      "original_sha256": "57c13f526016700e38348fe2d55deed4d283c5928a730fd2bef78ac97fc02f99"
+    },
+    {
+      "from": "details-preview.png",
+      "to": "design/previews/details-preview.png",
+      "original_sha256": "63457859bdec68be44722a430f2896f6c2cf8b00204a6cd0f5d42db3b1b2885f"
+    },
+    {
+      "from": "episode-coverage-preview.png",
+      "to": "design/previews/episode-coverage-preview.png",
+      "original_sha256": "712890572aeffa606422a5f3ec9f7eaa023e8b62b65a7bd1a97b94369ec0c291"
+    },
+    {
+      "from": "merge-tab-preview.png",
+      "to": "design/previews/merge-tab-preview.png",
+      "original_sha256": "3b3d1e962d88c723d87ea9797adeed547f4c7f41387e3b3601570ba32dd25a9f"
+    },
+    {
+      "from": "organizer-preview.png",
+      "to": "design/previews/organizer-preview.png",
+      "original_sha256": "d6c1cb79d89af1a1043cf44bcfb5bf45864761b8e0b319affeb610b548d8bd2f"
+    },
+    {
+      "from": "organizer-root-layout-preview.png",
+      "to": "design/previews/organizer-root-layout-preview.png",
+      "original_sha256": "1828dfc52f6b8a4eb1847d407adb6e642f42a98e735cd39d623a8e87c2aa6380"
+    },
+    {
+      "from": "organizer-tabs-preview.png",
+      "to": "design/previews/organizer-tabs-preview.png",
+      "original_sha256": "d45b3a2ef876c2c41f77d45796735ece2b52e594e6ae8fdb80fa180d3c287554"
+    },
+    {
+      "from": "rematch-navigation-preview.png",
+      "to": "design/previews/rematch-navigation-preview.png",
+      "original_sha256": "b896069970f698cfd3f0a6e1570ea968d62cd76902b20be532964762262259a3"
+    },
+    {
+      "from": "series-details-preview.png",
+      "to": "design/previews/series-details-preview.png",
+      "original_sha256": "3158f9f1ba4e3716912c2634ff8400550719da0058e17be39bcff656181bf59e"
+    },
+    {
+      "from": "ui-preview.png",
+      "to": "design/previews/ui-preview.png",
+      "original_sha256": "d1c9b4fb181e329acb8bb32a8fcfd126fc2db4cc67c7ab1bf903a0abeed182f8"
+    },
+    {
+      "from": "updates-preview.png",
+      "to": "design/previews/updates-preview.png",
+      "original_sha256": "9882393915a48f674b254408bbafde0de00abac0115d081b6c722e9ff0943a4b"
+    },
+    {
+      "from": "ui.html",
+      "to": "design/references/legacy-ui/ui.html",
+      "original_sha256": "841b8e063034e67d8c7754c805a2742e5f7aee718a76e0dabef33ee3b477f6af"
+    },
+    {
+      "from": "Deleted Seen Anime 1.txt",
+      "to": "data/import-lists/Deleted Seen Anime 1.txt",
+      "original_sha256": "c3d1f4a555f0b2975ed1381f237cd61f32c7e207019ef554acd3aa4c3ba7833f"
+    },
+    {
+      "from": "Seen And Deleted Animes.txt",
+      "to": "data/import-lists/Seen And Deleted Animes.txt",
+      "original_sha256": "47c99bb8d2fbd445a70cf02f3cf3109e745342610bff9e7a1e9c085407cc3ae2"
+    },
+    {
+      "from": "browser-extension.pem",
+      "to": "data/private/browser-extension.pem",
+      "original_sha256": "1e1d1359276d8ebb7be68277b0fc0998a506c3eefa0994c898d20e18e7f75d39"
+    },
+    {
+      "from": "browser-extension.crx",
+      "to": "dist/browser-extension/browser-extension.crx",
+      "original_sha256": "f0fc97bf071ed76cdc446566bdc00cdc9ee543e310bc6cf5dfb88f330c0bec80"
+    },
+    {
+      "from": "Tac/TAC-Panel-Loop-PUBLIC-1.2.6-Setup.exe",
+      "to": "tools/external-installers/Tac/TAC-Panel-Loop-PUBLIC-1.2.6-Setup.exe",
+      "original_sha256": "f542cc6c04e030bb576b3b7f0e5a0855ea8bf0c4237d1d2fc81aa606002b6a02"
+    }
+  ],
+  "updated_markdown_links": [
+    "docs/guides/All Feature and their Navigation.md",
+    "docs/history/APP_AUDIT.md",
+    "docs/history/BROWSER_MAGNET_CAPTURE.md",
+    "CHANGELOG.md",
+    "README.md",
+    "SECURITY.md",
+    "docs/history/STANDALONE_INSTALLER_BUILD.md",
+    "docs/DOWNLOADS.md",
+    "docs/PUBLICATION.md",
+    "docs/README.md"
+  ]
+}

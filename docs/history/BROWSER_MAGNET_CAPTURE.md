@@ -26,7 +26,7 @@ magnets must not replace the existing global browser/Windows handler.
 
 ## Setup
 
-See [the extension setup instructions](browser-extension/README.md): load the
+See [the extension setup instructions](../../browser-extension/README.md): load the
 folder unpacked in Google Chrome, copy the extension ID into the app's Downloads
 drawer, connect it, enable the chosen website in the popup, approve only that
 site's permission and reload the page once. An extension-store release or silent

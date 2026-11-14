@@ -39,7 +39,7 @@ def cached(key, query, variables, force=False, *, cache_only=False, info=None, f
         if info is not None:info.update(source='cache',saved_at=saved['time'])
         return saved['data']
     if cache_only and not force:
-        raise CacheMiss('No saved results for these filters yet. Click Check updates to fetch and save them.')
+        raise CacheMiss('No saved results for these filters yet. Click Check new animes to fetch and save them.')
     data=api._graphql_request(query,variables)
     if not data:
         reason=api.last_error() if hasattr(api,'last_error') else None
@@ -51,7 +51,7 @@ def cached(key, query, variables, force=False, *, cache_only=False, info=None, f
         if saved and fallback:
             if info is not None:info.update(source='cache',saved_at=saved['time'],warning=message+' Showing your saved results.')
             return saved['data']
-        raise ValueError(message+(' Saved results are kept.' if saved else ' No saved results are available yet.')+' Try Check updates again later.')
+        raise ValueError(message+(' Saved results are kept.' if saved else ' No saved results are available yet.')+' Try checking again later.')
     stamp=time.time()
     db.set_state('release_news:'+key,json.dumps({'time':stamp,'data':data}))
     if info is not None:info.update(source='network',saved_at=stamp)
@@ -64,7 +64,7 @@ def _migrate_discovery_cache(key,upcoming,page,announced,sort,filters):
     from contextlib import closing
     suffix=f':{upcoming}:{page}:{announced}:{sort}:{filters}'
     legacy_suffix=f':{upcoming}:{page}:{announced}:{sort}'
-    unfiltered=json.loads(filters)[:3]==[None,None,None]
+    unfiltered=json.loads(filters.split(':adult-only')[0])[:3]==[None,None,None] and ':adult-only' not in filters
     with closing(db.get_connection()) as connection:
         rows=connection.execute("SELECT key,value FROM app_state WHERE key LIKE 'release_news:discover:%'").fetchall()
     matches=[]
@@ -77,9 +77,11 @@ def _migrate_discovery_cache(key,upcoming,page,announced,sort,filters):
     if matches:db.set_state('release_news:'+key,json.dumps(max(matches,key=lambda value:value['time'])))
 
 def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE',
-             genre=None,theme=None,media_format=None,include_adult=None,cache_info=None):
+             genre=None,theme=None,media_format=None,include_adult=None,cache_info=None,fetch_missing=False,adult_only=False):
     from app.preferences import enabled
-    allow_adult = enabled('allow_mature') and include_adult is not False
+    from app.core.adult_content import is_adult_unlocked
+    allow_adult = is_adult_unlocked() and enabled('allow_mature') and include_adult is not False
+    if adult_only and not allow_adult:return [],False
     def choices(value,allowed):
         if isinstance(value,str):return value if value in allowed else None
         if isinstance(value,(tuple,list)):
@@ -119,24 +121,32 @@ def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE'
         if isinstance(value,tuple):
             query=query.replace(f'${variable}:{scalar}',f'${variable}:[{scalar}]').replace(f'{argument}:${variable}',f'{argument}_in:${variable}')
             variables[variable]=list(value)
-    if allow_adult:
+    if adult_only:
+        variables['adult']=True
+    elif allow_adult:
         query=query.replace('$adult:Boolean,','').replace('isAdult:$adult,','');variables.pop('adult',None)
-    filters=json.dumps([genre,theme,media_format,allow_adult],separators=(',',':'))
+    filters=json.dumps([genre,theme,media_format,allow_adult],separators=(',',':'))+(':adult-only' if adult_only else '')
     key=f'discover:v2:{upcoming}:{page}:{announced}:{sort}:{filters}'
     _migrate_discovery_cache(key,upcoming,page,announced,sort,filters)
-    data=cached(key,query,variables,force,cache_only=not force,info=cache_info,fallback=True)
+    data=cached(key,query,variables,force,cache_only=not (force or fetch_missing),info=cache_info,fallback=True)
     result=(data.get('Page') or {}) if isinstance(data,dict) else {}
     media=result.get('media') or []
     has_next=bool((result.get('pageInfo') or {}).get('hasNextPage'))
-    return [m for m in media if isinstance(m,dict) and (allow_adult or not m.get('isAdult'))],has_next
+    return [m for m in media if isinstance(m,dict) and (allow_adult or not m.get('isAdult')) and (not adult_only or m.get('isAdult'))],has_next
 
 def timeline(media_id,page=1,force=False,cache_info=None):
     query='''query($id:Int,$page:Int){Media(id:$id,type:ANIME){'''+FIELDS+'''
-    relations{edges{relationType node{id type title{english romaji native} status startDate{year month day}}}}}
+    relations{edges{relationType node{id type isAdult title{english romaji native} status startDate{year month day}}}}}
     Page(page:$page,perPage:50){pageInfo{hasNextPage} airingSchedules(mediaId:$id,sort:EPISODE){episode airingAt}}}'''
     # Opening a specific release is an explicit request for that anime's details.
     # Fetch a missing timeline once; reuse it on later visits until refreshed.
-    return cached(f'timeline:{media_id}:{page}',query,{'id':media_id,'page':page},force,info=cache_info,fallback=True)
+    key=f'timeline:{media_id}:{page}'
+    saved=_saved(key)
+    if saved and (saved['data'].get('Media') or {}).get('id') not in (None,media_id):
+        force=True
+    result=cached(key,query,{'id':media_id,'page':page},force,info=cache_info,fallback=True)
+    if (result.get('Media') or {}).get('id') not in (None,media_id):raise ValueError('AniList returned a different release. Refresh this selected anime again.')
+    return result
 
 def import_watching(media):
     # Existing library data and manually matched releases must remain intact.

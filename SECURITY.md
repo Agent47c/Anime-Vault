@@ -1,6 +1,6 @@
 # Security and data-safety reporting
 
-Anime Vault is under active development. The [current audit](WHOLE_APP_AUDIT_2026-11-12.md) includes unresolved issues; the repository does not claim production certification or a completed security review.
+Anime Vault is under active development. The [current audit](docs/history/WHOLE_APP_AUDIT_2026-11-12.md) includes unresolved issues; the repository does not claim production certification or a completed security review.
 
 ## Reporting
 

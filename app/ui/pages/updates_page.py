@@ -527,17 +527,13 @@ class UpdatesPage(QWidget):
         self._saved_updates = [r for r in self._health_records if r['_update_disposition'] != 'new']
         # A saved choice moves out of the current category. Build its destination
         # card lazily when that category is opened, keeping other widgets intact.
-        removed_visible = False
         for fid in records:
             cached = self._update_card_pool.pop(fid, None)
             if cached:
-                removed_visible |= self.list_layout.indexOf(cached[1]) >= 0
                 self.list_layout.removeWidget(cached[1]);cached[1].hide();cached[1].deleteLater()
-        shown = sum(isinstance(self.list_layout.itemAt(i).widget(), UpdateCard) for i in range(self.list_layout.count()))
-        if removed_visible and not shown and self._filter != 'Health':
-            empty = QLabel('No updates in this category.');empty.setObjectName('subheading');empty.setAlignment(Qt.AlignCenter);empty.setMinimumHeight(120)
-            self.list_layout.insertWidget(0, empty)
-        self._update_counts(shown)
+        # Reconcile source and destination immediately, including an empty list
+        # receiving a restored card. Unaffected pooled cards are reused.
+        self._render_cards()
 
     def _remove_update(self, fid):
         self.refresh()

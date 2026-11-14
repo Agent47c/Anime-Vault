@@ -70,6 +70,10 @@ def save_settings(config,new_password=None):
             _save_jobs(existing)
         if not config['enabled']:
             shutdown_builtin()
+        else:
+            from app.core.builtin_torrents import configure_active
+            configure_active(config)
+        return dict(config)
 
 
 def search_url(template,query):

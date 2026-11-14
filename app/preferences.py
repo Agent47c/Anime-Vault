@@ -4,7 +4,7 @@ from app import db
 DEFAULTS = {
     "reduce_motion": False, "high_contrast": False, "decorations": True,
     "compact_library": False, "metadata_auto": True, "prefer_english": True,
-    "allow_mature": True, "rematch_low_confidence": True,
+    "allow_mature": False, "rematch_low_confidence": True,
     "flat_detection": True, "preview_moves": True,
     "import_auto": True, "import_review": True, "import_ignore_duplicates": True,
     "import_rematch_existing": True,

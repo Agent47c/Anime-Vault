@@ -66,6 +66,9 @@ Desktop.ini
 /Seen And Deleted Animes.txt
 /*-preview.png
 /final ui/
+/design/references/final ui/
+/design/previews/
+/tools/external-installers/
 
 # Local tooling
 .coverage
@@ -89,3 +92,7 @@ htmlcov/
 *.mp4
 *.avi
 *.webm
+
+# Private full-profile backups, even when saved outside data/.
+AnimeVault-profile-*.zip
+AnimeVault-profile-*.partial

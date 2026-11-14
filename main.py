@@ -10,6 +10,11 @@ import sys
 import os
 from pathlib import Path
 
+# Run before importing configuration, logging or any user-database consumer.
+if __name__ == '__main__' and sys.argv[1:2] == ['--self-test']:
+    from app.packaging_checks import run
+    raise SystemExit(run(sys.argv[2:]))
+
 # AUDIT-START: passive measurements only; remove this block after the audit.
 if os.environ.get('APP_PROFILE') == '1':
     from app.audit_profile import bootstrap
@@ -68,6 +73,16 @@ def main():
     app.setApplicationName("Anime Vault")
     app.setApplicationVersion(__version__)
     app.setOrganizationName("AnimeManager")
+    if sys.platform == 'win32':
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AnimeVault.Desktop.MediaManager')
+        except Exception:
+            pass
+    icon_path = BASE_DIR / 'assets' / 'app.ico'
+    if icon_path.is_file():
+        from PyQt5.QtGui import QIcon
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     db.DATA_DIR.mkdir(parents=True, exist_ok=True)
     instance_lock = QLockFile(str(db.DATA_DIR / "animevault.lock"))
@@ -92,6 +107,10 @@ def main():
             return
 
     db.init_db()
+    from app.core.adult_content import initialize_session
+    initialize_session()
+    from app.startup import hold_installer_mutex
+    hold_installer_mutex()
     server.start_server()
 
     # 5. Apply visual theme (dark by default)
@@ -113,7 +132,7 @@ def main():
         detach(app)
     # AUDIT-END
     instance_lock.unlock()
-    sys.exit(exit_code)
+    os._exit(exit_code)
 
 
 if __name__ == "__main__":

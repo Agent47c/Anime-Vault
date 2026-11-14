@@ -111,11 +111,15 @@ def launch_desktop():
 
 
 def run(args=None,stdin=None,stdout=None):
+    # A windowed executable has no Python console streams, even when Chrome
+    # supplied native-messaging pipe handles. Reuse the native worker adapter.
+    from builtin_torrent_host import binary_stream
+    source = stdin if stdin is not None else binary_stream('stdin','rb',-10)
+    target = stdout if stdout is not None else binary_stream('stdout','wb',-11)
     if sys.platform=='win32' and stdin is None:
         import msvcrt
-        msvcrt.setmode(sys.stdin.fileno(),os.O_BINARY)
-        msvcrt.setmode(sys.stdout.fileno(),os.O_BINARY)
-    source=stdin or sys.stdin.buffer;target=stdout or sys.stdout.buffer
+        msvcrt.setmode(source.fileno(),os.O_BINARY)
+        if stdout is None:msvcrt.setmode(target.fileno(),os.O_BINARY)
     try:
         caller=(sys.argv[1:] if args is None else args)[0]
         message=read_message(source)
@@ -141,27 +145,34 @@ def connected_loop(initial,caller,source,target):
             while True: received.put(read_message(source))
         except Exception: received.put(None)
     reader=threading.Thread(target=read,daemon=True);reader.start()
-    message=initial;seen=0;site='';enabled=False
+    message=initial;seen=0;site='';sites=[];enabled=False
     try:
         while True:
             validate_caller(caller)
             if message is not None:
                 action=message.get('action')
                 if action in ('connect','heartbeat'):
-                    site=origin(message.get('site',''));enabled=message.get('enabled') is True
+                    raw_sites = message.get('sites')
+                    if isinstance(raw_sites, list):
+                        sites = [origin(s) for s in raw_sites if s]
+                        site = sites[0] if sites else ''
+                    else:
+                        site = origin(message.get('site', '')) if message.get('site') else ''
+                        sites = [site] if site else []
+                    enabled=message.get('enabled') is True
                 elif action=='search_result':
-                    try: source_bridge.finish(message.get('id'),site,message.get('results'),message.get('error'))
+                    try: source_bridge.finish(message.get('id'),sites or site,message.get('results'),message.get('error'))
                     except ValueError: pass  # A cancelled/expired search must not drop the bridge.
                 message=None
             if time.monotonic()-seen>=4:
-                source_bridge.heartbeat(site,enabled);seen=time.monotonic()
-                write_message(target,{'action':'connected','site':site})
+                source_bridge.heartbeat(sites or site,enabled);seen=time.monotonic()
+                write_message(target,{'action':'connected','site':site,'sites':sites})
             if enabled:
-                command=source_bridge.claim(site)
+                command=source_bridge.claim(sites or site)
                 if command: write_message(target,{'action':'search','id':command['id'],'url':command['url']})
             try:
                 message=received.get(timeout=.3)
                 if message is None: return 0
             except queue.Empty: pass
     finally:
-        source_bridge.heartbeat(site,False)
+        source_bridge.heartbeat(sites or site,False)

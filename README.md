@@ -19,7 +19,7 @@ A Windows anime library manager and episode tracker with AniList and Jikan metad
 
 ![Anime Vault desktop library, continue-watching banner and broadcast schedule](docs/screenshots/library.png)
 
-**Current status:** a working source application under active development. The original **v1.0.0** tag remains the Version 1 baseline; `main` includes subsequent work. This is not a claim of a finished, production-certified installer. The [latest audit](WHOLE_APP_AUDIT_2026-11-12.md) documents known issues and the next reliability priorities.
+**Current status:** a working source application under active development. The original **v1.0.0** tag remains the Version 1 baseline; `main` includes subsequent work. This is not a claim of a finished, production-certified installer. The [latest audit](docs/history/WHOLE_APP_AUDIT_2026-11-12.md) documents known issues and the next reliability priorities.
 
 ## Why Anime Vault?
 
@@ -47,7 +47,7 @@ Local anime collections rarely follow one naming scheme. Seasons, arcs, movies, 
 | **Import & maintenance** | Watched TXT lists, title cleanup, existing-entry review, custom entries, SQLite backups/restoration and JSON/CSV metadata export |
 | **Settings** | Categorized preferences, light/dark/system appearance, text scaling, accessibility options, media players, scanning and download configuration |
 
-**Important distinctions:** repeated episode numbers are not proof of identical files; future episodes are not missing downloads. Known edge cases—including split-location season counts, confirmed download mappings and restore/shutdown coordination—are listed in the [audit](WHOLE_APP_AUDIT_2026-11-12.md). JSON/CSV metadata exports are not a replacement for a full SQLite backup.
+**Important distinctions:** repeated episode numbers are not proof of identical files; future episodes are not missing downloads. Known edge cases—including split-location season counts, confirmed download mappings and restore/shutdown coordination—are listed in the [audit](docs/history/WHOLE_APP_AUDIT_2026-11-12.md). JSON/CSV metadata exports are not a replacement for a full SQLite backup.
 
 ## Screenshots
 
@@ -153,22 +153,25 @@ HTML/screenshot design-reference folders are retained in the repository. They ar
 
 ### Windows packaging
 
-`build_exe.py` is the existing PyInstaller packaging entry point. A clean-machine-tested installer is not supplied by this update. Building, signing, upgrade testing and final distribution remain separate release work.
+Install `requirements-build.txt` in an isolated build environment and use `build_exe.py --installer --iscc "C:\path\to\ISCC.exe"` to create a standalone setup. See the [installer and backup/restore guide](docs/INSTALLER_GUIDE.md). Program files install to `C:\Program Files\Anime Vault`; installed user data lives separately in `%LOCALAPPDATA%\AnimeVault`. A Qt-free native download-worker bundle avoids GUI/native DLL conflicts. Code signing and final real-PC installation/upgrade acceptance remain separate release work.
 
 ## Documentation and reliability roadmap
 
 - [Documentation index](docs/README.md)
-- [Complete feature and navigation map](All%20Feature%20and%20their%20Navigation.md)
+- [Complete feature and navigation map](docs/guides/All%20Feature%20and%20their%20Navigation.md)
 - [Changelog](CHANGELOG.md)
-- [Current whole-app audit and prioritized findings](WHOLE_APP_AUDIT_2026-11-12.md)
-- [Stable identities and recoverable file operations](PHASE_1_DATA_SAFETY.md)
-- [Incremental scanning, persistent matching and artwork caching](PHASE_2_TRUSTWORTHY_SCANNING.md)
-- [Organizer usage](ORGANIZER_USAGE.md)
+- [Current whole-app audit and prioritized findings](docs/history/WHOLE_APP_AUDIT_2026-11-12.md)
+- [Stable identities and recoverable file operations](docs/history/PHASE_1_DATA_SAFETY.md)
+- [Incremental scanning, persistent matching and artwork caching](docs/history/PHASE_2_TRUSTWORTHY_SCANNING.md)
+- [Organizer usage](docs/guides/ORGANIZER_USAGE.md)
 
 Next reliability priorities are save durability, verified download mappings, coordinated database restoration, API boundary hardening and correct aggregation when one season is scattered across download/library folders. Existing test coverage does not mean these pending audit findings have already been fixed.
 
 ## Dependencies and licensing
 
-Built with Python, PyQt5/Qt, SQLite, Pillow, libtorrent, FastAPI, AniList and Jikan integrations. Bundled [font licenses](assets/fonts/) and the [libtorrent notice](third_party/libtorrent-LICENSE.txt) are retained. AniList, Jikan, media-player names and other third-party marks belong to their respective owners; this project is not endorsed by them.
+See [Privacy & data use](PRIVACY.md) and the
+[download, discovery and backup change report](docs/history/DOWNLOAD_DISCOVERY_BACKUP_FIXES.md).
+
+Built with Python, PyQt5/Qt, SQLite, Pillow, libtorrent, FastAPI, AniList and Jikan integrations. Bundled [font licenses](assets/fonts) and the [libtorrent notice](third_party/libtorrent-LICENSE.txt) are retained. AniList, Jikan, media-player names and other third-party marks belong to their respective owners; this project is not endorsed by them.
 
 No project-wide license has been selected in this repository. Public source availability alone does not grant an unrestricted reuse license. Review dependency terms and choose an appropriate project license before distributing modified code or binaries.

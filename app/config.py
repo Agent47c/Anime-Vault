@@ -13,8 +13,7 @@ from app import db
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+from app.paths import RESOURCE_DIR as BASE_DIR, DATA_DIR, CONFIG_FILE
 COVERS_DIR = DATA_DIR / "covers"
 EXPORTS_DIR = DATA_DIR / "exports"
 
@@ -22,7 +21,7 @@ EXPORTS_DIR = DATA_DIR / "exports"
 # Load .env if present
 # ---------------------------------------------------------------------------
 def _load_env():
-    env_file = BASE_DIR / ".env"
+    env_file = CONFIG_FILE
     if env_file.is_file():
         try:
             with open(env_file, "r", encoding="utf-8") as f:

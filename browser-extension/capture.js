@@ -3,11 +3,11 @@
   if (globalThis.__animeVaultCapture) return;
   globalThis.__animeVaultCapture = true;
   let current = null;
-  chrome.storage.local.get(['site', 'enabled']).then(config => { current = config; });
+  chrome.storage.local.get(['site', 'sites', 'enabled']).then(config => { current = config; });
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
     current = {...current};
-    for (const key of ['site', 'enabled']) if (changes[key]) current[key] = changes[key].newValue;
+    for (const key of ['site', 'sites', 'enabled']) if (changes[key]) current[key] = changes[key].newValue;
   });
   function notice(message) {
     const box = document.createElement('div');
@@ -24,7 +24,8 @@
     if (!link || !link.href.toLowerCase().startsWith('magnet:?')) return;
     // Previously injected scripts can survive permission revocation until reload.
     // Check current settings before touching a browser navigation.
-    if (!current?.enabled || current.site !== location.origin) return;
+    const activeSites = Array.isArray(current?.sites) ? current.sites : (current?.site ? [current.site] : []);
+    if (!current?.enabled || !activeSites.includes(location.origin)) return;
     // Cancellation must be synchronous, before the first await, or Chrome
     // would also launch the ordinary magnet handler for the same click.
     event.preventDefault();

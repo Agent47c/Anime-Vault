@@ -27,9 +27,10 @@ class QueueModel(QAbstractTableModel):
         episodes=item.get('episode_keys') or []
         from app.core.download_discovery import coverage_label
         label=coverage_label(episodes)
-        size=(format_bytes(item['downloaded']) if item.get('downloaded') is not None else '—')+' / '+(format_bytes(item['total']) if item.get('total') is not None else '—')
+        progress,downloaded,total=download_queue.progress_values(item)
+        size=(format_bytes(downloaded) if downloaded is not None else '—')+' / '+(format_bytes(total) if total is not None else '—')
         eta=item.get('eta');remaining=f'{eta//60}m {eta%60}s' if isinstance(eta,int) and 0<=eta<8640000 else '—'
-        values=[item['title']+('\n'+item['release_title'] if item.get('release_title') else ''),label,f"{item.get('progress',0):.0%}",size,
+        values=[item['title']+('\n'+item['release_title'] if item.get('release_title') else ''),label,f"{progress:.0%}",size,
                 format_bytes(item.get('download_rate') or 0)+'/s',remaining,download_queue.status(item)]
         if role==Qt.ToolTipRole:return '\n'.join([str(v) for v in values]+[item['destination'],item.get('integrity_error') or '', 'Select this transfer to use the Pause, Resume, Stop, Retry, Choose files and More controls.'])
         return values[index.column()]
@@ -74,10 +75,12 @@ class DownloadsPage(QWidget):
         self.destination=QLineEdit(config['destination']);self.destination.setAccessibleName('Default download folder');guide.addWidget(self.destination)
         self.destination.setToolTip(config['destination']);self.destination.setCursorPosition(0);self.destination.textChanged.connect(self.destination.setToolTip)
         browse=QPushButton('Browse…');browse.clicked.connect(self.choose_destination);guide.addWidget(browse,0,Qt.AlignRight)
-        limits=QGridLayout();self.down_limit=QSpinBox();self.up_limit=QSpinBox()
-        for col,(label,control,key) in enumerate([('Max down (KiB/s)',self.down_limit,'download_limit_kib'),('Max up (KiB/s)',self.up_limit,'upload_limit_kib')]):
-            limits.addWidget(QLabel(label),0,col);control.setRange(0,1000000);control.setValue(config[key]);control.setSpecialValueText('Unlimited');control.setAccessibleName(label);limits.addWidget(control,1,col)
-            control.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        from app.ui.components.rate_limit import RateLimitPicker
+        limits=QGridLayout();self.down_limit=RateLimitPicker();self.up_limit=RateLimitPicker()
+        for col,(label,control,key) in enumerate([('Download limit',self.down_limit,'download_limit_kib'),('Upload limit',self.up_limit,'upload_limit_kib')]):
+            limits.addWidget(QLabel(label),0,col);control.setValue(config[key]);control.setAccessibleName(label);limits.addWidget(control,1,col)
+        from app.ui.settings_events import settings_events
+        settings_events().downloads_changed.connect(self._limits_saved)
         guide.addLayout(limits)
         save=QPushButton('Save preferences');save.clicked.connect(self.save_preferences);guide.addWidget(save)
         setup=QPushButton('Continue setup guide');setup.clicked.connect(lambda:open_setup(self));guide.addWidget(setup)
@@ -115,10 +118,17 @@ class DownloadsPage(QWidget):
         path=QFileDialog.getExistingDirectory(self,'Default download folder',self.destination.text())
         if path:self.destination.setText(path)
     def save_preferences(self):
-        values=dict(destination=self.destination.text(),download_limit_kib=self.down_limit.value(),upload_limit_kib=self.up_limit.value())
-        start(self,lambda:downloads.save_settings(values),lambda _ :self.status.setText('Download preferences saved. Existing files stay in place.'))
+        try:values=dict(destination=self.destination.text(),download_limit_kib=self.down_limit.value(),upload_limit_kib=self.up_limit.value())
+        except ValueError as error:self.status.setText(str(error));return
+        def saved(config):
+            from app.ui.settings_events import settings_events
+            settings_events().downloads_changed.emit(config)
+            self.status.setText('Speed limits saved and applied to active downloads.')
+        start(self,lambda:downloads.save_settings(values),saved)
+    def _limits_saved(self,config):
+        self.down_limit.setValue(config['download_limit_kib']);self.up_limit.setValue(config['upload_limit_kib'])
     def bulk(self,command):
-        identifiers=[item['id'] for item in self.items if command=='pause' or download_queue.status(item)=='Completed']
+        identifiers=[item['id'] for item in self.items if command=='pause' or download_queue.status(item) in ('Completed','Seeding')]
         if command=='clear_completed' and QMessageBox.question(self,'Clear completed queue entries?',f'Remove {len(identifiers)} completed queue records? All downloaded files and library history will be kept.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
         start(self,lambda:download_queue.bulk_action(command,identifiers,cancelled=lambda:bool(getattr(self,'_apply_worker',None) and self._apply_worker.isInterruptionRequested())),lambda message:(self.status.setText(message),self.refresh(),monitor().check()))
     def row_action(self,row,number,point):
@@ -126,7 +136,7 @@ class DownloadsPage(QWidget):
         self.table.selectRow(row)
         if number==0:
             state=download_queue.status(self.model.rows[row])
-            if state=='Completed':self.open_folder()
+            if state in ('Completed','Seeding'):self.open_folder()
             else:self.action('resume' if state in ('Paused','Stopped') else 'retry' if state=='Failed' else 'pause')
         elif number==1:self.action('files')
         else:self.row_menu(point)
@@ -167,7 +177,7 @@ class DownloadsPage(QWidget):
     def render(self,*_):
         selected=self.selected();identifier=selected['id'] if selected else None
         filter_index=self.filter.currentIndex()
-        allowed=[None,{'Queued','Downloading'},{'Paused','Stopped'},{'Completed'},{'Failed','Incomplete or missing files'}][filter_index]
+        allowed=[None,{'Queued','Downloading','Seeding'},{'Paused','Stopped'},{'Completed','Seeding'},{'Failed','Incomplete or missing files'}][filter_index]
         rows=[i for i in self.items if allowed is None or download_queue.status(i) in allowed]
         if [i['id'] for i in rows]==[i['id'] for i in self.model.rows]:
             self.model.rows=rows
@@ -177,7 +187,7 @@ class DownloadsPage(QWidget):
         for row,item in enumerate(self.model.rows):
             if item['id']==identifier:self.table.selectRow(row)
         self.empty.setVisible(not self.model.rows)
-        counts=[len(self.items),sum(download_queue.status(i) in ('Queued','Downloading') for i in self.items),sum(download_queue.status(i) in ('Paused','Stopped') for i in self.items),sum(download_queue.status(i)=='Completed' for i in self.items),sum(download_queue.status(i) in ('Failed','Incomplete or missing files') for i in self.items)]
+        counts=[len(self.items),sum(download_queue.status(i) in ('Queued','Downloading','Seeding') for i in self.items),sum(download_queue.status(i) in ('Paused','Stopped') for i in self.items),sum(download_queue.status(i) in ('Completed','Seeding') for i in self.items),sum(download_queue.status(i) in ('Failed','Incomplete or missing files') for i in self.items)]
         for n,(button,label) in enumerate(zip(self.filter_buttons,['All Transfers','Active','Paused / stopped','Completed','Incomplete or Missing'])):
             button.setText(f'{label}  {counts[n]}');button.setChecked(n==filter_index)
         self.summary.setText(f"↓ {format_bytes(sum(i.get('download_rate') or 0 for i in self.items))}/s   ↑ {format_bytes(sum(i.get('upload_rate') or 0 for i in self.items))}/s   ·   {len(self.items)} saved transfers")
