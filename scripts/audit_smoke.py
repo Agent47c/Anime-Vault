@@ -80,7 +80,13 @@ def main():
                 if window._cleanup_and_exit():app.quit()
                 else:QTimer.singleShot(100,stop)
             QTimer.singleShot(1000,stop)
-            app.exec_();detach(app);window.hide()
+            # This fixture verifies instrumentation/widget lifecycle, not native
+            # process termination. A production hard exit can otherwise skip the
+            # completion marker and all fixture cleanup depending on timing.
+            from unittest.mock import patch
+            with patch('os._exit',side_effect=lambda code:app.exit(code)):
+                app.exec_()
+            detach(app);window.hide()
             # Dispose the fixture tree while QApplication is still alive,
             # instead of leaving C++ widget destruction to interpreter teardown.
             from PyQt5.QtCore import QCoreApplication,QEvent

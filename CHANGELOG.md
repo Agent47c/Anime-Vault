@@ -8,6 +8,8 @@
   colors, layouts or features. Preserve the full source baseline with the tag
   `sakura-ui-baseline-2026-11-14` before adding the new Neo Manga design separately.
 - See the [Sakura preservation contract](docs/themes/SAKURA_BASELINE.md).
+- Isolate production hard-exit calls in the temporary audit smoke fixture so
+  timing cannot bypass its completion marker and cleanup; runtime behavior stays unchanged.
 
 ## Pre-redesign source baseline — 14 November 2026
 
