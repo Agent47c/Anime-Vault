@@ -20,6 +20,7 @@ PRIVATE_SUFFIXES={'.db','.sqlite','.sqlite3','.pem','.key','.fastresume','.torre
 
 
 def main():
+    root=ROOT.resolve()
     parser=argparse.ArgumentParser();parser.add_argument('--staged',action='store_true');args=parser.parse_args()
     command=['git','ls-files','--cached','-z']
     if not args.staged:command.extend(['--others','--exclude-standard'])
@@ -47,7 +48,8 @@ def main():
                 if parsed.scheme or not parsed.path:continue
                 resolved=(path.parent/unquote(parsed.path)).resolve()
                 if not resolved.exists():errors.append((name,'missing linked file: '+target))
-                elif resolved.is_file() and resolved.relative_to(ROOT).as_posix() not in names:errors.append((name,'linked file not in public snapshot: '+target))
+                elif resolved.is_dir() and resolved!=root and not any(n.startswith(resolved.relative_to(root).as_posix().rstrip('/')+'/') for n in names):errors.append((name,'linked directory not in public snapshot: '+target))
+                elif resolved.is_file() and resolved.relative_to(root).as_posix() not in names:errors.append((name,'linked file not in public snapshot: '+target))
     print(f'Publication check: {len(names)} files, {text_count} text files, {total/1024**2:.1f} MiB')
     for path,label in errors:print(f'ERROR {path}: {label}')
     if errors:return 1

@@ -15,7 +15,7 @@ remaining fidelity differences. Add Custom Entry reuses the Edit Entry form.
 ## Original reference and precedence
 
 The user identified `Light Theme (Manga Brutalism)` as the new design folder.
-The light master is [Main Screen (Light Theme )](../../Light%20Theme%20%28Manga%20Brutalism%29/Main%20Screen%20%28Light%20Theme%20%29/),
+The light master is [Main Screen (Light Theme)](../../design/references/manga-brutalism-light/main-v1/),
 containing the original `screen.png`, `code.html` and `DESIGN.md`.
 An unchanged, checksum-verified reference copy is saved under
 [design/references/manga-brutalism-light/main-v1](../../design/references/manga-brutalism-light/main-v1/).
