@@ -1359,6 +1359,8 @@ class MainWindow(QMainWindow):
                 self.stacked_widget.setCurrentWidget(page)
 
     def closeEvent(self, event):
+        if getattr(self,'_restore_restart_required',False):
+            event.ignore();self._force_exit();return
         from app.ui.user_edits import user_edits
         user_edits().flush()
         if getattr(self, "_shutdown_pending", False):
@@ -1420,7 +1422,7 @@ class MainWindow(QMainWindow):
 
     def _force_exit(self):
         self._force_exiting = True
-        self._save_geometry()
+        if not getattr(self,'_restore_restart_required',False):self._save_geometry()
         if hasattr(self, "tray_icon") and self.tray_icon:
             self.tray_icon.hide()
         self.hide()

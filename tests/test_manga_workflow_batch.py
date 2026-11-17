@@ -57,7 +57,9 @@ class MangaWorkflowTests(unittest.TestCase):
             dlg._apply_worker=Mock();dlg._apply_worker.isRunning.return_value=False;done(operation())
         result={name:'OK' for name in ('extension','engine','folder','source')}
         with patch('app.ui.download_setup.start',side_effect=immediate),patch('app.core.chrome_bridge.register',return_value='Registered') as register,patch('app.core.downloads.save_settings',return_value={}) as save,patch('app.core.download_setup.checks',return_value=result) as check:
-            dialog.test_all_steps();QTest.qWait(100)
+            dialog.test_all_steps()
+            deadline=time.monotonic()+5
+            while not dialog.checked and time.monotonic()<deadline:QTest.qWait(10)
             register.assert_called_once();self.assertEqual(save.call_count,3);check.assert_called_once();self.assertTrue(dialog.checked)
         apply_theme(self.app,'dark');dialog.refresh_home_style();self.assertEqual(dialog.stack.count(),5)
 

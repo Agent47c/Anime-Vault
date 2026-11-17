@@ -1,5 +1,22 @@
 # Changelog
 
+## Backup progress, required restore restart and CI reliability — 17 November 2026
+
+- Show the themed major-operation progress screen for SQLite and full-profile ZIP
+  backups and restores, with operation-specific titles and elapsed feedback.
+- Explain the required restart before restoring. After success, prevent stale UI
+  edits, show the restart-required notice and close the app; reopening reloads the
+  restored database, settings and image caches. Preserve restored window settings
+  instead of overwriting them on exit. Pause polling while restoring and resume
+  it if restoration fails. Existing integrity checks and safety copies remain.
+- Fix CI assumptions exposed by commit 341e09e: normal-animation tests explicitly
+  choose normal accessibility settings, and setup waits for actual completion
+  instead of assuming completion within 100 ms. Keep reduced-motion coverage.
+- Replace broken public links to ignored local comparison artifacts with explicit
+  local paths. Add staged publication validation to the pre-push hook.
+- Focused validation: 34 tests passed, including real full ZIP restoration with
+  optional cached artwork/resume metadata and mandatory-close behavior mocked.
+
 ## 1.1.0 — 17 November 2026
 
 - Release the Manga Brutalism light theme and shared controls while retaining

@@ -12,7 +12,10 @@ from app.ui.components.neumorphic import install
 from app.ui.main_window import MainWindow
 
 class StartupControlTests(unittest.TestCase):
-    setUp=support.Regressions.setUp
+    def setUp(self):
+        support.Regressions.setUp(self)
+        for name in ('reduced_motion','system_high_contrast'):
+            setting=patch('app.preferences.'+name,return_value=False);setting.start();self.addCleanup(setting.stop)
     @classmethod
     def setUpClass(cls):support.Regressions.setUpClass.__func__(cls)
     def tearDown(self):apply_theme(self.app,'dark');support.Regressions.tearDown(self)

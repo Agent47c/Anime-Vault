@@ -65,7 +65,7 @@ Reviewed all 31 source thumbnails, supplied HTML/file inventory, mapping documen
 - Unlock/Change use generic manga_additional styling rather than a dedicated faithful composition.
 - Exit uses the shared workflow chrome; its content order, status well, card elevation, remembered-choice placement and height differ from the supplied image.
 
-Current audit captures: [Unlock](../../data/design-audit-2026-11-16/current-unlock.png), [Change](../../data/design-audit-2026-11-16/current-change.png), [Exit](../../data/design-audit-2026-11-16/current-exit.png), [Initial setup](../../data/design-audit-2026-11-16/current-initial-password.png).
+Current audit captures: Unlock (local artifact: `../../data/design-audit-2026-11-16/current-unlock.png`), Change (local artifact: `../../data/design-audit-2026-11-16/current-change.png`), Exit (local artifact: `../../data/design-audit-2026-11-16/current-exit.png`), Initial setup (local artifact: `../../data/design-audit-2026-11-16/current-initial-password.png`).
 
 ## Scope and deliberately excluded material
 
@@ -85,3 +85,5 @@ The newly approved duplicate Select All and per-anime/per-episode checkboxes sel
 Calendar investigation found that Black Clover's cached parent metadata has no next airing episode, while its cached sequel has a separate AniList ID and schedule. The calendar previously discarded related IDs without a local season row. Home and Full Calendar now share ownership resolution for unambiguous cached official sequel/side-story/spin-off relations, and refresh includes their IDs. Unknown dates still produce no invented event. This diagnosis uses saved metadata, not independent live broadcast verification.
 
 Validation: all 687 tests and repository checks passed. Three new regression tests cover sequel ownership, unknown dates and protected duplicate selection. No personal database or media files were changed during this audit.
+
+Local comparison artifacts are generated under ignored `data/`; they are not included in the public source snapshot.

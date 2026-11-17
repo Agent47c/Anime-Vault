@@ -356,7 +356,7 @@ class SettingsPage(QWidget):
         self.full_backup.toggled.connect(lambda value:(db.set_state('backup.full_profile','1' if value else '0'),self.backup_caches.setEnabled(value)))
         self.backup_caches.toggled.connect(lambda value:db.set_state('backup.include_caches','1' if value else '0'))
         note=QLabel('Full backup includes library paths, watch history, ratings, notes, window/settings state, download records and resume metadata. Video files, API tokens and Chrome registration are excluded.');note.setWordWrap(True);note.setObjectName('settings_hint');box.addWidget(note)
-        self._row(box, "Restore", "Restore a saved library; a safety copy is kept", self._button("Restore backup", self._restore_db))
+        self._row(box, "Restore", "Restore a saved library; a safety copy is kept. Restart required afterward.", self._button("Restore backup", self._restore_db))
         exports = QWidget()
         buttons = QHBoxLayout(exports)
         buttons.setContentsMargins(0, 0, 0, 0)
@@ -560,7 +560,8 @@ class SettingsPage(QWidget):
             if QMessageBox.question(self,'Create full app backup?', 'This saves private library paths, history, settings and download state. '+('Cached images can make the backup very large and take longer. ' if caches else '')+'Video files are not included. Keep the backup private. Continue?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
             from app.core.profile_backup import create_backup
             operation=lambda:create_backup(caches)
-        start(self,operation,lambda path:self.backup_status.setText('Backup created: '+str(path)))
+        start(self,operation,lambda path:self.backup_status.setText('Backup created: '+str(path)),major=True,
+              operation_title='Creating full app backup' if self.full_backup.isChecked() else 'Backing up database')
 
     def _restore_db(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -573,6 +574,7 @@ class SettingsPage(QWidget):
             self, "Confirm Restore",
             "Restoring a database will replace your current library.\n"
             "An automatic safety copy of your current database will be preserved.\n\n"
+            "After a successful restore, the app will close. Reopen it to load the restored database and settings.\n\n"
             "Do you wish to proceed?",
             QMessageBox.Yes | QMessageBox.No,
         )
@@ -586,18 +588,40 @@ class SettingsPage(QWidget):
             if running() or active or user_edits().pending or builtin_torrents.active() or any(status(item) in ('Queued','Downloading') for item in jobs()):
                 self.backup_status.setText('Stop transfers and wait for background tasks before restoring. Disabled downloads can be resumed afterward.')
                 return
-            def restored(_):
-                self.backup_status.setText('Database restored. A safety backup was kept.')
-                self._refresh_dirs_list()
-                self.scan_completed.emit()
             if path.lower().endswith('.zip'):
                 from app.core.profile_backup import restore_backup
                 operation=lambda:restore_backup(path)
             else:operation=lambda:db.restore_database(path)
-            start(self,operation,restored)
             host=self.window()
+            paused=[]
+            for owner,name in ((host,'_reminder_timer'),(getattr(host,'_download_monitor',None),'timer'),
+                               (getattr(host,'_magnet_inbox',None),'timer'),(getattr(host,'_library_watchers',None),'import_timer'),
+                               (getattr(host,'_library_watchers',None),'debounce')):
+                timer=getattr(owner,name,None)
+                if timer is not None and timer.isActive():paused.append((timer,timer.interval()));timer.stop()
+            self._restore_succeeded=False
+            start(self,operation,self._database_restored,major=True,operation_title='Restoring database and app state' if path.lower().endswith('.zip') else 'Restoring database')
             host.setEnabled(False)
-            self._apply_worker.finished.connect(lambda:host.setEnabled(True))
+            def finished():
+                if not self._restore_succeeded:
+                    host.setEnabled(True)
+                    for timer,interval in paused:timer.start(interval)
+            self._apply_worker.finished.connect(finished)
+
+    def _database_restored(self,_):
+        self._restore_succeeded=True
+        host=self.window();host._restore_restart_required=True
+        self.backup_status.setText('Restore complete. Restart required to load the restored database and settings. A safety backup was kept.')
+        host.setEnabled(True)
+        central=getattr(host,'centralWidget',lambda:None)()
+        if central is not None:central.setEnabled(False)
+        QMessageBox.information(host,'Restore complete — restart required',
+            'Your backup was restored successfully. A safety copy was kept.\n\n'
+            'Anime Vault must restart to load the restored library, settings and caches. '
+            'The app will now close. Open Anime Vault again to continue.')
+        force_exit=getattr(host,'_force_exit',None)
+        if force_exit is not None:force_exit()
+        else:host.close()
 
     def _export_json(self):
         from app.ui.io_task import start

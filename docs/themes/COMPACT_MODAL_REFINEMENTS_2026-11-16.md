@@ -38,11 +38,11 @@ so Already in Library / Added to Watching remains readable too.
 
 Fresh temporary-data comparisons:
 
-- [Change Password](../../data/compact-modal-review/change-password-comparison.png)
-- [Unlock](../../data/compact-modal-review/unlock-comparison.png)
-- [Exit Choice](../../data/compact-modal-review/exit-choice-comparison.png)
-- [Confirm Grouping](../../data/compact-modal-review/confirm-grouping-comparison.png)
-- [All four comparisons](../../data/compact-modal-review/all-modal-comparisons.png)
+- Change Password (local artifact: `../../data/compact-modal-review/change-password-comparison.png`)
+- Unlock (local artifact: `../../data/compact-modal-review/unlock-comparison.png`)
+- Exit Choice (local artifact: `../../data/compact-modal-review/exit-choice-comparison.png`)
+- Confirm Grouping (local artifact: `../../data/compact-modal-review/confirm-grouping-comparison.png`)
+- All four comparisons (local artifact: `../../data/compact-modal-review/all-modal-comparisons.png`)
 
 Reproduce with `scripts/capture_compact_modals.py`. No passwords were saved,
 exit actions executed or real library records modified during the renders.
@@ -92,3 +92,5 @@ its full bounds, including newly exposed pixels. A Windows regression covers
 the longer exit prompt with background downloads active, resizing/moving,
 hidden-only capture and continued mouse operation. Fresh fixture renders show
 one rounded dialog without the stale footer strip.
+
+Local comparison artifacts are generated under ignored `data/`; they are not included in the public source snapshot.

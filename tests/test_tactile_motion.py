@@ -1,5 +1,6 @@
 """Paint-only motion preserves hit boxes, actions, accessibility and reuse."""
 import unittest
+from unittest.mock import patch
 from PyQt5.QtCore import QEvent,Qt,QPoint
 from PyQt5.QtGui import QImage,QPainter
 from PyQt5.QtTest import QTest,QSignalSpy
@@ -10,7 +11,10 @@ from app.ui.components.neumorphic import install,tile
 
 
 class TactileTests(unittest.TestCase):
-    setUp=support.Regressions.setUp
+    def setUp(self):
+        support.Regressions.setUp(self)
+        for name in ('reduced_motion','system_high_contrast'):
+            setting=patch('app.preferences.'+name,return_value=False);setting.start();self.addCleanup(setting.stop)
     @classmethod
     def setUpClass(cls):support.Regressions.setUpClass.__func__(cls)
     def tearDown(self):

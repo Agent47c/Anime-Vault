@@ -2,4 +2,5 @@
 # Use the same checks as GitHub CI. A failure stops the push.
 set -eu
 cd "$(git rev-parse --show-toplevel)"
-exec python scripts/check.py
+python scripts/check.py
+exec python scripts/check_publication.py --staged
