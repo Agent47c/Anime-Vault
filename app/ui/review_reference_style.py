@@ -26,6 +26,10 @@ def list_style():
     '''
 
 def grouping_style():
+    from app.ui.manga_pages import active
+    if active():
+        from app.ui.manga_additional import qss
+        return qss('group_review')
     c=reference_colors();r='QWidget#group_review'
     return f'''
     {r} {{background:{c['panel']};color:{c['text']};border:1px solid {c['line']};border-radius:20px;}}

@@ -3,7 +3,6 @@ import hashlib
 import json
 import os
 from collections import defaultdict
-from contextlib import closing
 from pathlib import Path
 
 from app import db
@@ -115,21 +114,34 @@ def load_review(cancelled=lambda:False,progress=lambda text:None):
     return valid,errors
 
 
-def delete_duplicate(group, candidate, cancelled=lambda: False):
+def delete_duplicate(group, candidate, cancelled=lambda: False, *, verified_keepers=None):
     """Recheck both files, retain the keeper, and remove only the reviewed copy."""
     keeper = group["files"][0]
     if candidate not in group["files"][1:] or candidate["path"] == keeper["path"]:
         raise ValueError("A verified retained copy is required.")
+    def keeper_token():
+        path=Path(keeper['path'])
+        if path.is_symlink():raise ValueError('The retained file changed.')
+        stat=path.stat()
+        return (str(path.absolute()),stat.st_size,stat.st_mtime_ns,stat.st_ino,stat.st_dev,stat.st_ctime_ns,group['hash'])
+    token=keeper_token()
     for entry in (keeper, candidate):
         path = Path(entry["path"])
+        if entry is keeper and verified_keepers is not None and token in verified_keepers:
+            if signature(path)!=tuple(entry['signature']):raise ValueError('The retained file changed.')
+            continue
         checksum, stat = digest(path, cancelled)
         if checksum != group["hash"] or tuple(entry["signature"]) != stat:
             raise ValueError("Files changed since the scan. Scan again before deleting.")
+        if entry is keeper and verified_keepers is not None:
+            if keeper_token()!=token:raise ValueError('The retained file changed.')
+            verified_keepers[token]=True
     if cancelled():
         raise InterruptedError("Cancelled")
     path = Path(candidate["path"])
     if path.is_symlink() or signature(path) != tuple(candidate["signature"]):
         raise ValueError("The selected file changed.")
+    if keeper_token()!=token:raise ValueError('The retained file changed.')
     # Record the intent before the filesystem action so a failed DB write can
     # be reconciled from this log without guessing which file was removed.
     journal = db.DATA_DIR / "exports" / "duplicate-deletions.jsonl"
@@ -147,20 +159,5 @@ def delete_duplicate(group, candidate, cancelled=lambda: False):
         stream.write(json.dumps({"event": "recycled", "path": str(path), "kept": keeper["path"], "sha256": group["hash"]}) + "\n")
         stream.flush()
         os.fsync(stream.fileno())
-    touched = set()
-    with closing(db.get_connection()) as connection, connection:
-        from app.core.identity import path_key
-        connection.execute("UPDATE physical_files SET availability='RECYCLED' WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)", (path_key(path),))
-        for season in connection.execute("SELECT * FROM seasons WHERE season_folder_path IS NOT NULL").fetchall():
-            root = Path(season["season_folder_path"])
-            names = json.loads(season["video_files_json"] or "[]")
-            remaining = [name for name in names if os.path.normcase(str((root / name).resolve())) != os.path.normcase(str(path))]
-            if len(remaining) == len(names):
-                continue
-            size = sum((root / name).stat().st_size for name in remaining if (root / name).is_file())
-            connection.execute("UPDATE seasons SET video_files_json=?, size_bytes=?, storage_state=? WHERE id=?",
-                               (json.dumps(remaining), size, "ON_DISK" if remaining else "NOT_DOWNLOADED", season["id"]))
-            touched.add(season["franchise_id"])
-    for fid in touched:
-        db.recalculate_franchise_size(fid)
-        db.recalculate_franchise_storage_state(fid)
+    # recycle_file already updates inventories and size/state in its durable
+    # operation transaction; repeating that library-wide pass adds only IO.

@@ -4,7 +4,8 @@ from contextlib import closing
 from PyQt5.QtCore import Qt,QThread,pyqtSignal,QEvent,QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QComboBox,QGridLayout,QTableWidget,QTableWidgetItem,QHeaderView,QMessageBox,QCheckBox,QSizePolicy
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QComboBox,QGridLayout,QTableWidget,QTableWidgetItem,QHeaderView,QCheckBox,QSizePolicy
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core import release_news as news
 from app.core.anilist_client import resolve_display_title
@@ -44,22 +45,31 @@ class ReleaseNewsPage(QDialog):
         from app.ui.five_screen_style import qss
         self.setProperty('animevaultOwnScaledStyle',True)
         self.setStyleSheet(qss('release_news'))
+        from app.ui.manga_workflows import finish
+        finish(self)
+        from app.ui.manga_pages import active
+        family=active();previous=getattr(self,'_card_material_family',None);self._card_material_family=family
+        if previous is not None and previous!=family and hasattr(self,'_last_result'):self.render(self._last_result)
     def __init__(self,parent=None,media_id=None):
         super().__init__(parent);self.media_id=media_id;self.page=1;self.worker=None;self.generation=0
         from app.ui.five_screen_style import qss
         self.setObjectName('release_news');self.setWindowTitle('Broadcast & Release Updates' if media_id else 'New anime releases');self.resize(1200,820);self.setStyleSheet(qss('release_news'))
         layout=QVBoxLayout(self);layout.setContentsMargins(24,20,24,20);layout.setSpacing(16)
         title=QLabel(self.windowTitle());title.setObjectName('transfer_heading');heading=QHBoxLayout();heading.addWidget(title,1)
-        refresh=QPushButton('Refresh release details' if media_id else 'Check new animes');self.refresh_button=refresh;refresh.clicked.connect(lambda:self.load(True));heading.addWidget(refresh);layout.addLayout(heading)
+        self.presets_button=QPushButton('Filter presets');self.presets_button.hide()
+        from app.ui.release_view_tools import preset_menu
+        self.presets_button.clicked.connect(lambda:preset_menu(self));heading.addWidget(self.presets_button)
+        refresh=QPushButton('Refresh release details' if media_id else 'Check new animes');self.refresh_button=refresh;refresh.setProperty('accent',True);refresh.clicked.connect(lambda:self.load(True));heading.addWidget(refresh);layout.addLayout(heading)
         controls=QHBoxLayout()
         self.period=QComboBox();self.period.addItems(['Released in the last 30 days','Upcoming in the next 90 days','Announced · date may be unknown']);self.period.setAccessibleName('Release period');self.period.setVisible(not media_id);controls.addWidget(self.period)
         self.sort=TagPicker('Sort releases',multiple=False);self.sort.addItems(['Premiere: newest first','Premiere: earliest first','English title A–Z','Most popular']);self.sort.setAccessibleName('Sort releases');self.sort.setVisible(not media_id);self.sort.currentIndexChanged.connect(self.reset);controls.addWidget(self.sort)
-        self.broadcast_filter=QComboBox();self.broadcast_filter.addItems(['All broadcasts','Aired episodes','Scheduled episodes']);self.broadcast_filter.setVisible(bool(media_id));self.broadcast_filter.currentIndexChanged.connect(self.refilter);controls.addWidget(self.broadcast_filter)
+        self.broadcast_filter=QComboBox();self.broadcast_filter.addItems(['All broadcasts','Aired episodes','Scheduled episodes','Airing today','In my library','Missing locally']);self.broadcast_filter.setVisible(bool(media_id));self.broadcast_filter.currentIndexChanged.connect(self.refilter);controls.addWidget(self.broadcast_filter)
         controls.addStretch();layout.addLayout(controls)
         self.discovery_filters=QWidget();self.discovery_filters.setObjectName('transfer_clear');filters=FlowLayout(self.discovery_filters)
-        self.genre_filter=TagPicker('Genres');self.genre_filter.addItem('All genres',None)
+        from app.ui.components.taxonomy_panel import TaxonomyPicker
+        self.genre_filter=TaxonomyPicker('Genres',self);self.genre_filter.addItem('All genres',None)
         for value in news.GENRES:self.genre_filter.addItem(value,value)
-        self.theme_filter=TagPicker('Themes');self.theme_filter.addItem('All themes',None)
+        self.theme_filter=TaxonomyPicker('Themes',self);self.theme_filter.addItem('All themes',None)
         for value in news.THEMES:self.theme_filter.addItem(value,value)
         self.format_filter=TagPicker('Formats');self.format_filter.addItem('All formats',None)
         for value in news.FORMATS:self.format_filter.addItem(value.replace('_',' '),value)
@@ -92,6 +102,8 @@ class ReleaseNewsPage(QDialog):
         from app.core.adult_content import is_adult_unlocked
         allowed = is_adult_unlocked() and enabled('allow_mature')
         changed=allowed!=getattr(self,'_adult_allowed',allowed);self._adult_allowed=allowed
+        if changed and getattr(self,'taxonomy_panel',None):
+            self.taxonomy_panel.hide();self.taxonomy_panel.deleteLater();self.taxonomy_panel=None
         self.adult_filter.blockSignals(True);self.adult_only.blockSignals(True)
         self.adult_filter.setVisible(allowed);self.adult_only.setVisible(allowed);self.adult_filter.setEnabled(allowed)
         if changed:self.adult_filter.setChecked(allowed)
@@ -110,6 +122,8 @@ class ReleaseNewsPage(QDialog):
         if self.worker:self.worker.requestInterruption()
         self.generation+=1;generation=self.generation
         worker=IOTask(operation);self.worker=worker;track(worker)
+        from app.ui.components.operation_progress import watch
+        watch(self,worker,'Loading release details' if self.media_id else 'Loading new anime releases')
         from PyQt5 import sip
         def loaded(value):
             if not sip.isdeleted(self) and generation==self.generation:ready(value)
@@ -133,6 +147,7 @@ class ReleaseNewsPage(QDialog):
                 try:
                     if not mid:
                         result=news.discover(upcoming,page,force,announced,sort,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info,fetch_missing=fetch_missing,adult_only=adult_only)
+                        info['library_owners']=news.library_owners()
                         return result,info
                     result=news.timeline(mid,page,force,cache_info=info)
                 except news.CacheMiss as error:
@@ -143,6 +158,7 @@ class ReleaseNewsPage(QDialog):
                     if not row:row=conn.execute('SELECT id AS franchise_id, NULL AS season_number FROM franchises WHERE anilist_id=?',(mid,)).fetchone()
                 if row:
                     result=dict(result);result['_library']=library_context(row['franchise_id'],row['season_number'])
+                info['library_owners']=news.library_owners()
                 return result,info
         def ready(value):
             result,info=value
@@ -165,7 +181,7 @@ class ReleaseNewsPage(QDialog):
         from app.ui.pages.detail_modal import format_synopsis
         import html,re
         c=colors();frame=QFrame();frame.setObjectName('release_hero');box=QVBoxLayout(frame);box.setContentsMargins(24,24,24,24);box.setSpacing(20)
-        self.release_banner=QLabel();self.release_banner.setFixedHeight(170);self.release_banner.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);self.release_banner.setAlignment(Qt.AlignCenter);self.release_banner.setText('Release overview');self.release_banner.setStyleSheet(f'background:{c["raised"]};border-radius:16px;color:{c["muted"]};');box.addWidget(self.release_banner)
+        self.release_banner=QLabel();self.release_banner.setFixedHeight(170);self.release_banner.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);self.release_banner.setAlignment(Qt.AlignCenter);self.release_banner.hide();self.release_banner.setStyleSheet(f'background:{c["raised"]};border-radius:16px;color:{c["muted"]};');box.addWidget(self.release_banner)
         row=QHBoxLayout();row.setSpacing(28);self.release_poster=thumbnail(resolve_display_title(media),None,180,260);row.addWidget(self.release_poster,0,Qt.AlignTop)
         info=QVBoxLayout();info.setSpacing(14);row.addLayout(info,1)
         self.release_title=QLabel(resolve_display_title(media));self.release_title.setWordWrap(True);self.release_title.setTextFormat(Qt.PlainText);self.release_title.setStyleSheet(f'font-size:28px;font-weight:700;color:{c["text"]};');info.addWidget(self.release_title)
@@ -174,7 +190,10 @@ class ReleaseNewsPage(QDialog):
         meta=QLabel(f"{media.get('format') or 'Format unknown'} · {str(media.get('status') or 'Unknown').replace('_',' ').title()} · Premiere: {news.date_label(media.get('startDate'))}");meta.setWordWrap(True);info.addWidget(meta)
         genres=QLabel(' · '.join(media.get('genres') or []) or 'Genres not published');genres.setWordWrap(True);genres.setStyleSheet(f'color:{c["coral"]};');info.addWidget(genres)
         plot=QLabel(format_synopsis(html.unescape(re.sub(r'<[^>]+>','',media.get('description') or ''))));plot.setTextFormat(Qt.PlainText);plot.setWordWrap(True);plot.setTextInteractionFlags(Qt.TextSelectableByMouse);info.addWidget(plot)
-        actions=FlowLayout();import_button=QPushButton('Import as Watching');import_button.clicked.connect(lambda:self.import_media(media,import_button));actions.addWidget(import_button);info.addLayout(actions)
+        actions=FlowLayout();actions.addWidget(self.import_button(media))
+        share=QPushButton('Share details');share.setToolTip('Copy this release title, premiere and AniList link to the clipboard')
+        share.clicked.connect(lambda:QApplication.clipboard().setText(resolve_display_title(media)+'\nPremiere: '+news.date_label(media.get('startDate'))+'\nhttps://anilist.co/anime/'+str(media['id'])))
+        actions.addWidget(share);info.addLayout(actions)
         box.addLayout(row);self.rows.addWidget(frame)
         if 'coverImage' not in media and 'bannerImage' not in media:return
         worker=NewsArtwork([media],allow_network=getattr(self,'_allow_artwork_network',False),banners=True);self._artwork=worker;track(worker)
@@ -182,7 +201,7 @@ class ReleaseNewsPage(QDialog):
         def show_image(mid,image,banner=False):
             if sip.isdeleted(self) or self._artwork is not worker or worker.isInterruptionRequested() or mid!=self.media_id:return
             label=self.release_banner if banner else self.release_poster
-            label.setPixmap(QPixmap.fromImage(image).scaled(max(1,label.width()),label.height(),Qt.KeepAspectRatioByExpanding,Qt.SmoothTransformation))
+            label.setVisible(not image.isNull());label.setPixmap(QPixmap.fromImage(image).scaled(max(1,label.width()),label.height(),Qt.KeepAspectRatioByExpanding,Qt.SmoothTransformation))
         def finished():
             if not sip.isdeleted(self) and self._artwork is worker:self._artwork=None
             worker.deleteLater()
@@ -191,6 +210,8 @@ class ReleaseNewsPage(QDialog):
     def render(self,result):
         if getattr(self,'_artwork',None):self._artwork.requestInterruption()
         self._last_result=result
+        self._library_owners=getattr(self,'_cache_info',{}).get('library_owners')
+        if self._library_owners is None:self._library_owners=news.library_owners()
         while self.rows.count():
             item=self.rows.takeAt(0)
             if item.widget():item.widget().deleteLater()
@@ -214,7 +235,9 @@ class ReleaseNewsPage(QDialog):
                     button=QPushButton('Release details');button.clicked.connect(lambda checked=False,mid=node['id']:open_release_news(self,mid));box.addWidget(button,0,Qt.AlignLeft)
             schedules=schedule.get('airingSchedules') or []
             mode=self.broadcast_filter.currentIndex();now=datetime.now().timestamp()
-            schedules=[r for r in schedules if mode==0 or (r['airingAt']<=now)==(mode==1)]
+            context=result.get('_library') or {}
+            from app.ui.release_view_tools import filter_broadcasts
+            schedules=filter_broadcasts(schedules,mode,context,now)
             table=QTableWidget(len(schedules),5);table.setHorizontalHeaderLabels(['EPISODE','BROADCAST · LOCAL TIME','STATE','LIBRARY','ACTION']);table.verticalHeader().hide();table.setShowGrid(False);table.setEditTriggers(QTableWidget.NoEditTriggers);table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents);table.horizontalHeader().setSectionResizeMode(1,QHeaderView.Stretch)
             table.setMinimumHeight(max(160,min(600,50+len(schedules)*64)));self.rows.addWidget(table)
             from app.ui.home_style import px
@@ -238,17 +261,31 @@ class ReleaseNewsPage(QDialog):
             items,more=result;items=[m for m in items if enabled('allow_mature') or not m.get('isAdult')];self.next.setEnabled(more)
             grid_widget=QWidget();grid_widget.setObjectName('transfer_clear');grid=QGridLayout(grid_widget);grid.setContentsMargins(0,0,0,0);grid.setSpacing(20);self.rows.addWidget(grid_widget)
             self._discovery_cards=[];self._discovery_grid=grid;posters={}
+            from app.ui.manga_pages import active
+            manga=active()
             for media in items:
-                frame=QFrame();frame.setObjectName('transfer_panel');box=QVBoxLayout(frame)
+                from app.ui.components.paper_card import PaperCard
+                frame=PaperCard();frame.setObjectName('discovery_card');frame.setStyleSheet('background:transparent;border:none;');box=QVBoxLayout(frame);box.setContentsMargins(22,22,22,22)
+                if not manga:frame.setObjectName('transfer_panel');frame.setStyleSheet('')
                 frame.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred);frame.setMinimumWidth(0)
                 from app.ui.components.workflow import thumbnail
-                poster=thumbnail(resolve_display_title(media),None,220,180);box.addWidget(poster,0,Qt.AlignCenter)
+                poster=thumbnail(resolve_display_title(media),None,180 if manga else 220,120 if manga else 180);box.addWidget(poster,0,Qt.AlignCenter)
                 posters[media['id']]=poster
                 title=QLabel(resolve_display_title(media));title.setWordWrap(True);title.setTextFormat(Qt.PlainText);title.setObjectName('update_title');title.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred);title.setMinimumWidth(0);box.addWidget(title)
+                if manga:
+                    title.setToolTip(resolve_display_title(media));title.setMinimumHeight(42);title.setMaximumHeight(62)
+                    from app.ui.pages.detail_modal import format_synopsis
+                    description=QLabel(format_synopsis(__import__('html').unescape(__import__('re').sub(r'<[^>]+>','',media.get('description') or '')))[:170]);description.setTextFormat(Qt.PlainText);description.setWordWrap(True);description.setObjectName('subheading');description.setMaximumHeight(54);box.addWidget(description)
                 detail=QLabel(f"Premiere: {news.date_label(media.get('startDate'))}\n{media.get('format','Unknown')} · {media.get('status','Unknown')}");detail.setWordWrap(True);box.addWidget(detail)
                 actions=FlowLayout();box.addLayout(actions)
-                details=QPushButton('Release details');details.clicked.connect(lambda checked=False,mid=media['id']:open_release_news(self,mid));actions.addWidget(details)
-                button=QPushButton('Import as Watching');button.clicked.connect(lambda checked=False,m=media,b=button:self.import_media(m,b));actions.addWidget(button)
+                details=QPushButton('Details' if manga else 'Release details');
+                from app.ui.icons import icon
+                details.setIcon(icon('info','#596175'));details.setMinimumHeight(40);details.setMinimumWidth(95); details.setAccessibleName('Release details for '+resolve_display_title(media));details.clicked.connect(lambda checked=False,mid=media['id']:open_release_news(self,mid));actions.addWidget(details)
+                add=self.import_button(media,compact=manga)
+                if manga:
+                    add._discovery_peer=details
+                    self.equal_discovery_actions(details,add)
+                actions.addWidget(add)
                 self._discovery_cards.append(frame)
             self.arrange_cards();QTimer.singleShot(0,self._arrange_after_resize)
             if items:
@@ -272,12 +309,15 @@ class ReleaseNewsPage(QDialog):
         checked=datetime.fromtimestamp(stamp).astimezone().strftime('%d %b %Y · %H:%M') if stamp else 'not checked yet'
         message=info.get('warning') or ('Updated and saved' if info.get('source')=='network' else 'Saved results')
         self.status.setText(f'{message} · Page {self.page} · Last checked: {checked}. Use the check button to refresh online.')
+        from app.ui.manga_workflows import finish
+        finish(self)
 
     def arrange_cards(self):
         if not hasattr(self,'_discovery_grid'):return
         grid=self._discovery_grid
         width=self.scroll.viewport().width()-self.rows.contentsMargins().left()-self.rows.contentsMargins().right()
-        cols=max(1,(width+grid.spacing())//280)
+        from app.ui.manga_pages import active
+        cols=max(1,(width+grid.spacing())//(260 if active() else 280))
         for col in range(max(cols,getattr(self,'_discovery_columns',0))):
             grid.setColumnStretch(col,1 if col<cols else 0);grid.setColumnMinimumWidth(col,0)
         self._discovery_columns=cols
@@ -308,20 +348,43 @@ class ReleaseNewsPage(QDialog):
         mid=self.media_id
         self.run(lambda:remind(mid,row['episode'],row['airingAt'],title),lambda _:self.status.setText('Reminder saved. Anime Vault must be running to notify you.'))
     def _auto_grab(self,fid,episode):
-        if QMessageBox.question(self,'Auto-Grab episode?',f'Search your configured source and download a verified match for episode {episode}? Ambiguous releases will not be downloaded.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
         from app.core.release_actions import auto_grab
         mid=self.media_id
-        self.run(lambda:auto_grab(fid,mid,episode,QThread.currentThread().isInterruptionRequested),self.status.setText)
+        def found(result):
+            from app.ui.pages.release_search_page import open_release_search
+            page=open_release_search(self,fid,result['assignment_context']);page.loaded(result,focus_results=True)
+            page.status.setText('Next episode found using your last confirmed download. Select a release, then confirm its season and episode before downloading.')
+        self.run(lambda:auto_grab(fid,mid,episode,QThread.currentThread().isInterruptionRequested),found)
+
+    def equal_discovery_actions(self,details,add):
+        from app.ui.home_style import px
+        details.ensurePolished();add.ensurePolished()
+        width=max(px(95),details.sizeHint().width(),add.sizeHint().width())
+        for control in (details,add):control.setFixedSize(width,px(40))
+
+    def import_button(self,media,compact=False):
+        exists=media.get('id') in getattr(self,'_library_owners',{})
+        button=QPushButton('Already in library' if exists else '+ Add' if compact else 'Import as Watching')
+        if compact:button.setStyleSheet('font-size:12px;padding:0 10px;min-height:40px;')
+        button.setEnabled(not exists);button.setToolTip('This release is already tracked in your library.' if exists else 'Add this release to Watching')
+        button.clicked.connect(lambda checked=False:self.import_media(media,button))
+        return button
 
     def import_media(self,media,button):
         button.setEnabled(False)
         def done(result):
             fid,added=result;button.setText('Added to Watching' if added else 'Already in library')
+            if hasattr(button,'_discovery_peer'):self.equal_discovery_actions(button._discovery_peer,button)
+            if not hasattr(self,'_library_owners'):self._library_owners={}
+            self._library_owners[media['id']]=fid
             if added:
                 from app.ui.downloads import monitor
                 from app.ui.artwork import artwork_loader
+                host=self.parentWidget()
+                while host is not None and not hasattr(host,'_on_release_imported'):host=host.parentWidget()
+                if host is not None:host._on_release_imported()
+                else:monitor().changed.emit()
                 artwork_loader().request(db.get_franchise(fid),allow_network=True)
-                monitor().changed.emit()
         self.run(lambda:news.import_watching(media),done,lambda:button.setEnabled(True))
 
 def open_release_news(parent,media_id=None):

@@ -16,12 +16,8 @@ from PyQt5.QtCore import QTimer
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QFrame, QFileDialog, QTableWidget, QTableWidgetItem,
-    QProgressBar, QMessageBox, QHeaderView, QCheckBox, QLineEdit,
-    QDialog, QComboBox, QAbstractItemView, QTabWidget, QSizePolicy,
-)
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QFrame,QFileDialog,QTableWidget,QTableWidgetItem,QProgressBar,QHeaderView,QCheckBox,QLineEdit,QDialog,QComboBox,QAbstractItemView,QTabWidget,QSizePolicy
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtGui import QFont, QColor, QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
 
@@ -124,15 +120,18 @@ class ScannerWorker(QThread):
             if self.find_missing:
                 self.finished.emit({"recovery": find_missing_library_files(self.isInterruptionRequested)})
                 return
-            from app.ui.organizer_cache import configuration, save_preview
+            from app.ui.organizer_cache import configuration, save_preview,same_scan_state
             config = configuration(self.rules)
             res = inspect_all_library(
                 rules=self.rules,
                 progress_callback=self._scan_progress,
             )
             if not self.isInterruptionRequested():
-                res['_configuration'] = config
-                save_preview(res, config)
+                current=configuration(self.rules)
+                if not same_scan_state(config,current):
+                    self.finished.emit({'_discarded':True});return
+                res['_configuration'] = current
+                if not save_preview(res, current):self.finished.emit({'_discarded':True});return
                 self.finished.emit(res)
         except InterruptedError:
             self.stopped.emit()
@@ -151,6 +150,22 @@ class OrganizerReviewDialog(QDialog):
         self.setMinimumSize(850, 560)
         self.setModal(True)
         self._setup_ui()
+
+        self._review_original_styles={w:w.styleSheet() for w in self.findChildren(QWidget)}
+        self.refresh_home_style()
+
+    def refresh_home_style(self):
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.manga_workflows import qss,finish
+            self.setObjectName('organizer_review_dialog')
+            for widget in self.findChildren(QWidget):widget.setStyleSheet('')
+            self.setStyleSheet(qss('organizer_review_dialog'));finish(self)
+        else:
+            self.setStyleSheet('')
+            from PyQt5 import sip
+            for widget,style in getattr(self,'_review_original_styles',{}).items():
+                if not sip.isdeleted(widget):widget.setStyleSheet(style)
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -310,12 +325,16 @@ class OrganizerReviewDialog(QDialog):
         self.organize_this_btn.setText("Moving files...")
 
         self._organize_worker = OrganizerWorker([item_copy], self.rules)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._organize_worker, 'Moving selected files', progress=self._organize_worker.progress, major=True)
         self._organize_worker.finished.connect(self._organization_finished)
         self._organize_worker.error.connect(self._organization_failed)
         self._organize_worker.start()
 
     def _organization_finished(self, result):
         from app.core.organizer import organization_summary
+        self.organize_this_btn.setText('Finished')
+        self.organize_this_btn.setEnabled(False)
         if result.get("errors"):
             QMessageBox.warning(self, "Organization needs attention", organization_summary(result))
         else:
@@ -370,6 +389,37 @@ class OrganizerPage(QWidget):
             self.top_status_badge.setText('Ready — click Scan now')
         from app.ui.organizer_cache import configuration
         self._shown_config = configuration(self._rules)
+        self.apply_downloads()
+
+    def apply_downloads(self,jobs=None,force=False):
+        from app.core.downloads import jobs as read_jobs
+        from app.core.download_inventory import Snapshot,signature,organizer_rows
+        # Ignore delayed monitor snapshots captured before a completed move.
+        jobs=read_jobs()
+        current=signature(jobs)
+        if not force and current==getattr(self,'_download_state_signature',None):return
+        self._download_state_signature=current;readiness=Snapshot(jobs)
+        selected={(item.get('download_job_id') or item.get('folder_path'),item.get('anime_name')) for i,item in enumerate(self._data.get(self._current_tab,[])) if i in self._selected_items}
+        rows=organizer_rows(jobs);changed=False
+        for bucket in ('all','unorganized','organized'):
+            kept=[]
+            for item in self._data.get(bucket,[]):
+                if item.get('download_job_id'):continue
+                if readiness.in_staging(item.get('folder_path','')):continue
+                moves=item.get('moves') or []
+                usable=[move for move in moves if readiness.can_organize(move['source'])]
+                if len(usable)!=len(moves):
+                    if not usable:continue
+                    item=dict(item,moves=usable,video_count=sum(move.get('is_video',True) for move in usable))
+                kept.append(item)
+            updated=kept+(rows if bucket!='organized' else [])
+            changed=changed or updated!=self._data.get(bucket,[]);self._data[bucket]=updated
+        if not changed:return
+        self._selected_items={i for i,item in enumerate(self._data.get(self._current_tab,[])) if item.get('download_ready',True) and (item.get('download_job_id') or item.get('folder_path'),item.get('anime_name')) in selected}
+        for control,bucket,label in ((self.tab_unorg_btn,'unorganized','Needs organization'),(self.tab_org_btn,'organized','Already organized'),(self.tab_all_btn,'all','All')):
+            control.setText(f'{label} ({len(self._data[bucket])})')
+        self.top_status_badge.setText(f"{len(self._data['unorganized'])} need organization · {len(self._data['organized'])} organized")
+        self._render_table()
 
     def refresh_home_style(self):
         from app.ui.organizer_style import refresh
@@ -381,6 +431,7 @@ class OrganizerPage(QWidget):
         from app.ui.organizer_cache import configuration
         current = configuration(self._rules)
         if current != self._shown_config:
+            self.apply_downloads()
             self._load_library_roots()
             self._mark_preview_stale('Library configuration changed — click Scan now')
             self._shown_config = current
@@ -390,6 +441,8 @@ class OrganizerPage(QWidget):
         shell = QVBoxLayout(self)
         shell.setContentsMargins(0, 0, 0, 0)
         self.organizer_tabs = QTabWidget()
+        from app.ui.components.neumorphic_tabs import NeumorphicTabBar
+        self.organizer_tabs.setTabBar(NeumorphicTabBar())
         self.organizer_tabs.setObjectName("organizer_tabs")
         self.organizer_tabs.tabBar().setExpanding(False)
         self.organizer_tabs.tabBar().setDrawBase(False)
@@ -905,7 +958,10 @@ class OrganizerPage(QWidget):
         for d in dirs:
             row = QFrame()
             row.setObjectName("organizer_row")
-            row.setFixedHeight(44)
+            # The themed buttons are taller than the old 44px row. Let the
+            # layout include their full hit areas plus padding and shadows.
+            row.setMinimumHeight(64)
+            row.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Minimum)
 
             row.setStyleSheet("""
             #organizer_row {
@@ -931,7 +987,9 @@ class OrganizerPage(QWidget):
             r_layout.addWidget(p_lbl, 1)
 
             del_btn = QPushButton("✕")
-            del_btn.setFixedSize(28, 28)
+            del_btn.setObjectName('remove_library_root')
+            del_btn.setFixedWidth(40)
+            del_btn.setMinimumHeight(40)
             del_btn.setAccessibleName("Remove library root " + d["folder_path"])
             del_btn.setCursor(Qt.PointingHandCursor)
             del_btn.setStyleSheet("""
@@ -1003,6 +1061,8 @@ class OrganizerPage(QWidget):
             self._rules[k] = sw.isChecked()
 
         self._worker = ScannerWorker(dict(self._rules), find_missing, repair_ids)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._worker, 'Finding missing files in library directories' if find_missing else 'Scanning library directories', progress=self._worker.progress, major=True)
         self._worker.finished.connect(self._on_scan_finished)
         self._worker.error.connect(self._on_scan_error)
         self._worker.stopped.connect(self._on_scan_stopped)
@@ -1021,6 +1081,11 @@ class OrganizerPage(QWidget):
 
     def _on_scan_finished(self, results: dict, cached=False):
         self.find_missing_btn.setEnabled(True)
+        from app.ui.organizer_cache import configuration,same_scan_state
+        if results.get('_discarded') or (not cached and results.get('_configuration') and not same_scan_state(results['_configuration'],configuration(self._rules))):
+            self.progress_bar.hide();self.scan_btn.setEnabled(True)
+            self.apply_downloads(force=True)
+            self._mark_preview_stale('Files changed during the scan. Old scan results were discarded; current downloads are shown.');return
         if "recovery" in results:
             result = results["recovery"]
             self.progress_bar.setVisible(False)
@@ -1079,8 +1144,8 @@ class OrganizerPage(QWidget):
             font-weight: 600;
         """)
 
-        # Default select all unorganized
-        self._selected_items = set(range(unorg_count))
+        # A scan proposes moves; selection remains an explicit user action.
+        self._selected_items.clear()
         self._render_table()
         unknown = len(results.get("unclassified_loose", []))
         if unknown:
@@ -1135,8 +1200,6 @@ class OrganizerPage(QWidget):
         self._current_tab = tab_id
         self._update_tab_styles()
         self._selected_items.clear()
-        if tab_id == "unorganized":
-            self._selected_items = set(range(len(self._data.get("unorganized", []))))
         self._render_table()
 
     def _update_tab_styles(self):
@@ -1185,6 +1248,7 @@ class OrganizerPage(QWidget):
     def _render_table(self):
         items = self._data.get(self._current_tab, [])
         query = self.search_filter.text().strip().lower()
+        self._sync_select_all()
 
         filtered_items = []
         for idx, item in enumerate(items):
@@ -1204,6 +1268,7 @@ class OrganizerPage(QWidget):
             c_layout.setSpacing(12)
 
             cb = QCheckBox()
+            cb.setEnabled(item.get('download_ready',True))
             is_checked = orig_idx in self._selected_items
             cb.setChecked(is_checked)
             cb.stateChanged.connect(lambda state, idx=orig_idx: self._on_item_checked(idx, state))
@@ -1291,10 +1356,13 @@ class OrganizerPage(QWidget):
             rev_btn.setCursor(Qt.PointingHandCursor)
             rev_btn.setFixedHeight(44)
             rev_btn.setMinimumWidth(88)
-            rev_btn.setEnabled(not self._preview_stale)
-            if self._preview_stale:
-                rev_btn.setToolTip('Click Scan now to update this preview before reviewing file moves.')
-            rev_btn.clicked.connect(lambda checked, it=item: self._open_review_dialog(it))
+            rev_btn.setEnabled(item.get('download_ready',True) and (not self._preview_stale or bool(item.get('download_job_id'))))
+            if not item.get('download_ready',True):rev_btn.setToolTip('This tracked download is not ready to move yet.')
+            if self._preview_stale and not item.get('download_job_id'):
+                rev_btn.setText('Refresh preview');rev_btn.setEnabled(True)
+                rev_btn.setToolTip('Files changed. Refresh the scan before reviewing another move.')
+                rev_btn.clicked.connect(lambda checked=False:self._start_scan())
+            else:rev_btn.clicked.connect(lambda checked, it=item: self._open_review_dialog(it))
             action_cell = QWidget()
             action_cell.setObjectName('organizer_cell')
             action_layout = QHBoxLayout(action_cell)
@@ -1337,14 +1405,22 @@ class OrganizerPage(QWidget):
         sel_files = sum(items[i].get("video_count", 0) for i in self._selected_items if i < len(items))
 
         self.summary_label.setText(f"{sel_files} files · {sel_folders} folders selected")
-        self.organize_btn.setEnabled(sel_folders > 0 and self._current_tab != "organized")
+        self.organize_btn.setEnabled(sel_folders > 0 and self._current_tab != "organized" and not self._preview_stale)
+        self._sync_select_all()
         if self._current_tab != "organized":
             self.organize_btn.setText(f"Organize {sel_folders} selected anime")
+
+    def _sync_select_all(self):
+        items=self._data.get(self._current_tab,[])
+        blocked=self.select_all_cb.blockSignals(True)
+        eligible=[i for i,item in enumerate(items) if item.get('download_ready',True)]
+        self.select_all_cb.setChecked(bool(eligible) and all(i in self._selected_items for i in eligible))
+        self.select_all_cb.blockSignals(blocked)
 
     def _on_select_all_toggled(self, state: int):
         items = self._data.get(self._current_tab, [])
         if state == Qt.Checked:
-            self._selected_items = set(range(len(items)))
+            self._selected_items = {i for i,item in enumerate(items) if item.get('download_ready',True)}
         else:
             self._selected_items.clear()
         self._render_table()
@@ -1357,12 +1433,17 @@ class OrganizerPage(QWidget):
 
     def _open_review_dialog(self, item: Dict[str, Any]):
         if item.get('download_job_id') or Path(item.get('folder_path','')).name.lstrip('.').lower()=='animevault-downloads':
+            if not item.get('download_ready',True):return
             from app.core.download_library import preview
             from app.ui.dialogs.download_library_move import DownloadLibraryMove
             from app.ui.io_task import start
             identifier=item.get('download_job_id')
             def show(plan):
-                if identifier:plan['rows']=[row for row in plan['rows'] if row['job_id']==identifier]
+                if identifier:
+                    plan['rows']=[row for row in plan['rows'] if row['job_id']==identifier];plan['only_job_id']=identifier
+                    plan['destinations']=[d for d in plan.get('destinations',[]) if d['id']==identifier]
+                if not plan['rows'] and not plan.get('destinations'):
+                    QMessageBox.information(self,'No files to move','No completed files remain in this move preview.\n'+'\n'.join(plan.get('notes') or ['Refresh the preview to check their current locations.']));return
                 navigate(DownloadLibraryMove(plan,self),lambda _:self.data_changed.emit())
             start(self,preview,show);return
         if self._preview_stale:
@@ -1371,17 +1452,24 @@ class OrganizerPage(QWidget):
             return
         if self.merge_page.busy():
             return
-        dlg = OrganizerReviewDialog(item, rules=self._rules, parent=self)
         def completed(result):
             if result == QDialog.Accepted:
                 self.data_changed.emit()
                 self._mark_preview_stale('Files changed — click Scan now to update the preview')
-        navigate(dlg, completed)
+        from app.ui.io_task import start
+        def checked(current):
+            current['moves']=[m for m in current.get('moves',[]) if not m.get('already_in_place')]
+            if not current['moves']:
+                QMessageBox.information(self,'No files to organize','This folder has no remaining proposed file moves. Refresh the preview to update its status.')
+                self._mark_preview_stale('Folder is already organized — refresh the preview');return
+            navigate(OrganizerReviewDialog(current,rules=self._rules,parent=self),completed)
+        start(self,lambda:inspect_anime_folder(item['folder_path'],anime_name=item.get('anime_name'),rules=self._rules),checked)
 
     # -----------------------------------------------------------------------
     # Batch Organize Execution
     # -----------------------------------------------------------------------
     def _execute_batch(self):
+        if self._preview_stale:return
         if self._worker and self._worker.isRunning():
             return
         if self.merge_page.busy():
@@ -1400,7 +1488,7 @@ class OrganizerPage(QWidget):
             reply = QMessageBox.question(
                 self, "Confirm File Organization",
                 f"You are about to organize {len(selected)} anime ({total_files} video files).\n\n"
-                "Files will be safely organized into Season 1/, Season 2/ or Movies & OVAs/ folders.\n"
+                "Season destinations use Season 01/, Season 02/ or Movies & OVAs/. Old folders move only after review.\n"
                 "No video files will be deleted or overwritten.\n\n"
                 "Proceed with organization?",
                 QMessageBox.Yes | QMessageBox.No
@@ -1415,6 +1503,8 @@ class OrganizerPage(QWidget):
         self.progress_bar.setValue(0)
 
         self._batch_worker = OrganizerWorker(selected, self._rules)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._batch_worker, 'Organizing files', progress=self._batch_worker.progress, major=True)
         self._batch_worker.progress.connect(self._on_batch_progress)
         self._batch_worker.finished.connect(self._on_batch_finished)
         self._batch_worker.error.connect(self._on_batch_error)

@@ -4,7 +4,8 @@ import time
 from PyQt5 import sip
 from PyQt5.QtCore import Qt,QSize,QTimer,QThread,pyqtSignal,QEvent,QPoint
 from PyQt5.QtGui import QColor,QPainter,QPen,QPixmap,QFont
-from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QComboBox,QListView,QStyledItemDelegate,QApplication,QAbstractItemView,QMessageBox
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QComboBox,QListView,QStyledItemDelegate,QApplication,QAbstractItemView
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app.ui.pages.episode_page import EpisodeWorker,EpisodeModel
 from app.ui.home_style import colors,px
 from app.ui.io_task import track

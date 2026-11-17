@@ -10,9 +10,14 @@ class ThemeCard(QPushButton):
     def __init__(self,label,description,value,parent=None):
         super().__init__(parent);self.setObjectName('settings_theme_card');self.label=label;self.description=description;self.value=value;self.setCheckable(True);self.setMinimumSize(135,170);self.setCursor(Qt.PointingHandCursor);self.setAccessibleName(label);self.setAccessibleDescription(description)
     def paintEvent(self,event):
-        c=colors();p=QPainter(self);p.setRenderHint(QPainter.Antialiasing);rect=self.rect().adjusted(2,2,-2,-2)
-        p.setPen(QPen(QColor(c['coral'] if self.isChecked() or self.hasFocus() else c['line']),2 if self.isChecked() else 1));p.setBrush(QColor(c['raised'] if self.isChecked() or self.underMouse() else c['panel']));p.drawRoundedRect(QRectF(rect),12,12)
-        preview=rect.adjusted(14,14,-14,-rect.height()+78);p.setPen(Qt.NoPen);p.setBrush(QColor('#e8defa' if self.value=='light' else '#100e18'));p.drawRoundedRect(QRectF(preview),8,8)
+        c=colors();p=QPainter(self);p.setRenderHint(QPainter.Antialiasing)
+        from app.ui.manga_pages import active
+        manga=active();rect=self.rect().adjusted(8,8,-8,-8) if manga else self.rect().adjusted(2,2,-2,-2)
+        if manga:
+            from app.ui.components.neumorphic import paint_depth
+            paint_depth(p,QRectF(rect),self.isDown())
+        p.setPen(QPen(QColor(c['coral'] if self.isChecked() or self.hasFocus() else c['line']),2 if self.isChecked() else 1));p.setBrush(QColor(('white' if self.isChecked() else '#f3f4f8') if manga else c['raised'] if self.isChecked() or self.underMouse() else c['panel']));p.drawRoundedRect(QRectF(rect),12,12)
+        preview=rect.adjusted(14,14,-14,-rect.height()+78);p.setPen(Qt.NoPen);p.setBrush(QColor('#eef0f5' if self.value=='manga_light' else '#e8defa' if self.value=='light' else '#100e18'));p.drawRoundedRect(QRectF(preview),8,8)
         p.setBrush(QColor(c['coral'] if self.value=='dark' else '#605b6a'));p.drawRoundedRect(QRectF(preview.left()+8,preview.bottom()-12,min(60,preview.width()-16),5),2,2)
         p.setPen(QColor(c['coral'] if self.isChecked() else c['text']));font=QFont('Plus Jakarta Sans');font.setPixelSize(px(13));font.setBold(True);p.setFont(font);p.drawText(rect.adjusted(14,88,-12,0),Qt.AlignTop|Qt.TextWordWrap,self.label)
         font.setPixelSize(px(11));font.setBold(False);p.setFont(font);p.setPen(QColor(c['muted']));p.drawText(rect.adjusted(14,112,-12,-6),Qt.AlignTop|Qt.TextWordWrap,self.description)
@@ -20,6 +25,10 @@ class ThemeCard(QPushButton):
 
 @unified('QWidget#settings_page')
 def qss():
+    from app.ui.manga_pages import active
+    if active():
+        from app.ui.manga_additional import qss as extra_qss
+        return extra_qss('settings_page')
     c=dict(colors());r='QWidget#settings_page'
     from PyQt5.QtWidgets import QApplication
     if QApplication.instance().property('animevaultTheme')!='light' and not QApplication.instance().property('animevaultHighContrast'):
@@ -61,7 +70,8 @@ def apply_layout(page):
     subtitle=QLabel('Your library, playback and download preferences · Changes save automatically');subtitle.setObjectName('settings_subtitle');subtitle.setWordWrap(True);layout.insertWidget(1,subtitle)
     layout.removeWidget(page.tabs);page.tabs.tabBar().hide()
     columns=QHBoxLayout();columns.setSpacing(24);layout.addLayout(columns,1)
-    nav=QFrame();nav.setObjectName('settings_navigation');nav.setFixedWidth(242);navbox=QVBoxLayout(nav);navbox.setContentsMargins(12,16,12,16);navbox.setSpacing(6)
+    from app.ui.components.paper_card import PaperCard
+    nav=PaperCard();nav.setObjectName('settings_navigation');nav.setFixedWidth(242);navbox=QVBoxLayout(nav);navbox.setContentsMargins(22,26,22,26);navbox.setSpacing(6)
     side=QVBoxLayout();nav_scroll=QScrollArea();nav_scroll.setWidgetResizable(True);nav_scroll.setFrameShape(QFrame.NoFrame);nav_scroll.setFixedWidth(258);nav_scroll.setWidget(nav);side.addWidget(nav_scroll);columns.addLayout(side)
     columns.addWidget(page.tabs,1);page.tabs.show();page.settings_scroll=page.tabs.currentWidget()
     page.section_targets=[];page.section_buttons=[]
@@ -81,11 +91,11 @@ def apply_layout(page):
     page.theme_cards=[]
     panel=next(p for p in page.findChildren(QFrame) if p.property('settings_section')=='Appearance and accessibility')
     page.theme_combo.parentWidget().hide();cards=QWidget();cards.setObjectName('settings_choices');grid=QGridLayout(cards);grid.setContentsMargins(0,0,0,0);grid.setSpacing(12)
-    from app.ui.theme_catalog import SAKURA_CHOICES
-    hints=('Follow system appearance','Warm dark canvas','Light canvas')
-    for n,((label,value),hint) in enumerate(zip(SAKURA_CHOICES,hints)):
-        button=ThemeCard(label,hint,value);button.clicked.connect(lambda checked=False,v=value:(page.theme_combo.setCurrentIndex(page.theme_combo.findData(v)),sync_theme()));grid.addWidget(button,0,n);page.theme_cards.append(button)
-    panel.layout().insertWidget(2,cards)
+    from app.ui.theme_catalog import THEME_CHOICES
+    hints=('Follow system appearance','Warm dark canvas','Light canvas','Ink, paper and hot pink')
+    for n,((label,value),hint) in enumerate(zip(THEME_CHOICES,hints)):
+        button=ThemeCard(label,hint,value);button.clicked.connect(lambda checked=False,v=value:(page.theme_combo.setCurrentIndex(page.theme_combo.findData(v)),sync_theme()));grid.addWidget(button,n//3,n%3);page.theme_cards.append(button)
+    panel.layout().insertWidget(panel.layout().indexOf(page.theme_combo.parentWidget()),cards)
     def sync_theme():
         for card in page.theme_cards:card.setChecked(card.value==page.theme_combo.currentData());card.update()
     page.theme_combo.currentIndexChanged.connect(sync_theme);sync_theme()
@@ -96,7 +106,7 @@ def apply_layout(page):
         from PyQt5.QtWidgets import QStyle
         from PyQt5.QtCore import QSize
         button.setIcon(page.style().standardIcon(QStyle.SP_ComputerIcon if value=='default' else QStyle.SP_FileIcon if value=='custom' else QStyle.SP_MediaPlay));button.setIconSize(QSize(32,32))
-    panel.layout().insertWidget(2,players)
+    panel.layout().insertWidget(panel.layout().indexOf(page.player_combo.parentWidget()),players)
     def sync_player():
         for value,button in page.player_cards:button.setChecked(value==page.player_combo.currentData())
     page.player_combo.currentIndexChanged.connect(sync_player);sync_player()
@@ -124,6 +134,17 @@ def layout_download_form(page):
         control=config.controls['destination'];group=control.parentWidget();old=browse.parentWidget();group.layout().removeWidget(control)
         row=QWidget();row.setObjectName('workflow_field');horizontal=QHBoxLayout(row);horizontal.setContentsMargins(0,0,0,0);horizontal.addWidget(control,1);horizontal.addWidget(browse);group.layout().addWidget(row)
         if old and old.layout() and old.layout().count()==0:old.hide()
+
+
+def arrange_theme_cards(page):
+    cards=getattr(page,'theme_cards',[])
+    if not cards:return
+    from app.ui.manga_pages import active
+    columns=(4 if page.width()>=1300 else 2 if page.width()>=850 else 1) if active() else 3
+    if columns==getattr(page,'_theme_card_columns',None):return
+    page._theme_card_columns=columns
+    grid=cards[0].parentWidget().layout()
+    for index,card in enumerate(cards):grid.addWidget(card,index//columns,index%columns)
 
 
 def compact_actions(page):

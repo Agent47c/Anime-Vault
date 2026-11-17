@@ -6,6 +6,13 @@ from app.ui.button_system import unified
 
 @unified(lambda name:f'QWidget#{name}')
 def qss(name):
+    from app.ui.manga_pages import active
+    if name=='duplicate_page' and active():
+        from app.ui.manga_additional import qss as extra_qss
+        return extra_qss(name)
+    if name=='merge_page' and active():
+        from app.ui.manga_workflows import qss as manga_qss
+        return manga_qss(name)
     c=colors();r=f'QWidget#{name}'
     if name=='duplicate_page':
         from app.ui.review_reference_style import reference_colors

@@ -23,6 +23,7 @@ def prepare_details(fid):
                 source.close()
                 return None
             seasons=db.get_series_seasons(series['id'],series=series)
+            for season in seasons:season['_manual_season_number']=bool(db.get_state(f'season_number_override:{season["id"]}'))
             saved=get_last_episode_path()
         snapshot={'connection':source,'series_groups':[series],'last_episode_path':saved}
         with db.refresh_view(snapshot):

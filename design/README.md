@@ -1,5 +1,10 @@
 # UI design references
 
+Follow the [UI Design Guidelines](../docs/themes/UI_DESIGN_GUIDELINES.md) before
+implementing any screen. The new master is
+[Manga Brutalism Light](../Light%20Theme%20%28Manga%20Brutalism%29/Main%20Screen%20%28Light%20Theme%20%29/);
+the archived folders below do not automatically override it.
+
 All supplied mockups are retained under [references](references/). Folder names
 are preserved so screenshots and HTML still match the names used in design chats.
 These are reference assets, not application runtime files.

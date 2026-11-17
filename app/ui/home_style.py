@@ -19,6 +19,10 @@ def load_fonts():
 
 def colors():
     app=QApplication.instance()
+    from app.ui.theme_catalog import is_manga
+    if is_manga() and not app.property('animevaultHighContrast'):
+        from app.ui.manga_style import COLORS
+        return dict(COLORS)
     if app and app.property('animevaultHighContrast'):
         palette=app.palette()
         return dict(bg=palette.window().color().name(),panel=palette.base().color().name(),raised=palette.alternateBase().color().name(),
@@ -32,6 +36,10 @@ def px(value):return round(value*(QApplication.instance().property('animevaultSc
 
 @unified('QWidget#home_library')
 def qss():
+    from app.ui.theme_catalog import is_manga
+    if is_manga():
+        from app.ui.manga_style import library_qss
+        return library_qss()
     c=colors();s=QApplication.instance().property('animevaultScale') or 1
     small=round(11*s);body=round(13*s)
     return f'''

@@ -3,11 +3,16 @@ import re
 from pathlib import Path
 from app.config import VIDEO_EXTENSIONS
 from app.core.parser import extract_episode_number, extract_base_anime_name, extract_season_number, normalize_for_matching
+from app.core.file_operations import serialized
+from app.core.season_paths import existing_or_new_season_folder
 
 
+@serialized
 def inspect_loose_episodes(root_path):
     root = Path(root_path).resolve()
-    files = [p for p in root.iterdir() if p.is_file() and not p.is_symlink()]
+    from app.core.download_inventory import Snapshot
+    readiness=Snapshot();readiness.assert_not_moving(root,recursive=False)
+    files = [p for p in root.iterdir() if p.is_file() and not p.is_symlink() and readiness.can_organize(p)]
     groups, unclassified = {}, []
     for file in files:
         if file.suffix.lower() not in VIDEO_EXTENSIONS:
@@ -30,7 +35,7 @@ def inspect_loose_episodes(root_path):
         group['files'].append(file)
     items = []
     for group in groups.values():
-        destination = root / group['anime_name'] / f"Season {group['season_number']}"
+        destination = existing_or_new_season_folder(root / group['anime_name'], group['season_number'])
         sources = list(group['files'])
         for file in files:
             if file.suffix.lower() in {'.ass', '.srt', '.vtt', '.sub', '.idx'} and any(file.stem == video.stem or file.stem.startswith(video.stem + '.') for video in group['files']):

@@ -31,6 +31,20 @@ def activate_custom_query(fid,season,active):
         saved['active']=bool(active);db.set_state(_custom_key(fid,season),json.dumps(saved))
 
 
+def search_memory(fid):
+    series=db.get_series(fid)
+    if not series:return {}
+    try:
+        value=json.loads(db.get_state(f'download_search_memory:{series["id"]}','{}'))
+        return value if isinstance(value,dict) else {}
+    except (TypeError,ValueError):return {}
+
+
+def save_search_memory(fid,query,season=None,source=None,title=None):
+    series=db.get_series(fid)
+    if series:db.set_state(f'download_search_memory:{series["id"]}',json.dumps(dict(query=query,season=season,source=source,title=title),ensure_ascii=False))
+
+
 def title_options(fid,season=None):
     series=db.get_series(fid)
     if not series:return []
@@ -55,6 +69,11 @@ def title_options(fid,season=None):
     media_options(series,media)
     add('Display title',series.get('display_title'))
     for value in (media.get('synonyms') or [])[:12]:add('Alternative title',value)
+    key=f'download_title_options:{series["id"]}:{season or 0}'
+    try:cached=json.loads(db.get_state(key,'[]'))
+    except (TypeError,ValueError):cached=[]
+    for role,value in cached:add(role,value)
+    if options:db.set_state(key,json.dumps(options[:40],ensure_ascii=False))
     return options
 
 

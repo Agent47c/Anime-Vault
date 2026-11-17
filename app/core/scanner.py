@@ -20,6 +20,7 @@ from app.core.parser import (
     normalize_for_matching,
 )
 from app.core import anilist_client
+from app.core.file_operations import serialized
 
 
 # ---------------------------------------------------------------------------
@@ -78,11 +79,15 @@ def _create_from_folder(af: Dict, clean_name: str, inventory=None) -> Optional[i
     return fid
 
 
-def collect_video_groups(folder_path: str, inventory=None):
+@serialized
+def collect_video_groups(folder_path: str, inventory=None,verified_download=False):
     """Recursively inventory exact paths; local arcs and alternate editions stay distinct."""
     from app.core.parser import extract_episode_range, extract_episode_numbers, classification_filename
     import re
     root = Path(folder_path).resolve()
+    from app.core.download_inventory import Snapshot
+    readiness=Snapshot()
+    if not verified_download:readiness.assert_scan_scope(root)
     groups = {}
     loose = []
 
@@ -107,6 +112,7 @@ def collect_video_groups(folder_path: str, inventory=None):
         parent = Path(current)
         for name in files:
             file = parent / name
+            if not verified_download and not readiness.can_scan_library(file):continue
             if file.suffix.lower() not in VIDEO_EXTENSIONS or (inventory is None and file.is_symlink()) or extract_season_number(name, None) == -1:
                 continue
             if re.search(r'Re-edit|One Piece Log', name, re.I):
@@ -177,13 +183,14 @@ def collect_video_groups(folder_path: str, inventory=None):
     return list(groups.values())
 
 
-def _update_on_disk_info(fid: int, folder_path: str, groups=None, changed_paths=None, inventory=None):
+@serialized
+def _update_on_disk_info(fid: int, folder_path: str, groups=None, changed_paths=None, inventory=None,verified_download=False):
     """Replace the local inventory from a complete scan, without moving any files."""
     root = Path(folder_path).resolve()
     if not root.is_dir():
         return
     if groups is None:
-        groups = collect_video_groups(folder_path,inventory=inventory)
+        groups = collect_video_groups(folder_path,inventory=inventory,verified_download=verified_download)
     all_existing = db.get_seasons_for_franchise(fid)
     def belongs_to_root(season):
         if season.get("scan_root"):
@@ -355,6 +362,7 @@ def import_txt_file(filepath: str) -> Dict[str, Any]:
     }
 
 
+@serialized
 def index_local_folder(folder_path, title):
     existing = db.find_franchise_by_folder_path(str(Path(folder_path).resolve())) or db.find_franchise_by_title(title)
     fid = existing["id"] if existing else db.upsert_franchise({"display_title": title, "is_custom": 1, "needs_review": 1, "storage_state": "ON_DISK", "root_folder_path": str(Path(folder_path).resolve())})
@@ -362,9 +370,13 @@ def index_local_folder(folder_path, title):
     return fid
 
 
+@serialized
 def index_loose_group(item):
     """Index only this anime's loose files, never its unrelated siblings."""
     root = Path(item["folder_path"]).resolve()
+    from app.core.download_inventory import Snapshot
+    readiness=Snapshot();readiness.assert_not_moving(root)
+    if any(not readiness.can_organize(name) for name in item['source_files']):raise OSError('Tracked download changed readiness; refresh its review.')
     key = "loose-root:" + item["loose_key"]
     conn = db.get_connection()
     row = conn.execute("SELECT f.* FROM franchises f JOIN seasons s ON s.franchise_id=f.id WHERE s.scan_root=? AND s.local_scan_key=? LIMIT 1", (str(root), key)).fetchone()

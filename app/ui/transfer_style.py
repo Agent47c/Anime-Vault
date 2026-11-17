@@ -4,6 +4,11 @@ from app.ui.button_system import unified
 
 @unified(lambda page:f'QWidget#{page}')
 def qss(page):
+    from app.ui.manga_pages import active,page_qss
+    if page=='updates_page' and active():return page_qss(page)
+    if active():
+        from app.ui.manga_workflows import qss as manga_qss
+        return manga_qss(page)
     c=colors();root=f'QWidget#{page}'
     return f'''
     {root} {{background:{c['bg']};color:{c['text']};font-family:'Plus Jakarta Sans';}}

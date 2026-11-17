@@ -5,10 +5,8 @@ from pathlib import Path
 
 from PyQt5.QtCore import Qt, QAbstractListModel, QModelIndex, QSize, QThread, pyqtSignal,QRectF
 from PyQt5.QtGui import QColor, QPainter, QPen
-from PyQt5.QtWidgets import (
-    QApplication, QDialog, QVBoxLayout, QLabel, QListView, QStyledItemDelegate,
-    QMessageBox, QShortcut, QAbstractItemView, QComboBox,QHBoxLayout,QFrame,QLineEdit,
-)
+from PyQt5.QtWidgets import QApplication,QDialog,QVBoxLayout,QLabel,QListView,QStyledItemDelegate,QShortcut,QAbstractItemView,QComboBox,QHBoxLayout,QFrame,QLineEdit
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 
 from app import db
 from app.config import VIDEO_EXTENSIONS, launch_video_file, set_last_franchise_id, get_last_episode_path
@@ -38,6 +36,9 @@ class EpisodeWorker(QThread):
             from app.core.identity import path_key
             all_seasons = db.get_series_seasons(self.fid)
             indexed_owners = {}
+            from contextlib import closing
+            with closing(db.get_connection()) as conn:
+                scoped_ids={int(r[0].rsplit(':',1)[1]) for r in conn.execute("SELECT key FROM app_state WHERE key LIKE 'download.scoped_inventory:%'")}
             for owner in all_seasons:
                 if owner.get('season_folder_path'):
                     for name in json.loads(owner.get('video_files_json') or '[]'):
@@ -52,12 +53,12 @@ class EpisodeWorker(QThread):
                 if not folder or season.get("storage_state") != "ON_DISK":
                     continue
                 root = Path(folder).resolve()
-                if not root.is_dir():
+                if not root.is_dir() and season['id'] not in scoped_ids:
                     warnings.append(str(root))
                     continue
                 # A shared loose-file root contains several anime. Keep its
                 # inventory restricted to the files assigned to this entry.
-                shared = root in watched or (season.get("local_scan_key") or "").startswith("loose-root:")
+                shared = season['id'] in scoped_ids or root in watched or (season.get("local_scan_key") or "").startswith("loose-root:")
                 if shared:
                     sources = ((root / name, season) for name in json.loads(season.get("video_files_json") or "[]"))
                 else:
@@ -116,18 +117,31 @@ class EpisodeWorker(QThread):
             rows.sort(key=lambda row: row["sort"])
             from contextlib import closing
             from app.core.identity import sync_season, episode_state, path_key
+            season_numbers={s['id']:s.get('season_number') for s in all_seasons}
             with closing(db.get_connection()) as conn, conn:
                 for owner in db.get_series_seasons(self.fid):
                     selected = [row for row in rows if row['season_id'] == owner['id']]
                     if selected and owner.get('season_folder_path'):
-                        snapshot = {**owner, 'video_files_json': json.dumps([os.path.relpath(row['path'], owner['season_folder_path']) for row in selected])}
+                        def inventory_name(row):
+                            try:return os.path.relpath(row['path'],owner['season_folder_path'])
+                            except ValueError:return row['path']  # Staging and library may be on different drives.
+                        snapshot = {**owner, 'video_files_json': json.dumps([inventory_name(row) for row in selected])}
                         sync_season(conn, snapshot)
                 for row in rows:
                     linked = [dict(e) for e in conn.execute('SELECT e.* FROM episodes e JOIN file_episodes fe ON fe.episode_id=e.id JOIN file_locations l ON l.file_id=fe.file_id WHERE l.path_key=?', (path_key(row['path']),))]
                     states = [episode_state(e) for e in linked]
                     row['verified_numbers'] = [e['release_number'] for e in linked] if linked and all(e['mapping_verified'] and e['release_number'] is not None for e in linked) else []
+                    if row['verified_numbers']:
+                        numbers=sorted(set(row['verified_numbers']))
+                        row['title']='Episode '+', '.join(str(n) for n in numbers)
+                        if row.get('kind')=='SEASON' and any(e['mapping_source']=='MANUAL' and e['numbering_scheme']=='SEASON' for e in linked):
+                            number=season_numbers.get(row['season_id']) or 0
+                            row['subtitle']=f'S{number} / Episode' if number else 'Episode'
+                            row['sort']=(False,number,min(numbers),row['name'].casefold())
+                        else:row['sort']=(*row['sort'][:2],min(numbers),row['sort'][3])
                     row['release_state'] = 'UPCOMING' if 'UPCOMING' in states else 'AIRED' if states and all(s == 'AIRED' for s in states) else 'UNKNOWN'
             if not self.isInterruptionRequested():
+                rows.sort(key=lambda row:row['sort'])
                 self.ready.emit(rows, warnings)
         except Exception as error:
             if not self.isInterruptionRequested():
@@ -184,6 +198,10 @@ class EpisodeDelegate(QStyledItemDelegate):
         painter.save()
         painter.setRenderHint(QPainter.Antialiasing)
         rect = option.rect.adjusted(px(6), px(6), -px(6), -px(6))
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.components.neumorphic import paint_depth
+            rect=option.rect.adjusted(px(10),px(10),-px(10),-px(10));paint_depth(painter,rect)
         last_played = index.data(Qt.UserRole + 1)
         selected = bool(option.state & QStyle.State_Selected)
         hovered = bool(option.state & QStyle.State_MouseOver)
@@ -243,7 +261,7 @@ class EpisodePage(QDialog):
         from app.ui.components.workflow import button
         from app.ui.pages.release_search_page import open_release_search
         action_row=QHBoxLayout();action_row.setSpacing(16)
-        self.find_button=button('Find an episode / download…',lambda:open_release_search(self,self.fid))
+        self.find_button=button('Find an episode / download…',self._find_download)
         from app.ui.icons import icon
         self.find_button.setIcon(icon('downloads',reference_colors()['coral']));action_row.addWidget(self.find_button)
         self.status = QLabel("Finding video files…")
@@ -292,6 +310,8 @@ class EpisodePage(QDialog):
             shortcut = QShortcut(key, self.view)
             shortcut.activated.connect(lambda: self._play(self.view.currentIndex()))
         self._worker = EpisodeWorker(fid)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._worker, 'Finding local episode files')
         self._worker.ready.connect(self._loaded)
         self._worker.failed.connect(self.status.setText)
         self._worker.finished.connect(self._worker.deleteLater)
@@ -378,6 +398,16 @@ class EpisodePage(QDialog):
     def _cancel(self, *args):
         if self._worker:
             self._worker.requestInterruption()
+
+    def _find_download(self):
+        from app.ui.pages.release_search_page import open_release_search
+        index=self.view.currentIndex();row=index.data(Qt.UserRole) if index.isValid() else None
+        context={}
+        if row:
+            season=db.get_season(row['season_id']) or {}
+            context=dict(local_season_id=season.get('id'),season=season.get('season_number'))
+        if context:open_release_search(self,self.fid,context)
+        else:open_release_search(self,self.fid)
 
     def _play(self, index):
         if not index.isValid():

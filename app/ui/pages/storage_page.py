@@ -3,7 +3,7 @@ import json
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QFrame, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QSizePolicy,
+    QAbstractItemView, QSizePolicy, QComboBox,QCheckBox,
 )
 from PyQt5.QtGui import QColor, QPainter, QPainterPath
 from PyQt5.QtCore import QSize, Qt, pyqtSignal, QRectF
@@ -44,6 +44,8 @@ class SegmentedCapacityBar(QWidget):
 
     def paintEvent(self, event):
         colors = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
+        from app.ui.manga_pages import active
+        if active():colors=dict(colors,bg_card_alt='#e2e5ed',accent_secondary='#ff2e93',text_muted='#8e94a8')
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
@@ -91,8 +93,18 @@ class StoragePage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("storage_page")
+        self._storage_page=1;self._storage_payload=[]
         self._setup_ui()
+        self.refresh_home_style()
         self.refresh()
+
+    def refresh_home_style(self):
+        from app.ui.manga_pages import active
+        from app.ui.manga_workflows import qss
+        self.setProperty('animevaultOwnScaledStyle',True)
+        self.setStyleSheet(qss('storage_page') if active() else '')
+        if hasattr(self,'storage_controls'):self.storage_controls.setVisible(active())
+        if getattr(self,'_storage_payload',None):self._render_storage_page()
 
     @staticmethod
     def _label(text, name):
@@ -197,6 +209,13 @@ class StoragePage(QWidget):
         self.reclaim_btn.clicked.connect(lambda: self.filter_requested.emit("RECLAIM"))
         table_head.addWidget(self.reclaim_btn)
         panel_layout.addLayout(table_head)
+        self.storage_controls=QWidget();bar=QHBoxLayout(self.storage_controls);bar.setContentsMargins(0,0,0,0)
+        self.storage_reclaim_only=QCheckBox('Show potential reclaim only');bar.addWidget(self.storage_reclaim_only)
+        self.storage_sort=QComboBox();self.storage_sort.addItems(['Size: high to low','Size: low to high','Title A to Z']);bar.addWidget(self.storage_sort);bar.addStretch()
+        self.storage_previous=self._button('Previous');self.storage_next=self._button('Next');self.storage_position=QLabel()
+        bar.addWidget(self.storage_position);bar.addWidget(self.storage_previous);bar.addWidget(self.storage_next);panel_layout.addWidget(self.storage_controls)
+        self.storage_sort.currentIndexChanged.connect(self._reset_storage_page);self.storage_reclaim_only.toggled.connect(self._reset_storage_page)
+        self.storage_previous.clicked.connect(lambda:self._change_storage_page(-1));self.storage_next.clicked.connect(lambda:self._change_storage_page(1))
         self.table = StorageTable(0, 6)
         self.table.setObjectName("storage_table")
         self.table.setHorizontalHeaderLabels(["Anime", "Seasons / files / size", "Watch status", "Health", "Potential reclaim", "Actions"])
@@ -254,10 +273,28 @@ class StoragePage(QWidget):
         self.card_reclaim.findChild(QLabel, "val_label").setText(reclaim)
         self.reclaim_btn.setToolTip(f"Show watched titles with {reclaim} potentially reclaimable")
         records = [f for f in db.get_all_franchises(sort_by="total_size_bytes", sort_order="DESC") if f.get("storage_state") in ("ON_DISK", "PARTIALLY_ON_DISK")]
+        self._storage_payload=[]
+        for record in records:
+            seasons=db.get_seasons_for_franchise(record['id'])
+            health=snapshot['storage_health'][record['id']] if snapshot and record['id'] in snapshot.get('storage_health',{}) else self._health(record,seasons)
+            self._storage_payload.append((record,seasons,health))
+        self._render_storage_page()
+
+    def _reset_storage_page(self,*_):self._storage_page=1;self._render_storage_page()
+    def _change_storage_page(self,delta):self._storage_page=max(1,self._storage_page+delta);self._render_storage_page()
+    def _render_storage_page(self):
+        from app.ui.manga_pages import active
+        payload=list(self._storage_payload)
+        if active():
+            if self.storage_reclaim_only.isChecked():payload=[p for p in payload if p[0].get('watch_status')=='WATCHED' and p[0].get('total_size_bytes',0)>0]
+            sort=self.storage_sort.currentIndex();payload.sort(key=(lambda p:p[0].get('display_title','').casefold()) if sort==2 else lambda p:p[0].get('total_size_bytes') or 0,reverse=sort==0)
+            pages=max(1,(len(payload)+3)//4);self._storage_page=min(self._storage_page,pages)
+            self.storage_position.setText(f'{len(payload)} collections · Page {self._storage_page} / {pages}')
+            self.storage_previous.setEnabled(self._storage_page>1);self.storage_next.setEnabled(self._storage_page<pages)
+            payload=payload[(self._storage_page-1)*4:self._storage_page*4]
         self.table.setUpdatesEnabled(False)
-        self.table.setRowCount(len(records))
-        for row, record in enumerate(records):
-            seasons = db.get_seasons_for_franchise(record["id"])
+        self.table.setRowCount(len(payload))
+        for row, (record,seasons,health_data) in enumerate(payload):
             files = sum(len(json.loads(s.get("video_files_json") or "[]")) for s in seasons)
             size = format_bytes(record.get("total_size_bytes") or 0)
             self.table.setRowHeight(row, 80)
@@ -269,7 +306,7 @@ class StoragePage(QWidget):
             self._text_cell(row, 1, f"{len(seasons)} seasons \u00b7 {size}\n{files:,} files")
             watch = {"WATCHED": "Watched", "WATCHING": "Watching", "PLAN_TO_WATCH": "Plan to watch", "DROPPED": "Dropped"}.get(record.get("watch_status"), (record.get("watch_status") or "Not set").replace("_", " ").title())
             self._text_cell(row, 2, watch)
-            health, detail, tone = snapshot['storage_health'][record['id']] if snapshot and record['id'] in snapshot.get('storage_health',{}) else self._health(record, seasons)
+            health, detail, tone = health_data
             self._text_cell(row, 3, health, detail, tone)
             self._text_cell(row, 4, size if record.get("watch_status") == "WATCHED" else "\u2014")
             actions = QWidget()
@@ -278,7 +315,7 @@ class StoragePage(QWidget):
             box.setSpacing(8)
             for text, callback in (("Open", lambda checked=False, fid=record["id"]: self.anime_clicked.emit(fid)), ("Delete...", lambda checked=False, fid=record["id"]: self._delete_anime(fid))):
                 button = self._button(text)
-                button.setMinimumWidth(76)
+                button.setMinimumWidth(96)
                 button.setObjectName("storage_delete" if text.startswith("Delete") else "storage_open")
                 button.clicked.connect(callback)
                 box.addWidget(button)
@@ -286,6 +323,8 @@ class StoragePage(QWidget):
         self.table.resizeColumnsToContents()
         self.table.fit_title()
         self.table.setUpdatesEnabled(True)
+        from app.ui.manga_workflows import finish
+        finish(self)
 
     @staticmethod
     def _health(record, seasons):
@@ -311,6 +350,7 @@ class StoragePage(QWidget):
         box.setContentsMargins(8, 8, 8, 8)
         label = self._label(text, "storage_pill" if tone else "storage_cell_text")
         label.setToolTip(tooltip or text)
+        label.ensurePolished();label.setMinimumWidth(max(label.sizeHint().width()+16,label.fontMetrics().horizontalAdvance(text.split('\n')[0])+48))
         if tone:
             label.setProperty("tone", tone)
         box.addWidget(label, 0, Qt.AlignVCenter)

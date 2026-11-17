@@ -29,6 +29,8 @@ def unified(root):
             from PyQt5.QtWidgets import QApplication
             scale=QApplication.instance().property('animevaultScale') or 1
             selector=root(*args,**kwargs) if callable(root) else root
-            return function(*args,**kwargs)+rules(selector,scale=scale)
+            result=function(*args,**kwargs)
+            from app.ui.manga_pages import active
+            return result if active() else result+rules(selector,scale=scale)
         return styled
     return decorate

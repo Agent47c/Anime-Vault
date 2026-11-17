@@ -4,6 +4,10 @@ from app.ui.home_style import px,load_fonts
 
 
 def style(name):
+    from app.ui.manga_pages import active
+    if active():
+        from app.ui.manga_additional import qss
+        return qss(name)
     load_fonts();c=reference_colors();r=f'QWidget#{name}'
     background=c['raised'] if name=='season_numbers' else c['bg']
     return f'''

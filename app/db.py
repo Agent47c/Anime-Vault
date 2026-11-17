@@ -205,30 +205,55 @@ def set_state(key: str, value: str):
 # ---------------------------------------------------------------------------
 # watched_directories CRUD
 # ---------------------------------------------------------------------------
+def normalized_watched_path(folder_path):
+    """Lexical normalization: no drive access, symlink resolution or scanning."""
+    import ntpath
+    value=os.fsdecode(folder_path).strip()
+    if not value:raise ValueError('Choose a library folder first.')
+    if ntpath.splitdrive(value)[0]:
+        if not ntpath.isabs(value):raise ValueError('Choose an absolute library folder.')
+        return ntpath.normpath(value)
+    return os.path.normpath(os.path.abspath(os.path.expanduser(value)))
+
+
+def watched_path_key(folder_path):
+    import ntpath
+    value=normalized_watched_path(folder_path)
+    return ntpath.normcase(value) if ntpath.splitdrive(value)[0] else os.path.normcase(value)
+
+
 def add_watched_directory(folder_path: str, auto_organize: bool = True) -> int:
-    conn = get_connection()
-    cur = conn.execute(
-        "INSERT OR IGNORE INTO watched_directories (folder_path, auto_organize_seasons) VALUES (?, ?)",
-        (folder_path, auto_organize),
-    )
-    conn.commit()
-    row_id = cur.lastrowid
-    conn.close()
-    return row_id
+    normalized=normalized_watched_path(folder_path);key=watched_path_key(normalized)
+    with closing(get_connection()) as conn,conn:
+        conn.execute('BEGIN IMMEDIATE')
+        for row in conn.execute('SELECT id,folder_path FROM watched_directories ORDER BY id'):
+            if watched_path_key(row['folder_path'])==key:return row['id']
+        return conn.execute('INSERT INTO watched_directories(folder_path,auto_organize_seasons) VALUES (?,?)',(normalized,auto_organize)).lastrowid
 
 
 def get_watched_directories() -> List[Dict[str, Any]]:
     conn = get_connection()
     rows = conn.execute("SELECT w.*, COALESCE(s.state,'UNSCANNED') AS availability,s.error AS scan_error FROM watched_directories w LEFT JOIN scan_roots s ON s.root_id=w.id ORDER BY w.folder_path").fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    grouped={}
+    for row in sorted(rows,key=lambda r:r['id']):
+        item=dict(row);key=watched_path_key(item['folder_path'])
+        if key not in grouped:
+            item['folder_path']=normalized_watched_path(item['folder_path']);grouped[key]=item
+        elif (item.get('last_scanned_at') or '')>(grouped[key].get('last_scanned_at') or ''):
+            for field in ('last_scanned_at','availability','scan_error'):grouped[key][field]=item[field]
+    return sorted(grouped.values(),key=lambda r:r['folder_path'].lower())
 
 
 def remove_watched_directory(dir_id: int):
-    conn = get_connection()
-    conn.execute("DELETE FROM watched_directories WHERE id = ?", (dir_id,))
-    conn.commit()
-    conn.close()
+    with closing(get_connection()) as conn,conn:
+        selected=conn.execute('SELECT folder_path FROM watched_directories WHERE id=?',(dir_id,)).fetchone()
+        if not selected:return
+        key=watched_path_key(selected[0])
+        identifiers=[row['id'] for row in conn.execute('SELECT id,folder_path FROM watched_directories') if watched_path_key(row['folder_path'])==key]
+        for identifier in identifiers:
+            conn.execute('DELETE FROM scan_files WHERE root_id=?',(identifier,))
+            conn.execute('DELETE FROM watched_directories WHERE id=?',(identifier,))
 
 
 def update_watched_directory_scan_time(dir_id: int):
@@ -550,8 +575,13 @@ def upsert_season(data: Dict[str, Any]) -> int:
 def get_seasons_for_franchise(fid: int) -> List[Dict[str, Any]]:
     snapshot=current_refresh_view()
     if snapshot is not None and 'season_rows' in snapshot:
-        rows=[dict(row) for row in snapshot['season_rows'] if row['franchise_id']==fid]
-        return sorted(rows,key=lambda s:((10000 if s.get('relation_type')=='SEASON' and not s.get('season_number') else s.get('season_number') or 0),s.get('relation_type') or ''))
+        source=snapshot['season_rows'];version=(id(source),len(source))
+        if snapshot.get('_season_owner_version')!=version:
+            grouped={}
+            for row in source:grouped.setdefault(row['franchise_id'],[]).append(row)
+            for rows in grouped.values():rows.sort(key=lambda s:((10000 if s.get('relation_type')=='SEASON' and not s.get('season_number') else s.get('season_number') or 0),s.get('relation_type') or ''))
+            snapshot['_season_owner_index']=grouped;snapshot['_season_owner_version']=version
+        return [dict(row) for row in snapshot['_season_owner_index'].get(fid,[])]
     conn = get_connection()
     rows = conn.execute(
         "SELECT * FROM seasons WHERE franchise_id = ? ORDER BY CASE WHEN relation_type='SEASON' AND (season_number=0 OR season_number IS NULL) THEN 10000 ELSE season_number END, relation_type",

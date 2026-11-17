@@ -18,8 +18,10 @@ class ReleaseAdditions(unittest.TestCase):
         db.upsert_season({'franchise_id':self.fid,'anilist_id':21,'season_number':1,'title_display':'One Piece'})
         context={'continuous':True,'local':{},'pending':[]}
         entries=[{'status':'Match Uncertain','episode_keys':['EPISODE:ABS:7'],'seeders':999},{'status':'Missing — Release Found','episode_keys':['EPISODE:ABS:7','EPISODE:ABS:8'],'seeders':999},{'status':'Missing — Release Found','episode_keys':['EPISODE:ABS:7'],'seeders':1}]
-        with patch.object(discovery,'library_context',return_value=context),patch.object(discovery,'sources',return_value=[{'name':'Source','url':'https://example.test/?q={query}'}]),patch.object(discovery,'search',return_value={'results':entries}),patch.object(discovery,'submit') as submit,patch.object(download_queries,'default_query',return_value='One Piece'):
-            actions.auto_grab(self.fid,21,7);self.assertEqual(submit.call_args.args[1],[entries[2]])
+        from app.core import download_assignment
+        learned=dict(season=1,continuous=True,target_episode=7,source_episode=7,query='One Piece 07')
+        with patch.object(download_assignment,'next_search',return_value=learned),patch.object(discovery,'sources',return_value=[{'name':'Source','url':'https://example.test/?q={query}'}]),patch.object(discovery,'search',return_value={'context':context,'results':entries}),patch.object(discovery,'submit') as submit:
+            result=actions.auto_grab(self.fid,21,7);submit.assert_not_called();self.assertEqual(result['results'],entries)
     def test_announced_discovery_has_no_invented_date_bounds(self):
         from app.core import release_news as news
         with patch.object(news,'cached',return_value={'Page':{'media':[],'pageInfo':{}}}) as call:

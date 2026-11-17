@@ -4,6 +4,20 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QAbstractAnimatio
 from PyQt5.QtWidgets import QScrollArea
 
 
+class HorizontalStrip(QScrollArea):
+    """A single row: wheel input moves across cards, never within their height."""
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    def wheelEvent(self,event):
+        pixels=event.pixelDelta();angles=event.angleDelta()
+        delta=(pixels.x() or pixels.y()) if not pixels.isNull() else (angles.x() or angles.y())
+        bar=self.horizontalScrollBar();previous=bar.value()
+        bar.setValue(previous-delta)
+        if previous!=bar.value():event.accept()
+        else:event.ignore()
+
+
 class SmoothScrollArea(QScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent)

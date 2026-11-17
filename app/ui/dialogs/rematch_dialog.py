@@ -8,10 +8,8 @@ from typing import List, Dict
 from pathlib import Path
 from difflib import SequenceMatcher
 
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QComboBox, QScrollArea, QWidget, QFrame, QProgressBar, QMessageBox, QSizePolicy, QCheckBox, QRadioButton, QButtonGroup,
-)
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QLineEdit,QComboBox,QScrollArea,QWidget,QFrame,QProgressBar,QSizePolicy,QCheckBox,QRadioButton,QButtonGroup
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtGui import QPixmap, QColor, QPainter
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QRectF
 
@@ -175,7 +173,15 @@ class RematchDialog(DrawerDialog):
         if not self.selection_only:
             self.setObjectName('metadata_rematch')
             from app.ui.five_screen_style import qss
+            self.refresh_home_style()
+
+    def refresh_home_style(self):
+        if not self.selection_only:
+            from app.ui.five_screen_style import qss
             self.setStyleSheet(qss('metadata_rematch'))
+            from app.ui.manga_pages import active
+            from app.ui.components.manga_dots import update_dots
+            update_dots(self.findChild(QWidget,'workflow_body'),active())
 
     def _on_search_clicked(self):
         query = self.search_input.text().strip()
@@ -209,6 +215,8 @@ class RematchDialog(DrawerDialog):
 
 
         self._search_worker = AniListSearchWorker(query)
+        from app.ui.components.operation_progress import watch
+        watch(self,self._search_worker,'Searching AniList metadata')
         self._search_worker.generation = self._search_generation
         self._search_worker.results_ready.connect(self._search_results)
         self._search_worker.error_occurred.connect(self._search_error)

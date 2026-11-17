@@ -148,10 +148,20 @@ def timeline(media_id,page=1,force=False,cache_info=None):
     if (result.get('Media') or {}).get('id') not in (None,media_id):raise ValueError('AniList returned a different release. Refresh this selected anime again.')
     return result
 
+def library_owners():
+    """Exact provider identity only, including releases linked under another series."""
+    from contextlib import closing
+    with closing(db.get_connection()) as conn:
+        owners={row['anilist_id']:row['id'] for row in conn.execute('SELECT id,anilist_id FROM franchises WHERE anilist_id IS NOT NULL ORDER BY id')}
+        for row in conn.execute('SELECT anilist_id,franchise_id FROM seasons WHERE anilist_id IS NOT NULL ORDER BY id'):
+            owners.setdefault(row['anilist_id'],row['franchise_id'])
+    return owners
+
+
 def import_watching(media):
     # Existing library data and manually matched releases must remain intact.
-    existing=db.get_franchise_by_anilist_id(media['id'])
-    if existing:return existing['id'],False
+    existing=library_owners().get(media['id'])
+    if existing is not None:return existing,False
     data=api.extract_franchise_data(media);data.update(watch_status='WATCHING',storage_state='NOT_DOWNLOADED')
     fid=db.upsert_franchise(data)
     db.upsert_season(api.extract_season_data(media,fid))

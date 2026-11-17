@@ -24,6 +24,8 @@ class ExperienceFollowupTests(unittest.TestCase):
     def test_picker_presets_and_custom_do_not_round_user_limit(self):
         from app.ui.components.rate_limit import RateLimitPicker
         widget=RateLimitPicker();self.addCleanup(widget.deleteLater)
+        self.assertEqual(widget.presets.maxVisibleItems(),6)
+        self.assertEqual([widget.presets.itemData(i) for i in range(widget.presets.count())],[0,512,1024,1536,2048,2560,3072,None])
         for value in (0,512,1024,1536,2000,15):widget.setValue(value);self.assertEqual(widget.value(),value)
         widget.custom.clear()
         with self.assertRaises(ValueError):widget.value()
@@ -35,6 +37,19 @@ class ExperienceFollowupTests(unittest.TestCase):
         MainWindow._save_geometry(first);MainWindow._restore_geometry(second)
         self.assertEqual(db.get_state('window_maximized'),'1');self.assertTrue(second.isMaximized())
         first.hide();second.hide()
+
+    def test_shared_header_menu_anchors_to_visible_button(self):
+        from PyQt5.QtWidgets import QWidget,QPushButton
+        from PyQt5.QtCore import QPoint
+        from app.ui.components.vault_menu import VaultMenu
+        host=QWidget();host.resize(760,600);self.addCleanup(host.deleteLater)
+        old=QPushButton(host);old.move(100,50);old.hide()
+        visible=QPushButton(host);visible.setGeometry(700,50,44,44)
+        menu=VaultMenu(old);menu.add_item('Settings',lambda:None);menu.anchor_widget=visible
+        host.show();menu.popup(visible.mapToGlobal(QPoint(0,44)));QTest.qWait(30)
+        self.assertGreater(menu.x(),host.mapToGlobal(QPoint(300,0)).x())
+        self.assertLessEqual(menu.geometry().right(),menu._bounds().right())
+        menu.close();host.hide()
 
     def test_full_profile_restores_all_db_state_resume_and_optional_caches(self):
         from app.core import profile_backup as backup,builtin_torrents

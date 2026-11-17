@@ -12,6 +12,11 @@ def format_bytes(value):
     return f"{value:,} B"
 
 
+def format_rate(value):
+    """Transfer rates in KB/s; file sizes retain their separate formatting."""
+    return f'{max(0,value or 0)/1024:,.2f} KB/s'
+
+
 def disk_snapshot():
     snapshot = db.current_refresh_view()
     if snapshot is not None:

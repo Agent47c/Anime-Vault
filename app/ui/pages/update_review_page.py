@@ -1,7 +1,7 @@
 """Saved update details with a scoped, asynchronous Refresh data action."""
 from PyQt5 import sip
 from PyQt5.QtCore import Qt,QTimer,pyqtSignal
-from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QProgressBar
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QProgressBar,QComboBox
 from app.ui.io_task import IOTask,track
 
 
@@ -12,6 +12,7 @@ class UpdateReviewPage(QDialog):
     def __init__(self,parent,title,changes,identifiers,franchise_id=None):
         super().__init__(parent)
         self.identifiers=tuple(identifiers);self._worker=None;self._closed=False
+        self._ignored_entries=set()
         self.franchise_id=franchise_id if franchise_id is not None else next(iter(self.identifiers),None)
         self.setObjectName('update_changes');self.setProperty('animevaultOwnScaledStyle',True)
         self.setWindowTitle('View changes');self.setProperty('navigationTitle',title+' / View changes')
@@ -24,8 +25,10 @@ class UpdateReviewPage(QDialog):
         self.refresh_button.clicked.connect(lambda:self.load(True));header.addWidget(self.refresh_button);outer.addLayout(header)
         self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.setTextVisible(False);self.progress.setFixedHeight(4);self.progress.hide();outer.addWidget(self.progress)
         self.status=QLabel('Saved updates');self.status.setTextFormat(Qt.PlainText);self.status.setWordWrap(True);outer.addWidget(self.status)
+        tools=QHBoxLayout();section=QLabel('Detected Releases & Updates');section.setObjectName('workflow_row_title');tools.addWidget(section,1)
+        self.change_sort=QComboBox();self.change_sort.addItems(['Saved order','Release date: newest first','Release date: earliest first']);self.change_sort.setAccessibleName('Sort detected changes');self.change_sort.currentIndexChanged.connect(lambda:self.render(getattr(self,'_changes',[])));tools.addWidget(self.change_sort);outer.addLayout(tools)
         scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setFrameShape(QFrame.NoFrame);scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        content=QWidget();content.setObjectName('transfer_clear');self.rows=QVBoxLayout(content);scroll.setWidget(content);outer.addWidget(scroll,1)
+        content=QWidget();content.setObjectName('transfer_clear');self.rows=QVBoxLayout(content);self.rows.setSpacing(16);scroll.setWidget(content);outer.addWidget(scroll,1)
         self.render(changes)
         close=QPushButton('Close');close.setCursor(Qt.PointingHandCursor);close.clicked.connect(self.accept);outer.addWidget(close,0,Qt.AlignRight)
         if self.identifiers:QTimer.singleShot(0,lambda:self.load(False))
@@ -44,19 +47,54 @@ class UpdateReviewPage(QDialog):
         navigate(dialog)
 
     def render(self,changes):
+        self._changes=list(changes)
         while self.rows.count():
             item=self.rows.takeAt(0)
             if item.widget():item.widget().deleteLater()
         if not changes:
             label=QLabel('No saved changes are available yet. Select Refresh data to check this anime for updates.')
             label.setWordWrap(True);self.rows.addWidget(label)
-        for change in changes:
+        entries=[e for e in getattr(self,'_entries',[]) if (e['fid'],e['raw']) not in self._ignored_entries]
+        ordered=sorted(entries,key=lambda e:tuple(e.get('date') or (0,0,0)),reverse=self.change_sort.currentIndex()==1) if self.change_sort.currentIndex() else entries
+        displayed=[(entry['text'],entry) for entry in ordered] if hasattr(self,'_entries') else [(change,None) for change in changes]
+        for change,entry in displayed:
             name,separator,status=change.partition(' — ')
-            box=QFrame();box.setObjectName('transfer_panel');row=QVBoxLayout(box)
+            from app.ui.components.paper_card import PaperCard
+            box=PaperCard();box.setObjectName('change_card');box.setStyleSheet('background:transparent;border:none;');row=QVBoxLayout(box);row.setContentsMargins(24,22,24,22)
+            from app.ui.manga_pages import active
+            if not active():box.setObjectName('transfer_panel');box.setStyleSheet('');row.setContentsMargins(9,9,9,9)
             for value in (name,status) if separator else (name,):
                 label=QLabel(value);label.setTextFormat(Qt.PlainText);label.setWordWrap(True);row.addWidget(label)
             self.rows.addWidget(box)
+            if entry:
+                actions=QHBoxLayout();actions.addStretch()
+                find=QPushButton('Find release');
+                from app.ui.icons import icon
+                find.setIcon(icon('search','#596175')); find.clicked.connect(lambda checked=False,e=entry:self.find_release(e));actions.addWidget(find)
+                ignore=QPushButton('Ignore');ignore.clicked.connect(lambda checked=False,e=entry:self.ignore_release(e));actions.addWidget(ignore);row.addLayout(actions)
         self.rows.addStretch()
+        from app.ui.manga_workflows import finish
+        finish(self)
+
+    def find_release(self,entry):
+        from app.ui.pages.release_search_page import ReleaseSearchPage
+        from app.ui.navigation import navigate
+        page=ReleaseSearchPage(self,entry['fid'],entry.get('assignment_context'))
+        if entry.get('title'):page.query.setText(entry['title'])
+        navigate(page)
+
+    def ignore_release(self,entry):
+        from app.core.update_review import ignore_entry
+        key=(entry['fid'],entry['raw']);self._ignored_entries.add(key)
+        worker=IOTask(lambda:ignore_entry(entry['fid'],entry['raw']));track(worker)
+        def done(_):
+            if sip.isdeleted(self) or self._closed:return
+            self._entries=[e for e in self._entries if (e['fid'],e['raw'])!=(entry['fid'],entry['raw'])]
+            self.render([e['text'] for e in self._entries]);self.refreshed.emit()
+        def failed(message):
+            self._ignored_entries.discard(key)
+            if not sip.isdeleted(self) and not self._closed:self.status.setText('Could not ignore this release: '+message)
+        worker.succeeded.connect(done);worker.failed.connect(failed);worker.finished.connect(worker.deleteLater);worker.start()
 
     def load(self,refresh):
         if self._closed or self._worker is not None:return
@@ -72,6 +110,7 @@ class UpdateReviewPage(QDialog):
         if global_progress is not None:global_progress.begin(progress_key,'Checking anime updates…')
         def ready(result):
             if sip.isdeleted(self) or self._closed:return
+            self._entries=result.get('entries',[])
             self.render(result['changes'])
             self.status.setText(' · '.join(result['warnings']) or ('Update check complete.' if refresh else 'Saved updates loaded.'))
             if result['refreshed']:self.refreshed.emit()

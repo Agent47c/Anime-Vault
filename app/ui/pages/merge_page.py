@@ -94,6 +94,8 @@ class MergePage(QWidget):
     def refresh_home_style(self):
         from app.ui.merge_duplicate_style import qss
         self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(qss('merge_page'))
+        from app.ui.manga_workflows import finish
+        finish(self)
 
     @staticmethod
     def _label(value, role="merge_hint"):
@@ -172,9 +174,12 @@ class MergePage(QWidget):
         destination, dest_layout = self._panel("Destination library", "Every selected anime moves into this folder.")
         dest_row = QHBoxLayout()
         dest_row.setSpacing(8)
-        self.destination = QLineEdit(db.get_state('merge_destination', r'E:\Anime Library'))
+        from app.core.downloads import library_root
+        self.destination = QLineEdit(library_root() or '')
+        self.destination.setPlaceholderText('Choose your main library folder')
         self.destination.setAccessibleName("Destination library")
         self.destination.textChanged.connect(self.invalidate)
+        self.destination.editingFinished.connect(self._remember_destination)
         dest_row.addWidget(self.destination, 1)
         self.browse = self._button("Browse...", self.choose_destination)
         dest_row.addWidget(self.browse)
@@ -318,6 +323,11 @@ class MergePage(QWidget):
         folder = QFileDialog.getExistingDirectory(self, 'Choose destination library')
         if folder:
             self.destination.setText(folder)
+            self._remember_destination()
+
+    def _remember_destination(self):
+        folder=self.destination.text().strip()
+        if folder and Path(folder).is_absolute():db.set_state('library.main_root',folder)
 
     def busy(self):
         return any(worker and worker.isRunning() for worker in (self._merge_worker, self._merge_plan_worker))
@@ -344,6 +354,8 @@ class MergePage(QWidget):
         self.progress.setRange(0, 0)
         self.status.setText('Reading source folders and preparing the preview…')
         self._merge_plan_worker = MergePlanWorker(roots, self.destination.text().strip())
+        from app.ui.components.operation_progress import watch
+        watch(self, self._merge_plan_worker, 'Reading library folders')
         self._merge_plan_worker.ready.connect(self.plan_ready)
         self._merge_plan_worker.failed.connect(self.failed)
         self._merge_plan_worker.start()
@@ -351,6 +363,7 @@ class MergePage(QWidget):
     def plan_ready(self, payload):
         self.plan = payload['plan']
         db.set_state('merge_destination', self.plan['destination'])
+        db.set_state('library.main_root', self.plan['destination'])
         self.set_busy(False)
         self.render()
         errors = self.plan['errors']
@@ -474,6 +487,8 @@ class MergePage(QWidget):
         self.progress.setValue(0)
         self.status.setText('Backing up the database and validating selected files…')
         self._merge_worker = MergeWorker(subset)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._merge_worker, 'Merging library files', progress=self._merge_worker.progress, order='counts_first', major=True)
         self._merge_worker.progress.connect(self.on_progress)
         self._merge_worker.completed.connect(self.completed)
         self._merge_worker.failed.connect(self.failed)

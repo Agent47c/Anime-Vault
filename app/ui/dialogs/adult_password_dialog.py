@@ -29,8 +29,11 @@ class AdultPasswordDialog(QDialog):
         super().__init__(parent)
         self.mode = mode
         self.setWindowTitle("Adult Content Access")
+        self.setObjectName('adult_access')
         self.setMinimumWidth(px(460))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        from app.ui.manga_pages import active
+        if active():self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         self._build_ui()
         self._apply_style()
@@ -39,6 +42,15 @@ class AdultPasswordDialog(QDialog):
         root = QVBoxLayout(self)
         root.setContentsMargins(px(24), px(24), px(24), px(24))
         root.setSpacing(px(16))
+        self.access_header=QWidget();self.access_header.setObjectName('adult_header');header=QHBoxLayout(self.access_header);header.setContentsMargins(0,0,0,0)
+        from app.ui.manga_pages import active
+        if active():
+            from PyQt5.QtGui import QIcon
+            from pathlib import Path
+            mark=QLabel();mark.setPixmap(QIcon(str(Path(__file__).resolve().parents[3]/'assets'/'app.ico')).pixmap(18,18));header.addWidget(mark)
+        kicker=QLabel('Adult Content Access');kicker.setObjectName('adult_kicker');header.addWidget(kicker,1)
+        from app.ui.components.close_button import CloseButton
+        close=CloseButton();close.clicked.connect(self.reject);header.addWidget(close);root.addWidget(self.access_header)
 
         # Header
         self.title_label = QLabel()
@@ -68,6 +80,12 @@ class AdultPasswordDialog(QDialog):
         self.actions_layout = QHBoxLayout()
         self.actions_layout.setSpacing(px(10))
         root.addLayout(self.actions_layout)
+        from app.ui.manga_pages import active
+        if active():
+            from PyQt5.QtWidgets import QSizePolicy
+            self.access_header.setFixedHeight(28)
+            for label in (self.title_label,self.subtitle_label):label.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
+            self.content_widget.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
 
         self._switch_mode(self.mode)
 
@@ -99,6 +117,10 @@ class AdultPasswordDialog(QDialog):
             self._setup_recover_view()
         elif mode == self.MODE_CHANGE:
             self._setup_change_view()
+        self._modal_initial_focus=(getattr(self,'pwd_input',None) if mode==self.MODE_UNLOCK else
+                                   getattr(self,'curr_pwd',None) if mode==self.MODE_CHANGE else
+                                   getattr(self,'new_pwd_input',None) if mode==self.MODE_SET_INITIAL else
+                                   next(iter(getattr(self,'answer_inputs',[])),None))
 
     def _create_line_edit(self, placeholder: str, is_password: bool = True) -> QLineEdit:
         edit = QLineEdit()
@@ -116,6 +138,10 @@ class AdultPasswordDialog(QDialog):
         self.subtitle_label.setText("Enter your PIN or password to display adult titles in the library and updates.")
 
         self.pwd_input = self._create_line_edit("Enter password")
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.icons import icon
+            self.pwd_input.addAction(icon('lock','#8e95a5'),QLineEdit.TrailingPosition).setEnabled(False)
         self.pwd_input.returnPressed.connect(self._handle_unlock)
         self.content_layout.addWidget(self.pwd_input)
 
@@ -378,7 +404,16 @@ class AdultPasswordDialog(QDialog):
     # -------------------------------------------------------------------------
     # Styling
     # -------------------------------------------------------------------------
+    def refresh_home_style(self):self._apply_style()
+
     def _apply_style(self):
+        from app.ui.manga_pages import active
+        self.access_header.setVisible(active())
+        if active():
+            from app.ui.manga_additional import qss
+            from app.ui.components.compact_modal import install,modal_qss
+            install(self,480,'成人' if self.mode==self.MODE_UNLOCK else '暗号')
+            self.setStyleSheet(qss('adult_access')+modal_qss('adult_access'));return
         c = colors()
         bg = c.get("bg", "#14121d")
         panel = c.get("panel", "#1c1a27")

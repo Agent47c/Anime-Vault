@@ -3,6 +3,7 @@ import time
 import json
 from pathlib import Path
 from app.core import downloads as service
+from app.core.season_paths import season_folder_name
 
 STATUSES=('Queued','Downloading','Paused','Stopped','Completed','Seeding','Failed','Incomplete or missing files')
 
@@ -33,6 +34,8 @@ def bulk_action(command,identifiers,cancelled=lambda:False):
 def status(item):
     if item.get('integrity_missing'): return 'Incomplete or missing files'
     if item.get('library_moved') and item.get('indexed'):return 'Completed'
+    if item.get('retired_for_redownload') and item.get('indexed'):return 'Completed'
+    if item.get('transfer_stopped') and item.get('indexed'):return 'Completed'
     value=item.get('status','').lower()
     if item.get('desired') in ('cancelled','stopped'): return 'Stopped'
     if 'missingfiles' in value:return 'Incomplete or missing files' if item.get('completed_once') or item.get('indexed') else 'Failed'
@@ -114,7 +117,7 @@ def retry_external(item):
         if other.get('replaces_external')==item['id']:
             raise ValueError('This entry was already retried with Anime Vault. Use the newer download.')
     context={'title':item.get('release_title'),'episode_keys':item.get('episode_keys') or [],
-             'source':item.get('source_name'),'quality':item.get('quality'),'group':item.get('group'),'season':item.get('season')}
+             'source':item.get('source_name'),'quality':item.get('quality'),'group':item.get('group'),'season':item.get('season'),'continuous':item.get('continuous')}
     # Ignore only the replaced record during duplicate checks. Other jobs remain
     # protected. Keep its old location excluded from ordinary partial-file scans.
     from app import db
@@ -128,7 +131,7 @@ def retry_external(item):
     with closing(db.get_connection()) as conn,conn:
         conn.execute('INSERT OR IGNORE INTO library_series(franchise_id) VALUES (?)',(item['fid'],))
         series_id=conn.execute('SELECT id FROM library_series WHERE franchise_id=?',(item['fid'],)).fetchone()[0]
-    item.update(engine='builtin',series_id=series_id,legacy_destination=original.get('destination'),root=str(root),destination=str(root/(f"Season {item['season']:02}" if item.get('season') else 'Episodes')),desired='running',selection_confirmed=True,selected_files=None,indexed=False,submission_confirmed=False,status='Fetching torrent metadata',source_ref=source)
+    item.update(engine='builtin',series_id=series_id,legacy_destination=original.get('destination'),root=str(root),destination=str(root/(season_folder_name(item['season']) if item.get('season') else 'Episodes')),desired='running',selection_confirmed=True,selected_files=None,indexed=False,submission_confirmed=False,status='Fetching torrent metadata',source_ref=source)
     from app.core.builtin_torrents import engine
     try:
         adapter=engine(config);params=adapter.prepare(item,source)
@@ -148,13 +151,22 @@ def action(identifier,command):
     with service._lock:
         items=service.jobs();item=next((i for i in items if i['id']==identifier),None)
         if item is None: raise ValueError('Download entry no longer exists.')
+        complete=item.get('indexed') and not item.get('integrity_missing') and (item.get('status') or '').lower() not in ('checking files','fetching torrent metadata','downloading')
+        if command=='stop' and complete and (status(item) in ('Completed','Seeding') or item.get('desired') in ('cancelled','stopped')):
+            from app.core.builtin_torrents import active,restart_failed,engine
+            if item.get('engine')=='builtin' and active():
+                restart_failed()
+                if active():engine(service.settings()).snapshot({**item,'desired':'cancelled'})
+            item.update(desired='cancelled',status='Completed',transfer_stopped=True,download_rate=0,upload_rate=0,eta=None)
+            service._save_jobs(items)
+            return 'Download completed. Seeding stopped; all files were kept.'
         if item.get('library_moved') and command not in ('remove','stop'):raise ValueError('These files are in the library. Open their anime details to play or repair them.')
         if item.get('engine')!='builtin':
             if command=='retry': return retry_external(item)
             if command not in ('remove','stop'):
                 raise ValueError('This entry belongs to the removed external client. Use Retry to create an Anime Vault download.')
         if command in ('resume','retry'):
-            item.pop('retry_after',None);item['selection_confirmed']=True;service._save_jobs(items)
+            item.pop('retry_after',None);item.pop('transfer_stopped',None);item['selection_confirmed']=True;service._save_jobs(items)
         builtin=item.get('engine')=='builtin'
         if builtin:
             if command in ('retry','resume'):

@@ -2,10 +2,11 @@
 from pathlib import Path
 from PyQt5.QtCore import Qt,QAbstractTableModel,QModelIndex,QTimer,QUrl
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QWidget,QFrame,QScrollArea,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QComboBox,QTableView,QHeaderView,QAbstractItemView,QMessageBox,QMenu,QInputDialog,QLineEdit,QSpinBox,QAbstractSpinBox,QGridLayout,QFileDialog
+from PyQt5.QtWidgets import QWidget,QFrame,QScrollArea,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QComboBox,QTableView,QHeaderView,QAbstractItemView,QMenu,QInputDialog,QLineEdit,QSpinBox,QAbstractSpinBox,QGridLayout,QFileDialog
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core import downloads,download_queue
-from app.core.storage import format_bytes
+from app.core.storage import format_bytes,format_rate
 from app.ui.io_task import IOTask,track,start
 from app.ui.downloads import monitor,TorrentFilesDrawer,open_downloads
 from app.ui.download_setup import open_setup
@@ -31,7 +32,7 @@ class QueueModel(QAbstractTableModel):
         size=(format_bytes(downloaded) if downloaded is not None else '—')+' / '+(format_bytes(total) if total is not None else '—')
         eta=item.get('eta');remaining=f'{eta//60}m {eta%60}s' if isinstance(eta,int) and 0<=eta<8640000 else '—'
         values=[item['title']+('\n'+item['release_title'] if item.get('release_title') else ''),label,f"{progress:.0%}",size,
-                format_bytes(item.get('download_rate') or 0)+'/s',remaining,download_queue.status(item)]
+                format_rate(item.get('download_rate')),remaining,download_queue.status(item)]
         if role==Qt.ToolTipRole:return '\n'.join([str(v) for v in values]+[item['destination'],item.get('integrity_error') or '', 'Select this transfer to use the Pause, Resume, Stop, Retry, Choose files and More controls.'])
         return values[index.column()]
 
@@ -68,13 +69,16 @@ class DownloadsPage(QWidget):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu);self.table.customContextMenuRequested.connect(self.row_menu)
         self.table.setAccessibleName('Saved downloads and transfer activity');queue_box.addWidget(self.table,1)
         self.empty=QLabel('No downloads yet. Start with Setup Guide, or open an anime and choose Find Download Files.');self.empty.setWordWrap(True);queue_box.addWidget(self.empty)
-        self.guide=QFrame();self.guide.setObjectName('transfer_panel');self.guide.setMinimumWidth(280);self.guide.setMaximumWidth(400);guide=QVBoxLayout(self.guide);guide.setContentsMargins(20,20,20,20);guide.setSpacing(14)
-        heading=QLabel('Guided Download Setup');heading.setStyleSheet('font-size:18px;font-weight:600;');guide.addWidget(heading)
+        from app.ui.components.paper_card import PaperCard
+        self.guide=PaperCard();self.guide.setObjectName('transfer_panel');self.guide.setMinimumWidth(300);self.guide.setMaximumWidth(460);guide=QVBoxLayout(self.guide);guide.setContentsMargins(30,30,30,30);guide.setSpacing(20)
+        eyebrow=QLabel('/// AUTOMATION ROUTING');eyebrow.setObjectName('download_guide_eyebrow');guide.addWidget(eyebrow)
+        heading=QLabel('Guided Download Setup');heading.setObjectName('download_guide_heading');heading.setWordWrap(True);guide.addWidget(heading)
         note=QLabel('Destination & transfer limits');note.setObjectName('transfer_meta');guide.addWidget(note)
         config=downloads.settings();guide.addWidget(QLabel('Default download folder'))
-        self.destination=QLineEdit(config['destination']);self.destination.setAccessibleName('Default download folder');guide.addWidget(self.destination)
+        self.destination=QLineEdit(config['destination']);self.destination.setAccessibleName('Default download folder');self.destination.setMinimumWidth(0)
         self.destination.setToolTip(config['destination']);self.destination.setCursorPosition(0);self.destination.textChanged.connect(self.destination.setToolTip)
-        browse=QPushButton('Browse…');browse.clicked.connect(self.choose_destination);guide.addWidget(browse,0,Qt.AlignRight)
+        browse=QPushButton('Browse…');browse.clicked.connect(self.choose_destination);browse.setMaximumWidth(112)
+        folder_row=QHBoxLayout();folder_row.setSpacing(12);folder_row.addWidget(self.destination,1);folder_row.addWidget(browse);guide.addLayout(folder_row)
         from app.ui.components.rate_limit import RateLimitPicker
         limits=QGridLayout();self.down_limit=RateLimitPicker();self.up_limit=RateLimitPicker()
         for col,(label,control,key) in enumerate([('Download limit',self.down_limit,'download_limit_kib'),('Upload limit',self.up_limit,'upload_limit_kib')]):
@@ -84,15 +88,16 @@ class DownloadsPage(QWidget):
         guide.addLayout(limits)
         save=QPushButton('Save preferences');save.clicked.connect(self.save_preferences);guide.addWidget(save)
         setup=QPushButton('Continue setup guide');setup.clicked.connect(lambda:open_setup(self));guide.addWidget(setup)
-        settings=QPushButton('All download settings');settings.clicked.connect(self.open_settings);guide.addWidget(settings);guide.addStretch()
-        self.guide_scroll=QScrollArea();self.guide_scroll.setWidgetResizable(True);self.guide_scroll.setFrameShape(QFrame.NoFrame);self.guide_scroll.setMinimumWidth(280);self.guide_scroll.setMaximumWidth(400);self.guide_scroll.setWidget(self.guide)
+        settings=QPushButton('All download settings');settings.setProperty('quietAction',True);settings.clicked.connect(self.open_settings);guide.addWidget(settings);guide.addStretch()
+        self.guide_scroll=QScrollArea();self.guide_scroll.setWidgetResizable(True);self.guide_scroll.setFrameShape(QFrame.NoFrame);self.guide_scroll.setMinimumWidth(320);self.guide_scroll.setMaximumWidth(480);self.guide_scroll.setWidget(self.guide)
         columns.addWidget(self.guide_scroll,1);box.addLayout(columns,1)
         controls=FlowLayout()
         for label,action in [('Pause','pause'),('Resume','resume'),('Stop','stop'),('Retry','retry'),('Choose files','files')]:
             button=QPushButton(label);button.setMinimumHeight(44);button.setCursor(Qt.PointingHandCursor)
             button.clicked.connect(lambda checked=False,command=action:self.action(command));controls.addWidget(button)
         more=QPushButton('More');more.setMinimumHeight(44);menu=QMenu(more)
-        menu.addAction('Open download folder',lambda checked=False:self.open_folder())
+        menu.addAction('Open downloads folder',lambda checked=False:self.open_folder(global_folder=True))
+        menu.addAction('Open selected download folder',lambda checked=False:self.open_folder())
         menu.addAction('Remove queue entry — keep files',lambda:self.action('remove'))
         menu.addSeparator();menu.addAction('Move download files to Recycle Bin…',self.delete_files)
         more.setMenu(menu);controls.addWidget(more)
@@ -113,7 +118,10 @@ class DownloadsPage(QWidget):
         self.setProperty('animevaultOwnScaledStyle',True)
         style=qss('downloads_page')
         if self.styleSheet()!=style:self.setStyleSheet(style)
-        self.table.verticalHeader().setDefaultSectionSize(px(100))
+        from app.ui.manga_pages import active
+        self.table.verticalHeader().setDefaultSectionSize(px(124 if active() else 100))
+        from app.ui.manga_workflows import finish
+        finish(self)
     def choose_destination(self):
         path=QFileDialog.getExistingDirectory(self,'Default download folder',self.destination.text())
         if path:self.destination.setText(path)
@@ -163,6 +171,18 @@ class DownloadsPage(QWidget):
     def add(self):
         records=db.get_all_franchises();titles=[r['display_title'] for r in records]
         if not records:self.status.setText('Add an anime to the library first.');return
+        from app.ui.manga_pages import active
+        if active():
+            from PyQt5.QtWidgets import QDialog
+            dialog=QDialog(self);dialog.setWindowTitle('Add download');box=QVBoxLayout(dialog)
+            box.addWidget(QLabel('Choose the library anime for this download'))
+            anime=QComboBox();anime.addItems(titles);anime.setMinimumWidth(480);box.addWidget(anime)
+            actions=QHBoxLayout();cancel=QPushButton('Cancel');cancel.clicked.connect(dialog.reject);actions.addWidget(cancel);actions.addStretch()
+            confirm=QPushButton('Continue');confirm.setProperty('accent',True);confirm.clicked.connect(dialog.accept);actions.addWidget(confirm);box.addLayout(actions)
+            from app.ui.manga_style import controls_qss
+            dialog.setStyleSheet(controls_qss())
+            if dialog.exec_()==QDialog.Accepted:open_downloads(self,records[anime.currentIndex()]['id'])
+            dialog.deleteLater();return
         title,ok=QInputDialog.getItem(self,'Add download','Anime',titles,0,False)
         if ok:open_downloads(self,records[titles.index(title)]['id'])
     def updated(self,message): self.status.setText(message);self.refresh()
@@ -190,7 +210,7 @@ class DownloadsPage(QWidget):
         counts=[len(self.items),sum(download_queue.status(i) in ('Queued','Downloading','Seeding') for i in self.items),sum(download_queue.status(i) in ('Paused','Stopped') for i in self.items),sum(download_queue.status(i) in ('Completed','Seeding') for i in self.items),sum(download_queue.status(i) in ('Failed','Incomplete or missing files') for i in self.items)]
         for n,(button,label) in enumerate(zip(self.filter_buttons,['All Transfers','Active','Paused / stopped','Completed','Incomplete or Missing'])):
             button.setText(f'{label}  {counts[n]}');button.setChecked(n==filter_index)
-        self.summary.setText(f"↓ {format_bytes(sum(i.get('download_rate') or 0 for i in self.items))}/s   ↑ {format_bytes(sum(i.get('upload_rate') or 0 for i in self.items))}/s   ·   {len(self.items)} saved transfers")
+        self.summary.setText(f"↓ {format_rate(sum(i.get('download_rate') or 0 for i in self.items))}   ↑ {format_rate(sum(i.get('upload_rate') or 0 for i in self.items))}   ·   {len(self.items)} saved transfers")
     def selected(self):
         rows=self.table.selectionModel().selectedRows()
         return self.model.rows[rows[0].row()] if rows else None
@@ -211,9 +231,10 @@ class DownloadsPage(QWidget):
             if response!=QMessageBox.Yes:return
         if command=='remove' and QMessageBox.question(self,'Remove queue entry?','Remove this transfer from the queue? Downloaded files and library history will be kept.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
         start(self,lambda:download_queue.action(identifier,command),lambda message:(self.status.setText(message),self.refresh(),monitor().check()))
-    def open_folder(self,identifier=None):
+    def open_folder(self,identifier=None,*,global_folder=False):
         if isinstance(identifier,bool):identifier=None
-        item=next((job for job in self.items if job['id']==identifier),None) if identifier else self.selected()
+        item=None
+        if not global_folder:item=next((job for job in self.items if job['id']==identifier),None) if identifier else self.selected()
         # The download root may differ from its staging destination after indexing.
         candidates=([item.get('library_destination'),item.get('root'),item.get('destination')]
                     if item else [downloads.settings().get('destination')])

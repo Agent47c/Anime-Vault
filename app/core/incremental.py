@@ -4,6 +4,8 @@ from pathlib import Path
 import os
 from app import db
 from app.core import scan_state as state
+from app.core.file_operations import _operation_lock
+from app.core.download_inventory import InventoryDeferred
 
 
 def scan(progress_callback=None,scan_progress=None,new_only=False,allow_network=True):
@@ -17,6 +19,7 @@ def scan(progress_callback=None,scan_progress=None,new_only=False,allow_network=
         if cancelled():
             break
         root = Path(watched['folder_path']).resolve()
+        move_revision=db.get_state('files.move_revision','0')
         try:
             # Enumerate explicitly: is_dir() alone can hide access failures.
             root.stat()
@@ -52,32 +55,37 @@ def scan(progress_callback=None,scan_progress=None,new_only=False,allow_network=
                 unchanged += 1
                 continue
             try:
-                fingerprint,files = state.inventory(folder,cancelled)
-                with closing(db.get_connection()) as conn:
-                    previous = conn.execute('SELECT fingerprint FROM scan_scopes WHERE root_id=? AND scope=?',(watched['id'],scope)).fetchone()
-                if previous and previous[0] == fingerprint:
-                    state.restore_scope(watched['id'],scope)
-                    unchanged += 1
-                    continue
-                changed,removed = state.changes(watched['id'],scope,files)
-                changed_files += len(changed)+len(removed)
-                name = sc.clean_title(folder.name)
-                if progress_callback:
-                    progress_callback(f'Indexing changes: {name}',processed+1,len(children))
-                existing = existing or db.find_franchise_by_title(name) or db.find_franchise_by_title(folder.name)
-                if existing:
-                    sc._update_on_disk_info(existing['id'],str(folder),changed_paths=changed,inventory=files)
-                    fid = existing['id']
-                    updated += 1
-                else:
-                    fid = sc._create_from_folder({'path':str(folder),'name':folder.name},name,inventory=files)
-                    new += bool(fid)
-                if fid:
-                    indexed_ids.add(fid)
-                state.checkpoint(watched['id'],scope,fingerprint,files,fid)
-                processed += 1
+                # One local scope is read and committed before a move may run.
+                # Network metadata matching remains outside this lock.
+                with _operation_lock:
+                    fingerprint,files = state.inventory(folder,cancelled)
+                    with closing(db.get_connection()) as conn:
+                        previous = conn.execute('SELECT fingerprint FROM scan_scopes WHERE root_id=? AND scope=?',(watched['id'],scope)).fetchone()
+                    if previous and previous[0] == fingerprint:
+                        state.restore_scope(watched['id'],scope)
+                        unchanged += 1
+                        continue
+                    changed,removed = state.changes(watched['id'],scope,files)
+                    changed_files += len(changed)+len(removed)
+                    name = sc.clean_title(folder.name)
+                    if progress_callback:
+                        progress_callback(f'Indexing changes: {name}',processed+1,len(children))
+                    existing = existing or db.find_franchise_by_title(name) or db.find_franchise_by_title(folder.name)
+                    if existing:
+                        sc._update_on_disk_info(existing['id'],str(folder),changed_paths=changed,inventory=files)
+                        fid = existing['id']
+                        updated += 1
+                    else:
+                        fid = sc._create_from_folder({'path':str(folder),'name':folder.name},name,inventory=files)
+                        new += bool(fid)
+                    if fid:
+                        indexed_ids.add(fid)
+                    state.checkpoint(watched['id'],scope,fingerprint,files,fid)
+                    processed += 1
             except InterruptedError:
                 raise
+            except InventoryDeferred:
+                unchanged+=1
             except OSError as error:
                 inaccessible = True
                 errors.append(f'{folder}: {error}; incomplete inventory not saved')
@@ -87,39 +95,43 @@ def scan(progress_callback=None,scan_progress=None,new_only=False,allow_network=
         try:
             scope = state.key(root)+'|loose'
             seen_scopes.add(scope)
-            fingerprint,files = state.inventory(root,cancelled,recursive=False)
-            with closing(db.get_connection()) as conn:
-                old = conn.execute('SELECT fingerprint FROM scan_scopes WHERE root_id=? AND scope=?',(watched['id'],scope)).fetchone()
-            if not old or old[0] != fingerprint:
-                changed,removed = state.changes(watched['id'],scope,files)
-                from app.core.loose import inspect_loose_episodes
-                groups,unknown = inspect_loose_episodes(root)
-                for item in groups:
-                    if cancelled():
-                        raise InterruptedError('Scan cancelled')
-                    if new_only:
-                        with closing(db.get_connection()) as conn:
-                            if conn.execute('SELECT 1 FROM seasons WHERE scan_root=? AND local_scan_key=?',(str(root),'loose-root:'+item['loose_key'])).fetchone():
-                                continue
-                    fid = sc.index_loose_group(item)
-                    indexed_ids.add(fid)
-                    updated += 1
-                    processed += 1
-                changed_files += len(changed)+len(removed)
-                if not new_only:
-                    state.checkpoint(watched['id'],scope,fingerprint,files,None)
-            if not inaccessible:
-                # A vanished child below a readable root is missing, not offline.
+            with _operation_lock:
+                fingerprint,files = state.inventory(root,cancelled,recursive=False)
                 with closing(db.get_connection()) as conn:
-                    gone = conn.execute('SELECT scope,franchise_id,fingerprint FROM scan_scopes WHERE root_id=?',(watched['id'],)).fetchall()
-                for row in gone:
-                    if row['scope'] not in seen_scopes and row['fingerprint'] != 'missing':
-                        state.checkpoint(watched['id'],row['scope'],'missing',{},row['franchise_id'])
+                    old = conn.execute('SELECT fingerprint FROM scan_scopes WHERE root_id=? AND scope=?',(watched['id'],scope)).fetchone()
+                if not old or old[0] != fingerprint:
+                    changed,removed = state.changes(watched['id'],scope,files)
+                    from app.core.loose import inspect_loose_episodes
+                    groups,unknown = inspect_loose_episodes(root)
+                    for item in groups:
+                        if cancelled():
+                            raise InterruptedError('Scan cancelled')
+                        if new_only:
+                            with closing(db.get_connection()) as conn:
+                                if conn.execute('SELECT 1 FROM seasons WHERE scan_root=? AND local_scan_key=?',(str(root),'loose-root:'+item['loose_key'])).fetchone():
+                                    continue
+                        fid = sc.index_loose_group(item)
+                        indexed_ids.add(fid)
+                        updated += 1
+                        processed += 1
+                    changed_files += len(changed)+len(removed)
+                    if not new_only:
+                        state.checkpoint(watched['id'],scope,fingerprint,files,None)
+            with _operation_lock:
+                if not inaccessible and move_revision==db.get_state('files.move_revision','0'):
+                    # A vanished child below a readable root is missing, not offline.
+                    with closing(db.get_connection()) as conn:
+                        gone = conn.execute('SELECT scope,franchise_id,fingerprint FROM scan_scopes WHERE root_id=?',(watched['id'],)).fetchall()
+                    for row in gone:
+                        if row['scope'] not in seen_scopes and row['fingerprint'] != 'missing':
+                            state.checkpoint(watched['id'],row['scope'],'missing',{},row['franchise_id'])
             state.root_status(watched,'INACCESSIBLE' if inaccessible else 'ONLINE')
             states[str(root)] = 'INACCESSIBLE' if inaccessible else 'ONLINE'
             db.update_watched_directory_scan_time(watched['id'])
         except InterruptedError:
             raise
+        except InventoryDeferred:
+            unchanged+=1
         except OSError as error:
             state.root_status(watched,'INACCESSIBLE',str(error))
             states[str(root)] = 'INACCESSIBLE'

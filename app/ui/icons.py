@@ -7,8 +7,10 @@ from PyQt5.QtSvg import QSvgRenderer
 
 
 _PATHS = {
+    "lock": "M7 10V7a5 5 0 0 1 10 0v3 M5 10h14v11H5z M12 14v3",
     "more": "M12 4h.01 M12 12h.01 M12 20h.01",
     "chevron-down": "M6 9l6 6 6-6",
+    "chevron-right": "M9 6l6 6-6 6",
     "arrow-left": "M19 12H5 M11 6l-6 6 6 6",
     "plus": "M12 4v16 M4 12h16",
     "import": "M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h5",

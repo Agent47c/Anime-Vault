@@ -1,4 +1,5 @@
 from app.ui.navigation import navigate
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 """
 Main Application Window for Anime Library & Storage Manager.
 Faithfully recreates the Anime Manager UI Reference mockups:
@@ -101,7 +102,8 @@ class QuitConfirmDialog(QDialog):
         self.choice = None
         self._shade = None
         self._setup_ui()
-        self.resize(580, 580)
+        self.resize(640, 740)
+        self.refresh_home_style()
         self.finished.connect(self._clear_shade)
 
     def _setup_ui(self):
@@ -138,6 +140,10 @@ class QuitConfirmDialog(QDialog):
             option.setMinimumHeight(80)
             option.setAccessibleName(heading)
             option.setCursor(Qt.PointingHandCursor)
+            from app.ui.manga_pages import active
+            if active():
+                from app.ui.manga_style import shadow
+                shadow(option,12,4)
             line = QHBoxLayout(option)
             line.setContentsMargins(16, 12, 16, 12)
             line.setSpacing(14)
@@ -149,6 +155,9 @@ class QuitConfirmDialog(QDialog):
             image.setFixedSize(44, 44)
             image.setAlignment(Qt.AlignCenter)
             color = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])["red_text"]
+            if active():
+                color='#ff2e93' if glyph=='tray' else '#b3261e'
+                image.setStyleSheet('QLabel#quit_icon{background:#eef0f5;border:1px solid #dce1eb;border-radius:12px;}')
             image.setPixmap(icon(glyph, color).pixmap(22, 22))
             image.setAttribute(Qt.WA_TransparentForMouseEvents)
             line.addWidget(image)
@@ -164,6 +173,7 @@ class QuitConfirmDialog(QDialog):
             if recommended:
                 recommended_label = text("Recommended", "workflow_match")
                 recommended_label.setWordWrap(False)
+                recommended_label.setProperty('tone','success')
                 line.addWidget(recommended_label, 0, Qt.AlignVCenter)
             option.clicked.connect(lambda radio=radio: radio.setChecked(True))
             def select(checked, frame=option):
@@ -177,18 +187,37 @@ class QuitConfirmDialog(QDialog):
         remember = QHBoxLayout()
         remember.setSpacing(16)
         self.remember_cb = QCheckBox("Remember my choice")
+        self.remember_cb.setMinimumHeight(36)
         self.remember_cb.setCursor(Qt.PointingHandCursor)
         remember.addWidget(self.remember_cb)
         hint = text("Change it in Settings > Application behavior")
         remember.addWidget(hint, 1)
-        body.addLayout(remember)
-        body.addStretch()
+        from app.ui.manga_pages import active
+        if active():
+            body.addLayout(remember)
+            status.setObjectName('quit_status')
+            header=self.findChild(QWidget,'workflow_header');header.setMinimumHeight(90);header.layout().setContentsMargins(26,18,26,12)
+            body.setContentsMargins(26,12,26,12)
+        else:
+            body.insertLayout(0,remember);body.addStretch()
         self.cancel_button.setFocus()
 
     def _confirm_choice(self):
         self._choose_tray() if self.tray_radio.isChecked() else self._choose_exit()
 
+    def refresh_home_style(self):
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.manga_additional import qss
+            from app.ui.components.compact_modal import install,modal_qss
+            self.setObjectName('quit_dialog');install(self,580)
+            self._modal_initial_focus=self.cancel_button
+            self.setStyleSheet(qss('quit_dialog')+modal_qss('quit_dialog'))
+        else:self.setObjectName('workflow_drawer');self.setStyleSheet('')
+
     def showEvent(self, event):
+        if getattr(self,'compact_manga_modal',False):
+            super().showEvent(event);return
         parent = self.parentWidget()
         if parent:
             host = parent.window()
@@ -241,6 +270,8 @@ class MainWindow(QMainWindow):
         from app.ui.downloads import monitor
         self._download_monitor = monitor()
         self._download_monitor.changed.connect(self._on_data_updated)
+        self._download_monitor.changed.connect(self.organizer_page.apply_downloads)
+        self._download_monitor.snapshot_ready.connect(self.organizer_page.apply_downloads)
         self._download_monitor.snapshot_ready.connect(self.library_page.apply_downloads)
         self._download_monitor.snapshot_ready.connect(self._download_snapshot_changed)
         from app.ui.playback import monitor as player_monitor,HomePlaybackKeys
@@ -298,6 +329,10 @@ class MainWindow(QMainWindow):
         sidebar = self._create_sidebar()
         self.sidebar=sidebar
         body_layout.addWidget(sidebar)
+        from app.ui.components.manga_shell import MangaRail
+        from app.ui.components.manga_navigation import RailSlot
+        self.manga_rail=MangaRail(self);self.manga_rail_slot=RailSlot(self.manga_rail,central_widget)
+        body_layout.insertWidget(0,self.manga_rail_slot);self.manga_rail_slot.hide();self.manga_rail.hide()
         from app.ui.components.home_header import HomeHeader
         self.home_header=HomeHeader(self);self.header_stack.addWidget(self.home_header)
         self.header_stack.setCurrentWidget(self.home_header);self.home_header.arrange();sidebar.hide()
@@ -311,6 +346,8 @@ class MainWindow(QMainWindow):
         self.settings_page = SettingsPage()
         from app.ui.pages.downloads_page import DownloadsPage
         self.downloads_page=DownloadsPage()
+        from app.ui.components.manga_shell import MangaHeader
+        self.manga_header=MangaHeader(self);self.header_stack.addWidget(self.manga_header)
 
         self.stacked_widget.addWidget(self.library_page)    # 0
         self.stacked_widget.addWidget(self.organizer_page)  # 1
@@ -341,14 +378,19 @@ class MainWindow(QMainWindow):
         self.task_status_button.hide()
         root_layout.addWidget(self.task_status_button)
         root_layout.addWidget(self.bottom_bar)
+        from app.ui.components.manga_shell import MangaFooter
+        self.manga_footer=MangaFooter(self);self.manga_footer.hide();root_layout.addWidget(self.manga_footer)
         from app.ui.components.refresh_progress import RefreshProgress
         self.refresh_progress=RefreshProgress();root_layout.addWidget(self.refresh_progress)
+        self.refresh_progress.message_changed.connect(self.manga_footer.set_operation)
         for scope in (self.title_bar, top_header, sidebar, self.bottom_bar, self.task_status_button, self.library_page, self.organizer_page, self.updates_page, self.storage_page, self.settings_page,self.downloads_page):
             scope.setProperty("animevaultThemeScope", True)
         self._task_timer = QTimer(self)
         self._task_timer.setInterval(500)
         self._task_timer.timeout.connect(self._update_task_status)
         self._task_timer.start()
+        if QApplication.instance().property('animevaultThemeFamily')=='manga':self._sync_visual_family()
+        else:self._visual_family=False
 
     def _create_top_header(self) -> QWidget:
         header = QFrame()
@@ -750,8 +792,23 @@ class MainWindow(QMainWindow):
                     widget.style().unpolish(widget)
                     widget.style().polish(widget)
             label.setPixmap(icon(name, palette["red_text"] if active else palette["text_secondary"]).pixmap(22, 22))
+        self._sync_visual_family()
+
+    def _sync_visual_family(self):
+        if not hasattr(self,'manga_header'):return
+        from app.ui.theme_catalog import is_manga
+        manga=is_manga();self.manga_rail_slot.setVisible(manga);self.manga_rail.setVisible(manga)
+        if manga:self.manga_rail_slot.sync()
+        if manga:
+            self.sidebar.hide();self.header_stack.setCurrentWidget(self.manga_header);self.header_stack.setFixedHeight(self.manga_header.height());self.manga_rail.activate(getattr(self,'_active_nav_index',0))
+        if getattr(self,'_visual_family',None)!=manga:
+            self._visual_family=manga;self.library_page.refresh_home_style()
+            if hasattr(self,'manga_footer'):self.manga_footer.activate(manga)
+            if getattr(self.library_page,'_library_index',None):self.library_page.refresh_display()
 
     def _on_collection_clicked(self, watch_status: str):
+        if hasattr(self,'manga_rail'):
+            for button in self.manga_rail.collection_buttons:button.setChecked(button.property('watchStatus')==watch_status)
         from app.ui.navigation import switch_tab
         self._update_nav_selection(0)
         switch_tab(self, 0, restore=False)
@@ -760,7 +817,7 @@ class MainWindow(QMainWindow):
         self.library_page.activate_filter(watch_status)
 
     def _focus_library_search(self):
-        target=self.home_header.search if hasattr(self,'home_header') and self.home_header.isVisible() else self.top_search_input
+        target=self.manga_header.search if hasattr(self,'manga_header') and self.manga_header.isVisible() else self.home_header.search if hasattr(self,'home_header') and self.home_header.isVisible() else self.top_search_input
         target.setFocus();target.selectAll()
 
     def _on_search_text_changed(self, text: str):
@@ -791,7 +848,7 @@ class MainWindow(QMainWindow):
         self.settings_page.scan_completed.connect(self._on_data_updated)
         self.settings_page.preferences_changed.connect(self._apply_settings_preferences)
         self.storage_page.data_changed.connect(self._on_data_updated)
-        self.storage_page.refresh_requested.connect(lambda:self._start_refresh(allow_network=False))
+        self.storage_page.refresh_requested.connect(lambda:self._start_refresh(allow_network=False,major=True,operation_title='Refreshing storage'))
         self.storage_page.filter_requested.connect(self._on_storage_filter_requested)
         self.storage_page.anime_clicked.connect(self._open_detail_modal)
 
@@ -901,7 +958,10 @@ class MainWindow(QMainWindow):
     def _refresh_dirty_page(self, index):
         page = self.stacked_widget.widget(index)
         if page in getattr(self, "_dirty_pages", set()):
-            self._start_refresh(allow_network=False)
+            snapshot=getattr(self,'_cached_refresh_snapshot',None)
+            if snapshot is None:return  # Initial load owns the first snapshot.
+            with db.refresh_view(snapshot):page.refresh()
+            self._dirty_pages.discard(page)
 
     def _on_update_choices_changed(self, records):
         # A notification choice does not require scanning disks, decoding artwork,
@@ -913,12 +973,17 @@ class MainWindow(QMainWindow):
         if pending:
             from app.ui.refresh import patch_update_choices
             patch_update_choices(pending,records)
+        cached=getattr(self,'_cached_refresh_snapshot',None)
+        if cached is not None and cached is not pending:
+            from app.ui.refresh import patch_update_choices
+            patch_update_choices(cached,records)
         apply=getattr(self.library_page,'apply_update_choices',None)
         # Preserve pre-existing dirty markers from real scans, but a notification
         # choice alone must not schedule another disk/artwork refresh.
         if not (callable(apply) and apply(records)):self._dirty_pages.add(self.library_page)
         if any(record.get('_previous_watch_status')!=record.get('watch_status') for record in records.values()):self._dirty_pages.add(self.storage_page)
         self._unread_updates = len(self.updates_page._updates)
+        if hasattr(self,'manga_rail'):self.manga_rail.set_count(2,self._unread_updates)
         badge = self.findChild(QLabel, 'nav_badge_2')
         if badge:
             badge.setText(str(self._unread_updates));badge.setVisible(self._unread_updates > 0)
@@ -931,9 +996,12 @@ class MainWindow(QMainWindow):
                 if previous is not None:
                     delta += int(record.get('watch_status') == status)-int(previous == status)
             if delta: label.setText(str(max(0, int(label.text()) + delta)))
+        if hasattr(self,'manga_rail'):self._sync_manga_collection_counts()
 
     def _download_snapshot_changed(self,jobs):
+        if hasattr(self,'manga_footer'):self.manga_footer.update_downloads(jobs)
         count=sum(j.get('desired') not in ('stopped','cancelled') and not j.get('indexed') for j in jobs)
+        if hasattr(self,'manga_rail'):self.manga_rail.set_count(5,count)
         self.home_header.tabs[5].setText('Downloads'+(f'  {count}' if count else ''))
 
     def _user_edit_failed(self,message):
@@ -942,6 +1010,11 @@ class MainWindow(QMainWindow):
     def _on_user_fields_changed(self, edits):
         if not hasattr(self,'_recent_user_edits'):self._recent_user_edits={}
         for fid,fields in edits.items():self._recent_user_edits.setdefault(fid,{}).update(fields)
+        cached=getattr(self,'_cached_refresh_snapshot',None)
+        if cached is not None:
+            for fid,fields in edits.items():
+                cached['connection'].execute('UPDATE franchises SET '+','.join(key+'=?' for key in fields)+' WHERE id=?',(*fields.values(),fid))
+            cached.pop('stats',None)
         index=getattr(self.library_page,'_library_index',None)
         if index:
             for fid,fields in edits.items():
@@ -951,7 +1024,33 @@ class MainWindow(QMainWindow):
             self.library_page.refresh_user_fields(edits)
             for state,label in self.coll_counts.items():
                 if state!='WATCHED_REMOVED':label.setText(str(sum(r.get('watch_status')==state for r in index.records)))
+        if hasattr(self,'manga_rail'):self._sync_manga_collection_counts()
         self._dirty_pages.add(self.storage_page)
+
+    def _on_release_imported(self):
+        # Discovery has already committed the anime and its update. Do not put
+        # its cards behind drive recovery, artwork decoding or an online sync.
+        if getattr(self,'_refresh_busy',False):self._release_import_refresh_pending=True
+        self.library_page.refresh_imported()
+        cached=getattr(self,'_cached_refresh_snapshot',None)
+        if cached is not None:
+            connection=cached['connection']
+            known={row[0] for row in connection.execute('SELECT id FROM franchises')}
+            for record in self.library_page._library_index.records:
+                if record['id'] in known:continue
+                for table,rows in (('franchises',[record]),('seasons',db.get_seasons_for_franchise(record['id']))):
+                    columns={row[1] for row in connection.execute('PRAGMA table_info('+table+')')}
+                    for row in rows:
+                        fields={key:value for key,value in row.items() if key in columns}
+                        connection.execute('INSERT OR REPLACE INTO '+table+' ('+','.join(fields)+') VALUES ('+','.join('?' for _ in fields)+')',tuple(fields.values()))
+                        if table=='seasons':cached.setdefault('season_rows',[]).append(dict(row))
+            cached['library_index']=self.library_page._library_index
+            cached['series_groups']=cached['library_index'].groups
+            cached.pop('stats',None)
+        self.updates_page.refresh(check_artwork=False)
+        self._dirty_pages.difference_update((self.library_page,self.updates_page))
+        self._dirty_pages.add(self.storage_page)
+        self._on_update_choices_changed({})
 
     def _on_data_updated(self):
         self._recent_user_edits={}
@@ -959,11 +1058,12 @@ class MainWindow(QMainWindow):
         self._dirty_pages.update((self.library_page, self.storage_page, self.updates_page))
         self._start_refresh()
 
-    def _start_refresh(self, scan_library=False, new_only=False, allow_network=True, sync_internet=False):
+    def _start_refresh(self, scan_library=False, new_only=False, allow_network=True, sync_internet=False, *, major=False, operation_title=None):
         if getattr(self, "_shutdown_pending", False):
             return
         if getattr(self, "_refresh_busy", False):
             self._refresh_pending = True
+            if major:self._refresh_pending_major_request=dict(scan_library=scan_library,new_only=new_only,allow_network=allow_network,sync_internet=sync_internet,major=True,operation_title=operation_title)
             return
         from app.ui.refresh import RefreshWorker
         self._refresh_busy = True
@@ -971,9 +1071,15 @@ class MainWindow(QMainWindow):
         self._refresh_invalidates_others = bool(scan_library or sync_internet)
         self._refresh_pending = False
         self.refresh_button.setEnabled(False)
-        if hasattr(self,'refresh_progress'):self.refresh_progress.begin('library','Refreshing library…')
+        if hasattr(self,'manga_header'):self.manga_header.refresh.setEnabled(False)
+        self._refresh_operation_title=operation_title or ('Scanning library directories' if scan_library else 'Refreshing library')
+        if hasattr(self,'refresh_progress'):self.refresh_progress.begin('library',self._refresh_operation_title)
         self.refresh_button.setText("Checking…" if new_only else "Refreshing…")
+        if hasattr(self,'manga_header'):self.manga_header.refresh.setText(self.refresh_button.text())
         self._refresh_worker = RefreshWorker(self, scan_library=scan_library, new_only=new_only, allow_network=allow_network, sync_internet=sync_internet)
+        from app.ui.components.operation_progress import watch
+        if major:watch(self, self._refresh_worker, self._refresh_operation_title, progress=self._refresh_worker.progress, major=True)
+        if sync_internet and hasattr(self,'_initial_online_check'):self._initial_online_check()
         self._refresh_worker.progress.connect(self._show_scan_progress)
         self._refresh_worker.ready.connect(self._apply_refresh_snapshot)
         self._refresh_worker.failed.connect(self._refresh_failed)
@@ -982,8 +1088,7 @@ class MainWindow(QMainWindow):
 
     def _show_scan_progress(self, message, current, total):
         if not getattr(self, "_shutdown_pending", False):
-            self.scan_stats_label.setText(f"{message} ({current}/{total})")
-            if hasattr(self,'refresh_progress'):self.refresh_progress.report('library',current,total,message)
+            if hasattr(self,'refresh_progress'):self.refresh_progress.report('library',current,total,getattr(self,'_refresh_operation_title','Refreshing library')+' · '+message)
 
     def _apply_refresh_snapshot(self, snapshot):
         if getattr(self, "_shutdown_pending", False):
@@ -1034,20 +1139,33 @@ class MainWindow(QMainWindow):
     def _finish_refresh(self):
         snapshot = getattr(self, "_refresh_snapshot", None)
         if snapshot is not None:
-            snapshot["connection"].close()
+            previous=getattr(self,'_cached_refresh_snapshot',None)
+            self._cached_refresh_snapshot=snapshot
+            if previous is not None and previous is not snapshot:previous['connection'].close()
             self._refresh_snapshot = None
         self._refresh_busy = False
+        if getattr(self,'_release_import_refresh_pending',False):
+            self._release_import_refresh_pending=False
+            self._on_release_imported()
         if hasattr(self,'refresh_progress'):self.refresh_progress.finish('library')
         self.refresh_button.setEnabled(True)
+        if hasattr(self,'manga_header'):self.manga_header.refresh.setEnabled(True)
         self.refresh_button.setText("Refresh")
+        if hasattr(self,'manga_header'):self.manga_header.refresh.setText('Refresh')
         if getattr(self, "_refresh_pending", False) and not getattr(self, "_shutdown_pending", False):
-            QTimer.singleShot(0, self._on_data_updated)
+            pending=getattr(self,'_refresh_pending_major_request',None);self._refresh_pending_major_request=None
+            if pending:QTimer.singleShot(0,lambda:self._start_refresh(**pending))
+            else:QTimer.singleShot(0, self._on_data_updated)
 
     def _refresh_failed(self, message):
-        self._refresh_pending = False
+        self._refresh_pending = bool(getattr(self,'_refresh_pending_major_request',None))
         self._finish_refresh()
         self.refresh_button.setToolTip("Refresh failed: " + message)
         self.scan_stats_label.setText("Refresh failed — " + message)
+
+    def _sync_manga_collection_counts(self):
+        if hasattr(self,'manga_rail'):
+            self.manga_rail.set_collection_counts({state:int(label.text() or '0') for state,label in self.coll_counts.items()})
 
     def _refresh_metrics(self):
         stats = db.get_library_stats()
@@ -1072,7 +1190,9 @@ class MainWindow(QMainWindow):
 
         if "WATCHED_REMOVED" in self.coll_counts:
             self.coll_counts["WATCHED_REMOVED"].setText(str(stats.get("watched_removed", 0)))
+        if hasattr(self,'manga_rail'):self._sync_manga_collection_counts()
         self._unread_updates = sum(bool(f.get("has_new_update")) for f in all_franchises)
+        if hasattr(self,'manga_rail'):self.manga_rail.set_count(2,self._unread_updates)
         badge = self.findChild(QLabel, "nav_badge_2")
         if badge:
             badge.setText(str(self._unread_updates))
@@ -1105,20 +1225,29 @@ class MainWindow(QMainWindow):
     def _initial_online_check(self):
         if getattr(self, "_shutdown_pending", False):
             return
-        online = check_online()
-        if online:
-            self.status_pill.setText("AniList & Jikan · Online")
-            self.status_pill.setProperty('online',True)
+        current=getattr(self,'_api_check_worker',None)
+        if current and current.isRunning():return
+        from app.core.api_status import check_services
+        from app.ui.io_task import IOTask,track
+        from app.ui.components.operation_progress import watch
+        worker=IOTask(check_services);self._api_check_worker=worker;track(worker)
+        watch(self,worker,'Checking AniList and Jikan APIs')
+        if hasattr(self,'manga_header'):self.manga_header.api_status.set_checking()
+        def ready(result):
+            online=all(result['services'].values())
+            self.status_pill.setText('AniList & Jikan · '+('Online' if online else 'Offline / partial · Cached data'))
+            self.status_pill.setProperty('online',online)
+            self.status_pill.setToolTip(result['description'])
+            self.status_pill.style().unpolish(self.status_pill);self.status_pill.style().polish(self.status_pill)
+            if hasattr(self,'manga_header'):self.manga_header.api_status.set_status(result)
             from app import preferences as prefs
-            if prefs.enabled("metadata_auto"):
+            if result['services'].get('AniList') and prefs.enabled('metadata_auto') and not getattr(self,'_refresh_busy',False):
                 self._start_background_updater()
-        else:
-            self.status_pill.setText("AniList & Jikan · Offline · Cached data")
-            self.status_pill.setProperty('online',False)
-        self.status_pill.style().unpolish(self.status_pill)
-        self.status_pill.style().polish(self.status_pill)
-
-        self._refresh_metrics()
+        def failed(message):
+            result=dict(services={'AniList':False,'Jikan':False},description='API status could not be checked. '+message)
+            ready(result)
+        def finished():self._api_check_worker=None;worker.deleteLater()
+        worker.succeeded.connect(ready);worker.failed.connect(failed);worker.finished.connect(finished);worker.start()
 
     def _start_background_updater(self):
         if self._updater_thread and self._updater_thread.isRunning():
@@ -1215,7 +1344,8 @@ class MainWindow(QMainWindow):
 
     def _update_task_status(self):
         active = self._active_task_page()
-        self.task_status_button.setVisible(active is not None)
+        from app.ui.theme_catalog import is_manga
+        self.task_status_button.setVisible(active is not None and not is_manga())
         if active is not None:
             self.task_status_button.setText("Task in progress — you can navigate. Keep the app open until it finishes. Click to view.")
 

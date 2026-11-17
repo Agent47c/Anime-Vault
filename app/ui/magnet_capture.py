@@ -1,6 +1,7 @@
 """Compact browser-magnet review and same-instance inbox delivery."""
 from PyQt5.QtCore import QObject,QTimer,Qt
-from PyQt5.QtWidgets import QComboBox,QCompleter,QMessageBox,QSizePolicy
+from PyQt5.QtWidgets import QComboBox,QCompleter,QSizePolicy
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core import magnet_capture as inbox
 from app.core import downloads
@@ -78,7 +79,10 @@ class MagnetReview(DrawerDialog):
             QMessageBox.information(self,'Configure downloads','Enable and save your download engine in Configure downloads, then return here.')
             return
         season=self.season.currentData()
-        start(self,lambda:inbox.submit(self.item,fid,season),self._sent)
+        from app.ui.pages.release_search_page import confirm_manual_download
+        def submitted(path):
+            start(self,lambda:inbox.mark(self.item['id'],'ACCEPTED'),lambda _:self._sent(path))
+        confirm_manual_download(self,fid,self.item['uri'],season,submitted,origin='browser:'+self.item['id'])
 
     def _sent(self,path):
         self.sent=True

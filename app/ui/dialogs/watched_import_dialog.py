@@ -8,16 +8,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtWidgets import (
-    QApplication,
-    QFileDialog,
-    QFrame,
-    QHBoxLayout,
-    QMessageBox,
-    QProgressBar,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt5.QtWidgets import QApplication,QFileDialog,QFrame,QHBoxLayout,QProgressBar,QVBoxLayout,QWidget
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 
 from app import db
 from app import preferences as prefs
@@ -96,6 +88,8 @@ class WatchedImportDialog(DrawerDialog):
         self.filepath = initial_filepath
         self.parsed_items: List[Dict[str, Any]] = []
         self._worker = None
+        from app.ui.manga_pages import active
+        if active():self.full_page=True;self.centered_workflow=False
 
         self.setObjectName("watched_import_dialog")
         self.setWindowTitle("Import Watched List")
@@ -176,6 +170,9 @@ class WatchedImportDialog(DrawerDialog):
         self._browse_btn = action_button("Choose TXT file", self._browse_file, object_name="poster_action_btn")
         top.addWidget(self._browse_btn, 0, Qt.AlignVCenter)
         drop.addLayout(top)
+        from app.ui.manga_pages import active
+        if active():
+            top.removeWidget(self._browse_btn);drop.addWidget(self._browse_btn,0,Qt.AlignHCenter)
 
         self._file_strip = QFrame()
         self._file_strip.setObjectName("import_file_strip")
@@ -275,6 +272,8 @@ class WatchedImportDialog(DrawerDialog):
         if hasattr(self, "apply_btn"):
             self.apply_btn.setIcon(icon("check", c["on_coral"]))
         self.rematch_existing.update()
+        from app.ui.manga_workflows import finish
+        finish(self)
         if self.parsed_items:
             self._refresh_rows()
 
@@ -328,6 +327,8 @@ class WatchedImportDialog(DrawerDialog):
         self.apply_btn.setEnabled(False)
 
         self._worker = ParseAndMatchWorker(filepath, rematch_existing=self.rematch_existing.isChecked())
+        from app.ui.components.operation_progress import watch
+        watch(self, self._worker, 'Reading and matching watchlist')
         self._worker.item_matched.connect(self._add_item_row)
         self._worker.finished.connect(self._on_parse_finished)
         self._worker.error.connect(self._on_parse_error)

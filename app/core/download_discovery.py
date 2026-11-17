@@ -34,6 +34,41 @@ def remember_download_alias(fid,season,title):
     db.set_state(f"download_aliases:{series['id']}:{season or 0}",json.dumps(values))
 
 
+def alias_rules(fid):
+    series=db.get_series(fid)
+    if not series:return []
+    try:rules=json.loads(db.get_state(f'download_alias_rules:{series["id"]}','[]'))
+    except (TypeError,ValueError):rules=[]
+    if not isinstance(rules,list):rules=[]
+    from contextlib import closing
+    known={r['key'] for r in rules}
+    with closing(db.get_connection()) as conn:
+        legacy=conn.execute('SELECT key,value FROM app_state WHERE key LIKE ?',(f'download_aliases:{series["id"]}:%',)).fetchall()
+    for row in legacy:
+        try:season=int(row['key'].rsplit(':',1)[1]);titles=json.loads(row['value'])
+        except (TypeError,ValueError):continue
+        for title in titles:
+            key=download_title_key(title)
+            if key not in known:rules.append(dict(title=title,key=key,season=season,continuous=season==0,offset=0,legacy=True))
+    return rules
+
+
+def remember_confirmed_alias(fid,entry):
+    season=entry['season'];continuous=entry['continuous']
+    remember_download_alias(fid,0 if continuous else season,base_title(entry['title']))
+    series=db.get_series(fid);rules=[r for r in alias_rules(fid) if not r.get('legacy')]
+    title=base_title(entry['title']);key=download_title_key(title)
+    source=entry.get('source_episodes') or [];logical=entry['episodes']
+    offsets={b-a for a,b in zip(source,logical)} if len(source)==len(logical) else set()
+    encoder=re.match(r'^\[([^]]+)\]',entry['title'])
+    group=(entry.get('group') or (encoder[1] if encoder else '')).casefold()
+    relative=bool(re.search(r'\bS\d+[ ._-]*E\d+',entry['title'],re.I))
+    source_season=explicit_season(entry['title'])
+    rule=dict(title=title,key=key,season=season,source_season=source_season,continuous=continuous,group=group,relative=relative,offset=next(iter(offsets)) if len(offsets)==1 else None if len(offsets)>1 else 0)
+    rules=[r for r in rules if (r['key'],r['season'],r['continuous'],r.get('group',''),r.get('relative',False),r.get('source_season'))!=(key,season,continuous,group,relative,source_season)]
+    rules.append(rule);db.set_state(f'download_alias_rules:{series["id"]}',json.dumps(rules,ensure_ascii=False))
+
+
 SUKEBEI_SOURCE = dict(name='Sukebei (18+)', url='https://sukebei.nyaa.si/?q={query}&f=0&c=0_0')
 
 
@@ -87,11 +122,12 @@ def coverage_label(keys):
     return ', '.join(labels)
 
 
-def library_context(fid,season=None):
+def library_context(fid,season=None,*,continuous=None):
+    season_selected=season is not None
     series=db.get_series(fid)
     if not series: raise ValueError('This anime is no longer in the library.')
     seasons=db.get_series_seasons(fid)
-    continuous=db.uses_continuous_episodes(series) or series.get('anilist_id')==21
+    if continuous is None:continuous=db.uses_continuous_episodes(series)
     main=[s for s in seasons if s.get('relation_type')=='SEASON']
     numbers={s.get('season_number') for s in main if s.get('season_number')}
     if not continuous and season is None and len(numbers)==1: season=next(iter(numbers))
@@ -110,10 +146,27 @@ def library_context(fid,season=None):
     owners={series['id'],fid,*[s['franchise_id'] for s in seasons]}
     active_roots=[Path(job['destination']).resolve() for job in jobs if job['fid'] in owners and
                   queue_status(job) in ('Queued','Downloading','Paused') and not job.get('indexed')]
+    from contextlib import closing
+    from app.core.identity import path_key
+    with closing(db.get_connection()) as conn:
+        mapped={}
+        for row in conn.execute("SELECT l.path,e.release_number,r.release_key,s.season_number,r.kind FROM file_locations l JOIN physical_files f ON f.id=l.file_id JOIN file_episodes fe ON fe.file_id=f.id JOIN episodes e ON e.id=fe.episode_id JOIN releases r ON r.id=e.release_id JOIN seasons s ON s.id=f.season_id WHERE r.series_id IN (SELECT id FROM library_series WHERE franchise_id IN (%s)) AND e.mapping_verified=1 AND (e.mapping_source='MANUAL' OR s.local_scan_key LIKE 'download:%%')" % ','.join('?' for _ in owners),tuple(owners)):
+            mapped.setdefault(path_key(row['path']),[]).append(dict(row))
     available={};observed=set();expected=set();unavailable=0;boundaries={}
     for s in selected:
         for name in json.loads(s.get('video_files_json') or '[]'):
             path=Path(s.get('season_folder_path') or '')/name
+            confirmed=mapped.get(path_key(path))
+            if confirmed:
+                for record in confirmed:
+                    absolute=record['release_key']=='continuous'
+                    if absolute!=continuous or (not absolute and season is not None and record['season_number']!=season):continue
+                    kind='EPISODE' if record['kind']=='SEASON' else record['kind']
+                    key=episode_key(absolute,record['season_number'],record['release_number'],kind)
+                    observed.add(key)
+                    if path.is_file():available[key]=str(path)
+                    else:unavailable+=1
+                continue
             ep_numbers=extract_episode_numbers(name)
             file_season=explicit_season(Path(name).stem) or s.get('season_number')
             if continuous and explicit_season(Path(name).stem) is not None:
@@ -158,13 +211,29 @@ def library_context(fid,season=None):
                     keys=[episode_key(False,chosen,number) for number in numbers]
             except ValueError:pass
         pending.update(keys)
-    return dict(fid=fid,title=series['display_title'],aliases=aliases,download_aliases=download_aliases(fid,season),continuous=continuous,season=season,
+    remembered=list(dict.fromkeys((download_aliases(fid,0) if continuous else [])+download_aliases(fid,season)))
+    return dict(fid=fid,title=series['display_title'],aliases=aliases,download_aliases=remembered,alias_rules=alias_rules(fid),continuous=continuous,season=season,season_selected=season_selected,
                 local=available,expected=sorted(expected),pending=sorted(pending),missing=sorted(expected-set(available)-pending),
                 unavailable=unavailable,seasons=selected,boundaries=boundaries)
 
 
 def classify(entry,context):
     title=entry['title']
+    explicit=explicit_season(title)
+    chosen=context.get('season_selected',context.get('season') is not None)
+    candidates=[r for r in context.get('alias_rules',[]) if r['key']==download_title_key(title) and (not chosen or r['season']==context['season']) and (explicit is None or explicit==(r.get('source_season') or r['season']))]
+    encoder=re.match(r'^\[([^]]+)\]',title);group=(entry.get('group') or (encoder[1] if encoder else '')).casefold()
+    relative=bool(re.search(r'\bS\d+[ ._-]*E\d+',title,re.I))
+    exact=[r for r in candidates if r.get('group','')==group and r.get('relative',False)==relative]
+    rules=exact or [r for r in candidates if r.get('offset')==0 and (r.get('source_season') is None or r['source_season']==r['season'])]
+    rules=list({(r['season'],r['continuous'],r.get('offset')):r for r in rules}.values())
+    rule=rules[0] if len(rules)==1 else None
+    if rule:
+        if context.get('fid') and (context.get('season')!=rule['season'] or context.get('continuous')!=rule['continuous']):
+            cache=context.setdefault('_alias_scope_contexts',{});scope=f'{rule["season"]}:{rule["continuous"]}'
+            if scope not in cache:cache[scope]=library_context(context['fid'],rule['season'],continuous=rule['continuous'])
+            context=cache[scope]
+        context={**context,'season':rule['season'],'continuous':rule['continuous'],'download_aliases':[*context.get('download_aliases',[]),rule['title']]}
     import unicodedata
     def title_key(value):
         value=re.sub(r'\.(?:mkv|mp4|avi|webm|m4v|ts|mov)$','',value,flags=re.I)
@@ -173,17 +242,22 @@ def classify(entry,context):
     aliases=[title_key(alias) for alias in context['aliases']]
     saved_alias=bool(clean) and clean in [download_title_key(alias) for alias in context.get('download_aliases',[])]
     title_ok=bool(clean) and (clean in aliases or saved_alias)
-    season=explicit_season(title)
+    season=rule['season'] if rule else explicit_season(title)
     numbers=extract_episode_numbers(title)
     if not numbers:
         match=re.search(r'\[(\d{1,4})\s*[-–]\s*(\d{1,4})\]',title)
         if match and 0<int(match[1])<=int(match[2])<10000:
             numbers=list(range(int(match[1]),int(match[2])+1))
+    source_numbers=list(numbers)
+    if rule and rule.get('offset') is not None:numbers=[n+rule.get('offset',0) for n in numbers]
     special=bool(re.search(r'\b(?:movie|film|ova|special|SP\d+)\b',title,re.I))
     reasons=[]
+    if candidates and not rule:reasons.append('Choose the season and confirm this encoder’s numbering pattern')
+    if rule and rule.get('offset') is None:reasons.append('Episode numbering needs confirmation')
     if not title_ok: reasons.append('Title needs confirmation')
     if special: reasons.append('Movie/special mapping needs confirmation')
     if not numbers: reasons.append('Episode coverage is not explicit')
+    if any(n<1 or n>9999 for n in numbers):reasons.append('Episode mapping is outside the confirmed range')
     if context['continuous'] and season is not None: reasons.append('Season-relative numbering in an absolute series')
     if not context['continuous']:
         if context['season'] is None: reasons.append('Choose the release/season first')
@@ -197,7 +271,7 @@ def classify(entry,context):
     elif set(keys)<=local: status='In Library'
     elif set(keys)<=local|queued: status='Downloading or Queued'
     else: status='Missing — Release Found'
-    return {**entry,'episode_keys':keys,'episodes':numbers,'season':season or context['season'],
+    return {**entry,'episode_keys':keys,'episodes':numbers,'source_episodes':source_numbers,'season':season or context['season'],'continuous':context['continuous'],
             'status':status,'reason':'; '.join(reasons),'in_library':sorted(set(keys)&local),
             'already_queued':sorted(set(keys)&queued),'match_confirmed':False}
 
@@ -244,18 +318,28 @@ def submit(fid,entries):
     from app.core.magnet_capture import validate
     for entry in entries:
         keys=set(entry.get('episode_keys') or [])
-        identity=validate(entry['magnet'])['identity']
+        source=entry['magnet']
+        if source.lower().startswith('magnet:?'):identity=validate(source)['identity']
+        elif Path(source).suffix.lower()=='.torrent' and Path(source).is_file():identity=str(Path(source).resolve())
+        else:raise ValueError('Choose a magnet link or an existing .torrent file.')
         if coverage&keys or identity in identities: raise ValueError('Selected releases overlap. Choose one release per episode before adding them.')
         coverage.update(keys);identities.add(identity)
-        context=library_context(fid,entry.get('season'))
+        context=library_context(fid,entry.get('season'),continuous=entry.get('continuous'))
         if keys&set(context['pending']): raise ValueError('Some selected episodes are already queued. Refresh the search before adding them.')
     for entry in entries:
         if not entry.get('episode_keys'): raise ValueError('Confirm episode/season coverage before adding this release.')
-        context=library_context(fid,entry.get('season'))
+        context=library_context(fid,entry.get('season'),continuous=entry.get('continuous'))
         duplicates=set(entry['episode_keys'])&set(context['pending'])
         if duplicates: raise ValueError('Episodes are already queued: '+', '.join(sorted(duplicates)))
-        if set(entry['episode_keys'])<=set(context['local']): raise ValueError('All selected episodes are already in the library.')
-        destination=downloads.add_download(fid,entry['magnet'],entry.get('season') or 0,
-            context={key:entry.get(key) for key in ('title','episode_keys','source','quality','group','season')})
+        overlap=set(entry['episode_keys'])&set(context['local'])
+        if overlap and entry.get('duplicate_action') not in ('replace','redownload'):
+            raise ValueError('Choose Replace, Skip, or Download another copy for episodes already in your library.')
+        if overlap and entry.get('duplicate_action')=='replace' and not entry.get('replacement_files'):
+            raise ValueError('Review the existing files before replacing them.')
+        destination=downloads.add_download(fid,entry['magnet'],entry.get('season') or 0,origin=entry.get('origin'),
+            context={key:entry[key] for key in ('title','episode_keys','source','quality','group','season','continuous','assignment_version','source_episodes','local_season_id','file_bindings','move_when_completed','approved_destination','duplicate_action','replacement_files') if key in entry})
+        from app.core.download_assignment import remember
+        job=next((j for j in downloads.jobs() if j.get('destination')==destination),None)
+        if job:remember(job)
         added.append(destination)
     return added

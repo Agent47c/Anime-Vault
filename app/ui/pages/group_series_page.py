@@ -1,7 +1,8 @@
 """Searchable, poster-based series grouping with a separate confirmation."""
 from PyQt5.QtCore import Qt,QAbstractListModel,QModelIndex,QSize,QSortFilterProxyModel,pyqtSignal,QEvent
 from PyQt5.QtGui import QImage,QIcon,QPixmap,QPainter,QPainterPath,QPen,QColor
-from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLineEdit,QLabel,QListView,QCheckBox,QMessageBox,QStyledItemDelegate,QStyle,QStyleOptionViewItem
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLineEdit,QLabel,QListView,QCheckBox,QStyledItemDelegate,QStyle,QStyleOptionViewItem,QWidget
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.config import COVERS_DIR
 from app.core import series_grouping
@@ -35,6 +36,10 @@ def load_choices(fid):
 class GroupChoiceDelegate(QStyledItemDelegate):
     """Row clicks include the entry; checkbox clicks toggle it exactly once."""
     def paint(self,painter,option,index):
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.components.neumorphic import paint_depth
+            paint_depth(painter,option.rect.adjusted(8,8,-8,-8))
         super().paint(painter,option,index)
         if index.data(Qt.CheckStateRole)!=Qt.Checked:return
         from PyQt5.QtWidgets import QApplication
@@ -99,11 +104,13 @@ class GroupReview(DrawerDialog):
         super().__init__(parent);self.plan=plan
         body,self.confirm=chrome(self,'Confirm series grouping','Review the entries that will appear under one anime card.','統合','Confirm grouping',self.apply)
         self.setObjectName('group_review');self.setMinimumWidth(480);self.resize(720,860)
+        self.setWindowTitle('Confirm series grouping')
         anchor=text('★  Main card: '+plan['title'],'group_anchor');body.addWidget(anchor)
         for row in plan['records']:
             frame,box=card();primary=row['id']==plan['target'];frame.setProperty('primary',primary)
             line=QHBoxLayout();line.addWidget(text(row['display_title'],'workflow_row_title'),1)
             badge=text('★ Primary container' if primary else 'Will merge under parent','group_badge');badge.setWordWrap(False)
+            badge.setProperty('primary',primary)
             line.addWidget(badge);box.addLayout(line)
             box.addWidget(text('Main series' if row['id']==plan['target'] else 'Season / arc entry'))
             import json
@@ -111,15 +118,28 @@ class GroupReview(DrawerDialog):
             except (TypeError,ValueError):media={}
             if isinstance(media,dict) and media.get('status'):box.addWidget(text(series_grouping.release_status(media['status'])))
             body.addWidget(frame)
-        body.addWidget(text('No files move or get deleted. Each record keeps its paths, notes, rating and watch history. Known announced releases appear as metadata-only season entries.'))
-        self.reviewed=QCheckBox('These entries belong to the same anime');body.addWidget(self.reviewed)
+            from app.ui.manga_pages import active
+            if active():
+                from app.ui.manga_style import shadow
+                shadow(frame,14,4)
+        notice=text('No files move or get deleted. Each record keeps its paths, notes, rating and watch history. Known announced releases appear as metadata-only season entries.','group_notice');body.addWidget(notice)
+        self.reviewed=QCheckBox('These entries belong to the same anime');self.reviewed.setObjectName('group_reviewed');body.addWidget(self.reviewed)
         self.confirm.setEnabled(False);self.reviewed.toggled.connect(self.confirm.setEnabled)
         body.addStretch()
         self.reviewed.setCursor(Qt.PointingHandCursor)
         self.refresh_home_style()
     def refresh_home_style(self):
         from app.ui.review_reference_style import grouping_style
-        self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(grouping_style())
+        self.setProperty('animevaultOwnScaledStyle',True)
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.components.compact_modal import install,modal_qss
+            install(self,650)
+            self._modal_initial_focus=self.cancel_button
+            self.setStyleSheet(grouping_style()+modal_qss('group_review'))
+            header=self.findChild(QWidget,'workflow_header');header.setMinimumHeight(90)
+            header.layout().setContentsMargins(26,18,26,12)
+        else:self.setStyleSheet(grouping_style())
     def apply(self):
         if self.reviewed.isChecked():start(self,lambda:series_grouping.apply(self.plan),self.applied)
     def applied(self,fid):self.grouped.emit(fid);self.accept()
@@ -154,12 +174,16 @@ class GroupSeriesPage(QDialog):
         from app.ui.five_screen_style import qss
         self.setStyleSheet(qss('group_series_screen'));self.list.setIconSize(QSize(58,80));self.list.setCursor(Qt.PointingHandCursor)
     def loaded(self,result):
+        self.refresh_home_style()
         rows,images=result;self.model.beginResetModel();self.model.rows=rows
         self.model.icons={fid:QIcon(QPixmap.fromImage(image)) for fid,image in images.items()};self.model.endResetModel()
         self.status.setText(f'{len(rows)} series available. Select the main card to continue.');self.filter()
     def filter(self,*_):
         self.proxy.setFilterFixedString(self.search.text().strip())
         if not self.proxy.rowCount():self.status.setText('No matching series. Try another title. Existing selections are kept.')
+    def refresh_home_style(self):
+        from app.ui.five_screen_style import qss
+        self.setStyleSheet(qss('group_series_screen'))
     def submit_search(self,*_):
         self.filter()
         from app.ui.search_navigation import focus_results

@@ -19,6 +19,8 @@ class WheelRouting(QObject):
             editor=editor.parentWidget()
         if isinstance(editor,QComboBox) and editor.view().isVisible():return False
         if not isinstance(editor,(QComboBox,QAbstractSpinBox)):
+            from app.ui.components.smooth_scroll import HorizontalStrip
+            if isinstance(editor,HorizontalStrip):return False
             # Nested viewports may consume wheels even at their scroll boundary.
             if not isinstance(editor,QAbstractScrollArea) or obj is not editor.viewport():return False
             bar=editor.verticalScrollBar()

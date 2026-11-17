@@ -27,9 +27,14 @@ class CoveragePage(QDialog):
         footer=QHBoxLayout();footer.addStretch();self.export=QPushButton('Export breakdown (.json)');self.export.setEnabled(False);self.export.clicked.connect(self.export_report);footer.addWidget(self.export);close=QPushButton('Close report');close.setProperty('accent',True);close.clicked.connect(self.reject);footer.addWidget(close);root.addLayout(footer)
         start(self,lambda:prepare_coverage(fid),self.render)
     def panel(self,layout,title,detail):
+        self.refresh_home_style()
         frame=QFrame();frame.setObjectName('transfer_panel');box=QVBoxLayout(frame);box.setContentsMargins(20,16,20,16);box.setSpacing(10)
         name=QLabel(title);name.setTextFormat(Qt.PlainText);name.setWordWrap(True);name.setObjectName('update_title');box.addWidget(name)
         text=QLabel(detail);text.setTextFormat(Qt.PlainText);text.setWordWrap(True);box.addWidget(text);layout.addWidget(frame)
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.manga_style import shadow
+            shadow(frame,16,5)
     def render(self,data):
         self.report=data;coverage=data['coverage'];movies=data['movies'];self.export.setEnabled(True)
         self.status.setText(f"{coverage['unique_episode_count']} distinct main-series episode numbers found. Movies, specials and alternate editions are separate.")
@@ -58,6 +63,7 @@ class CoveragePage(QDialog):
             destination=Path(path);destination.parent.mkdir(parents=True,exist_ok=True)
             destination.write_text(json.dumps(report,ensure_ascii=False,indent=2,default=lambda value:sorted(value) if isinstance(value,set) else str(value)),encoding='utf-8')
         start(self,write,lambda _:self.status.setText('Coverage report exported.'))
+    def refresh_home_style(self):self.setStyleSheet(qss('coverage_report'))
     def reject(self):
         if getattr(self,'_apply_worker',None) and self._apply_worker.isRunning():return
         super().reject()

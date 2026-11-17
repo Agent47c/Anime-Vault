@@ -1,7 +1,8 @@
 """Themed download setup/handoff drawer and a bounded background monitor."""
 from PyQt5.QtCore import QObject,QTimer,QUrl,pyqtSignal,Qt,QAbstractListModel,QModelIndex
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QApplication,QLineEdit,QCheckBox,QFileDialog,QListWidget,QListWidgetItem,QSpinBox,QComboBox,QListView,QWidget,QHBoxLayout,QMessageBox,QSizePolicy
+from PyQt5.QtWidgets import QApplication,QLineEdit,QCheckBox,QFileDialog,QListWidget,QListWidgetItem,QSpinBox,QComboBox,QListView,QWidget,QHBoxLayout,QSizePolicy
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core import downloads as service
 from app.ui.dialogs.drawer import DrawerDialog
@@ -151,6 +152,8 @@ class DownloadsDrawer(DrawerDialog):
         self.timer=QTimer(self);self.timer.setInterval(2000);self.timer.timeout.connect(self._render);self.timer.start()
         self._render()
         monitor().status.connect(self.status.setText)
+        from app.ui.manga_manual_download import configure
+        configure(self,body)
 
     def _config(self):
         return {**{name:control.text().strip() for name,control in self.controls.items()},'enabled':self.enabled.isChecked(),'start_paused':False,
@@ -192,7 +195,7 @@ class DownloadsDrawer(DrawerDialog):
         start(self,lambda:service.test_connection(config,secret),self.status.setText)
 
     def _search(self):
-        from PyQt5.QtWidgets import QMessageBox
+        from app.ui.components.message_boxes import AppMessageBox as QMessageBox
         try:
             if not self.query_title.text().strip():
                 raise ValueError('Enter the anime search title.')
@@ -204,7 +207,7 @@ class DownloadsDrawer(DrawerDialog):
             QMessageBox.warning(self,'Search website',str(error))
 
     def _add(self):
-        from PyQt5.QtWidgets import QMessageBox
+        from app.ui.components.message_boxes import AppMessageBox as QMessageBox
         try:config,secret=self._config(),self._secret()
         except ValueError as error:self.status.setText(str(error));return
         source=self.source.text().strip();season=self.season.value();fid=self.fid
@@ -212,10 +215,8 @@ class DownloadsDrawer(DrawerDialog):
             QMessageBox.information(self,'Enable downloads','Enable downloads and save settings first.');return
         if not source:
             QMessageBox.information(self,'Choose a torrent','Copy a magnet link from your chosen result, or choose its .torrent file.');return
-        def submit():
-            service.save_settings(config,secret)
-            return service.add_download(fid,source,season)
-        start(self,submit,self._added)
+        from app.ui.pages.release_search_page import confirm_manual_download
+        start(self,lambda:service.save_settings(config,secret),lambda _:confirm_manual_download(self,fid,source,season,self._added))
 
     def _added(self,path):
         self.source.clear()

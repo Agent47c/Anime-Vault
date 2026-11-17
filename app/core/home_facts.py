@@ -7,9 +7,13 @@ from app.core.library_health import episode_inventory,aired_boundary
 
 def download_badges(groups,jobs):
     result={}
+    by_owner={}
+    for position,job in enumerate(jobs):
+        if not job.get('indexed') and job.get('desired') not in ('cancelled','stopped') and job.get('status')!='Indexed':
+            by_owner.setdefault(job.get('fid'),[]).append((position,job))
     for group in groups:
         members=set(group.get('series_member_ids',[group['id']]))
-        active=[job for job in jobs if job.get('fid') in members and not job.get('indexed') and job.get('desired') not in ('cancelled','stopped') and job.get('status')!='Indexed']
+        active=[job for _,job in sorted((pair for member in members for pair in by_owner.get(member,[])),key=lambda pair:pair[0])]
         if not active:continue
         progress=sum(max(0,min(1,float(job.get('progress') or 0))) for job in active)/len(active)
         failed=any(any(word in job.get('status','').lower() for word in ('error','failed','review')) for job in active)

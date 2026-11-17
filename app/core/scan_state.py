@@ -60,6 +60,8 @@ def key(path):
 
 def inventory(folder, cancelled=lambda: False, recursive=True):
     """Metadata-only enumeration. Any unreadable subtree aborts this checkpoint."""
+    from app.core.download_inventory import Snapshot
+    readiness=Snapshot();readiness.assert_scan_scope(folder,recursive)
     files = {}
     def fail(error):
         raise error
@@ -71,7 +73,7 @@ def inventory(folder, cancelled=lambda: False, recursive=True):
             if cancelled():
                 raise InterruptedError('Scan cancelled')
             path = Path(directory)/name
-            if path.suffix.lower() not in VIDEO_EXTENSIONS or path.is_symlink():
+            if path.suffix.lower() not in VIDEO_EXTENSIONS or path.is_symlink() or not readiness.can_scan_library(path):
                 continue
             stat = path.stat()
             files[str(path)] = (stat.st_size,stat.st_mtime_ns,str(stat.st_dev),str(stat.st_ino))

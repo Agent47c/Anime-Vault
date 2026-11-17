@@ -2,11 +2,22 @@
 
 Start with the [project README](../README.md) for installation, screenshots and current capabilities.
 
+Before UI work, follow the [UI Design Guidelines](themes/UI_DESIGN_GUIDELINES.md):
+the approved main Library screen governs shared design in both light and dark modes.
+
+For actual design completion, see the
+[complete 32-design visual review](themes/DESIGN_COMPLETENESS_REVIEW_2026-11-16.md),
+with individual verdicts, comparison images and the new operation-progress coverage.
+The [operation-progress routing guide](themes/OPERATION_PROGRESS_ROUTING.md)
+records which actions open the major progress card and which stay in the footer.
+
 ## Using the application
 
 | Task | Guide |
 |---|---|
 | Set up built-in downloads | [Current download guide](DOWNLOADS.md) |
+| Confirm episodes, replace copies and move completed downloads | [Approved confirmed-download flow](CONFIRMED_DOWNLOAD_FLOW.md) |
+| Remember searches and physically change selected episodes' season | [Search memory and season editing](SEARCH_MEMORY_AND_SEASON_EDITING.md) |
 | Connect the selected-site Chrome extension | [Extension setup](../browser-extension/README.md), [browser capture design](history/BROWSER_MAGNET_CAPTURE.md) |
 | Understand every feature and destination | [Feature/navigation map](guides/All%20Feature%20and%20their%20Navigation.md) |
 | Organize folders | [Organizer usage](guides/ORGANIZER_USAGE.md) |
@@ -28,6 +39,18 @@ Start with the [project README](../README.md) for installation, screenshots and 
 
 Implementation notes now live in [history](history/README.md), UI references in the
 [design index](../design/README.md), and product/backlog notes in `planning/`.
+
+Current Manga polish, shared alerts and episode/folder assignment:
+[changes and verification](themes/MANGA_POLISH_FOLLOWUPS.md).
+
+Download staging, main-library folders, review and move logic:
+[Downloads and Organizer flow](DOWNLOAD_ORGANIZER_FLOW.md).
+
+Completion-state synchronization and optional red-bin folder cleanup:
+[changes and testing steps](DOWNLOAD_STATE_SYNC.md).
+
+Review of the proposed single-confirmation download flow:
+[plan review and decisions](planning/DOWNLOAD_FLOW_PLAN_REVIEW_2026-11-16.md).
 See the [14 November code review and organization report](maintenance/CODEBASE_REVIEW_2026-11-14.md)
 for verified recent changes, remaining risks and the proposed UI work order.
 Older notes may describe the retired external-client workflow; follow the current

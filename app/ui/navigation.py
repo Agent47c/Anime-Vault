@@ -147,6 +147,10 @@ def switch_tab(host, index, restore=True):
 
 
 def navigate(dialog, callback=None):
+    if getattr(dialog,'compact_manga_modal',False):
+        # Confirmation overlays leave the underlying page and its history intact.
+        if callback:dialog.finished.connect(callback)
+        dialog.setWindowModality(Qt.WindowModal);dialog.open();return None
     parent = dialog.parentWidget()
     while parent and not hasattr(parent, "stacked_widget"):
         parent = parent.parentWidget()

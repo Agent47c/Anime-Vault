@@ -5,3 +5,10 @@ New families must provide their own presentation adapters rather than replacing 
 """
 SAKURA_FAMILY='sakura'
 SAKURA_CHOICES=(('Sakura · Match Windows','system'),('Sakura Dark','dark'),('Sakura Light','light'))
+THEME_CHOICES=SAKURA_CHOICES+(('Manga Brutalism Light','manga_light'),)
+
+
+def is_manga():
+    from PyQt5.QtWidgets import QApplication
+    app=QApplication.instance()
+    return bool(app and app.property('animevaultThemeFamily')=='manga')

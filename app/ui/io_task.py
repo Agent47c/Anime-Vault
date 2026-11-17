@@ -31,21 +31,29 @@ class IOTask(QThread):
             self.failed.emit(str(error))
 
 
-def start(dialog, operation, success):
+def start(dialog, operation, success, *, major=False, operation_title=None):
     current=getattr(dialog,'_apply_worker',None)
     if current and current.isRunning():
         return
-    from PyQt5.QtWidgets import QMessageBox
+    from app.ui.components.message_boxes import AppMessageBox as QMessageBox
     worker=IOTask(operation)
     track(worker)
     dialog._apply_worker=worker
     dialog.setEnabled(False)
+    from app.ui.components.operation_progress import watch
+    progress = watch(dialog, worker, operation_title or dialog.windowTitle() or 'Processing files', major=major)
     def done(value):
+        if progress is not None: progress.finish()
         if sip.isdeleted(dialog):
             return
+        # The operation has returned. A success callback may intentionally start
+        # the next shared workflow task before QThread.finished is delivered.
+        if getattr(dialog,'_apply_worker',None) is worker:
+            dialog._apply_worker=None
         dialog.setEnabled(True)
         success(value)
     def failed(message):
+        if progress is not None: progress.finish()
         if sip.isdeleted(dialog):
             return
         dialog.setEnabled(True)

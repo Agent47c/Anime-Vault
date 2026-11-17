@@ -1,5 +1,589 @@
 # Changelog
 
+## 1.1.0 — 17 November 2026
+
+- Release the Manga Brutalism light theme and shared controls while retaining
+  Sakura themes, reference guidelines and the existing app features.
+- Improve download confirmation, remembered search/match titles, queue completion,
+  rate controls and transfer status. Correct season-folder naming and reviewed
+  moves between Downloads and library seasons without renaming episode files.
+- Improve Organizer/root controls, duplicate review and safe recycling, season
+  editing, update actions and notification visibility after Watching imports.
+- Preserve per-tab navigation and in-memory library snapshots; reduce repeated
+  season lookups, episode-mapping work, badge scans and duplicate-removal IO.
+- Polish popup input, menu placement, modal backgrounds, progress routing,
+  calendar cards and consistent button states. Include regression tests and
+  implementation/design/performance reviews for the accumulated changes below.
+- Windows EXE file/product version: 1.1.0. Previous builds and user profiles remain
+  separate from the new application payload. Pre-release validation: 727 tests
+  and repository checks passed before the packaging-only version change.
+
+## Snapshot lookup optimization review — 17 November 2026
+
+- Index cached seasons by anime owner instead of scanning the full inventory
+  for each lookup; keep sorting, independent results and import invalidation.
+- Reuse verified episode-mapping presentation results within each read snapshot,
+  reducing repeated queries and path resolution during health calculations.
+- Index active download jobs once for Home badges while preserving ordering.
+- Record implementation evidence and remaining profiling opportunities in
+  `docs/PERFORMANCE_REVIEW_2026-11-17.md`.
+- All 727 regression tests and repository checks passed.
+
+## Reuse the loaded library during navigation — 17 November 2026
+
+- Keep the completed SQLite memory snapshot and decoded artwork alive between
+  page visits. Dirty tab redraws use that snapshot instead of launching file
+  recovery, storage checks and artwork loading again. Clean visits do no work.
+- Replace and close the previous snapshot after a real refresh. Keep confirmed
+  notification choices, personal edits and imported anime synchronized with the
+  retained database so navigation does not restore stale state.
+- Keep explicit scans and refresh actions available; initial navigation waits
+  for the existing startup load instead of starting another worker.
+- Validation: 30 focused navigation, Details and import checks passed, including
+  replacement cleanup and imports staying present in the retained database.
+
+## Immediate update visibility after discovery import — 17 November 2026
+
+- Publish committed Watching imports directly to the Library release strip and
+  Updates page instead of routing them through the download-monitor signal and
+  general disk/recovery/artwork refresh. Update the badge from the same records.
+- Refresh the Library index, filters and cards without rebuilding its hero or
+  calendar. Reapply committed imports after an older in-flight snapshot finishes
+  so it cannot leave the imported update hidden.
+- All 26 focused import, release-tracking, cache and progress regressions passed
+  using temporary library data.
+
+## Header menu placement and transfer-rate clarity — 17 November 2026
+
+- Anchor the Manga header's shared More and Refresh menus to the visible header
+  controls instead of their hidden original buttons; keep menus within the window.
+- Shorten shared upload/download presets to Unlimited and 512 KB/s steps through
+  3 MB/s, with six visible rows. Keep Custom and preserve saved arbitrary limits.
+- Show queue, upload/download summary and footer rates in KB/s while keeping
+  file-size labels unchanged. All 22 focused regression checks passed.
+
+## Exit backdrop artifacts and duplicate-removal overhead — 16 November 2026
+
+- Capture compact-dialog backgrounds while the dialog is hidden, preventing its
+  old footer from entering the snapshot. Refresh the matching background crop on
+  moves/resizes and paint every pixel of the opaque window to avoid black strips.
+- Remove the second inventory update after duplicate recycling. Update matching
+  season inventories without resolving every unrelated episode path on disk.
+- Reuse a retained copy's hash only within the current deletion batch while its
+  file identity/timestamps remain unchanged. Fully hash each selected copy and
+  recheck the keeper before recycling. Keep Recycle Bin, durable journals and
+  cancellation protections intact. Large files still require disk reads.
+- Validation: 17 focused duplicate/modal checks passed on Qt's Windows backend,
+  including active-download exit layout, mouse input, keeper mutation protection
+  and avoiding per-file resolution of 1,000 unrelated inventory entries.
+  The full 715-test run and repository compilation checks also passed; final
+  focused tests additionally cover keeper changes during candidate verification.
+
+## Download review completion and Organizer root controls — 16 November 2026
+
+- Close the review immediately after successful queue submission and open
+  Downloads & Transfers. Queue monitoring no longer runs synchronously before
+  closing the review; Downloads refreshes asynchronously when shown.
+- Mark submitted search results as queued, clear their checkboxes and prevent
+  submitting them again from the same result list. Disable Review selected
+  downloads when nothing is selected; preserve other results and cancellation.
+- Let configured library-root rows fit the themed buttons instead of clipping
+  them inside a fixed 44px row. Preserve Open folder and confirmed Remove root
+  actions; removing a root does not delete its files.
+- Verification: four Windows Qt regressions pass, including actual window-level
+  mouse hit testing for both root controls. All 41 related search, assignment,
+  season-edit and Organizer regressions pass against temporary data.
+  The broader 710-test run and compilation checks passed; final focused checks
+  also cover the subsequently added selective-result regression.
+
+## Exit dialog mouse input — 16 November 2026
+
+- Make the compact dialog's blurred backdrop ignore mouse/focus input and keep
+  the actual modal in front. Replace its translucent native window with an opaque
+  matching background crop, retaining the rounded face, shadow and blur.
+- Verify both choice cards/radios, Remember my choice, Cancel and confirmation
+  using window-level mouse events on Qt's Windows backend, including the nested
+  close-dialog event loop. Remember saves only on confirmation; Cancel saves nothing.
+- All nine focused checks passed using temporary data; no personal library or
+  preferences were changed. The full 706-test regression run and repository
+  checks also passed (the additional nested-loop test passed separately).
+
+## Compact reference dialogs and balanced discovery actions — 16 November 2026
+
+- Apply compact, rounded Manga overlays to Change Password, Unlock Adult Anime,
+  Exit Choice and Confirm Series Grouping, with the reference face widths and
+  one blurred/tinted background snapshot per opening.
+- Keep dialog controls sharp and restore the underlying page on dismissal.
+  Grouping confirmation now overlays its existing page; its review gate remains.
+- Place remembered exit preference below the choices; restore status/choice wells,
+  primary grouping badge and safety/review treatments.
+- Reduce the Library hero's pale washout slightly and keep its cached artwork intact.
+- Equalize Details/Add button sizes, including the labels after importing a title.
+- Verify fresh fixture renders and five focused modal/UI regressions. One full
+  703-test run passed; the final broad run had one scanner heartbeat timing outlier
+  (198.8 ms against 100 ms). All 17 scanner checks passed separately at 55.9 ms;
+  no timing assertion was relaxed.
+
+## Major-only progress and quiet navigation feedback — 16 November 2026
+
+- Make large circular/bar progress an explicit opt-in for confirmed disk actions:
+  Organizer scans/moves, duplicate drive scans/deletion, Storage refresh,
+  completed-download moves, season moves and local-file recycling.
+- Route routine page loads, tab refreshes and merge-preview generation to the
+  bottom bar with an operation name. Keep overlapping task messages correct
+  after navigation and preserve queued explicit Storage requests.
+- Simplify the Manga footer to operation feedback plus download speed and the
+  currently downloading count. Move indexed information back to Library and
+  remove API/free-space text from this footer.
+- Add the approved red/green API dot beside the top-right menu button. Check
+  AniList and Jikan asynchronously; green requires successful responses from both.
+- Reduce the indeterminate circle label size so Working fits inside the gauge.
+- Validation: all 698 tests and repository checks passed, including routine/major
+  routing, footer overlap/navigation cleanup, queued Storage requests and API states.
+
+## Complete design review and shared operation progress — 16 November 2026
+
+- Replace the mapping-only UI completion claim with fresh captures and individual
+  verdicts for all 32 current Manga references: 7 applied within approved scope,
+  22 partial, 2 superseded by later user instructions and 1 HTML-only reference
+  whose supplied PNG is blank. Record concrete gaps and comparison evidence.
+- Add the supplied circular/bar progress treatment to library/root scans,
+  Organizer reviews/moves, merge preview/execution, duplicate checking/recycling,
+  local-episode disk checks, watchlist parsing and foreground file tasks,
+  including completed-download moves and backup/restore operations.
+- Display real worker totals/messages and elapsed time. Unknown totals remain
+  indeterminate; short operations do not flash a stale progress window.
+- Preserve deletion confirmation, existing Stop behavior and background workers.
+  Do not add mockup CRC claims, fabricated speed/stages or unsupported controls.
+- Final validation: all 691 tests and repository checks passed. The design review
+  records a prior intermittent scanner heartbeat assertion and its isolated pass.
+
+## Design audit, sequel calendars and duplicate bulk selection — 16 November 2026
+
+- Audit all 31 current Manga reference mappings and correct earlier completion
+  wording. Fresh renders confirm Unlock, Change Password and Exit Choice are
+  visually partial; the report distinguishes runtime presence from design sign-off.
+- Map cached official sequel/side-story/spin-off IDs to their library owner when
+  unambiguous, and include those IDs in schedule refreshes. Home and Full Calendar
+  now share the same dated entries; unknown dates remain unassigned.
+- Add Select all duplicate copies and per-anime/per-episode checkboxes for eligible
+  redundant copies only. Protected originals and Recycle Bin confirmation remain.
+- Reduce duplicate-review heading and overview padding to leave more room for files.
+- Validation: all 687 tests and repository checks passed, including new sequel-calendar
+  and protected duplicate bulk-selection regression tests.
+
+## Keep popup styling inside scoped pages — 16 November 2026
+
+- Stop the page theme-scope handler from replacing transient menu/list styles
+  with the base page stylesheet on Show. This reproduced the blue playback-menu
+  selection and native row edges shown in the screenshots.
+- Reapply a cached popup style if another handler changes its actual stylesheet;
+  preserve the deliberate compact-menu padding used for short windows.
+- Measure both action labels and their right-hand hints so the player name and
+  Change in Settings label fit side by side.
+- Apply dropdown setup after the new theme properties are installed, and refresh
+  existing hidden combo/menu containers. Native popup effects now disable on the
+  first Manga switch even when Windows starts with its menu animations enabled.
+- Add regression coverage for the real scoped-window path and initially enabled
+  native effects, rather than relying only on standalone/offscreen defaults.
+- Validation: all 684 regression tests passed. Reproduced the screenshot's blue
+  selection before the change and verified no blue selected-row pixels afterward.
+  Personal media/database records and installer builds were unchanged.
+
+## Prevent the unfinished popup frame — 16 November 2026
+
+- Prepare combo popup styling and transparency while the native container is
+  hidden. Fit the list before presentation and keep it invisible until Qt's
+  final native geometry pass and the backing-store paint have completed.
+- Disable Qt's native combo/menu fade and slide effects for Manga, avoiding
+  captured frames of the narrow, unstyled popup. Restore the original Qt effect
+  preferences when switching back to Sakura.
+- Remove the deferred reposition of contained menus. Guard popup presentation
+  by generation so closing or reopening immediately cannot reveal a stale pass.
+- Keep the approved list shadow, separate option buttons and all menu actions.
+- Validation: all 682 regression tests passed, including first-presentation and
+  immediate-close/reopen checks. No personal database/media or installer changes.
+
+## Raised menu options and Windows popup transparency — 16 November 2026
+
+- Configure translucent Manga popups as frameless before showing them and turn
+  off the native Windows shadow, preventing the opaque black rectangular surround.
+- Keep a soft shadow around the complete list and paint each actionable option
+  as its own raised button with a fine dark border, spacing and a small shadow.
+  Selected options retain the shared recessed treatment and pink accent.
+- Apply the option material to standard menus, rich context menus and combo
+  lists without adding per-row widgets or replacing existing QAction callbacks.
+- Preserve shortcut/check/submenu indicators, disabled actions, keyboard
+  navigation and text fit. Compact menu rows reduce their gap to keep labels
+  readable when the owning window is short.
+- Validation: all 680 regression tests passed, plus focused text-fit and rich
+  menu checks. Rendered the eight-action download menu and combo lists with
+  isolated data; no personal database/media changes or installer build.
+
+## Clean button edges and shared dropdown depth — 16 November 2026
+
+- Align the small-control shadow mask with the button's corner shape and clip
+  inset shading inside the border. Soften the dark rim and bright highlight.
+- Keep faces stable on hover to prevent fractional raster resampling artifacts;
+  retain animated inset feedback, checked states and physical click compression.
+- Give combo controls the same light border and raised shadow as other buttons,
+  while leaving native popup painting, input and keyboard navigation intact.
+- Add matching rounded borders and reserved shadow margins to standard menus,
+  rich context menus, combo lists and boxed tag popovers. Reuse native popup
+  painters across reopening and release them with their Qt owner.
+- Keep editable combo fields and tool-button arrow areas transparent to avoid
+  a second inner border or an extra rectangular face.
+- Validation: 677 full-suite tests and three focused dropdown lifecycle/input
+  checks passed. Rendered hover controls, menus and tag popovers using temporary
+  data. No installer build or personal database/media changes were performed.
+
+## Pressed filters, collection totals and padded move destinations — 16 November 2026
+
+- Keep selected Library filters, checked controls and rail collections visibly
+  pressed, rather than only changing their count badge or face color.
+- Show live collection totals on the expanded Manga sidebar, including zeroes,
+  and synchronize them after edits and update actions without a global refresh.
+- Correct Edit season's legacy-folder reuse: Season 01 targets the padded folder
+  even when Season 1 already exists. Confirmed moves preserve filenames and update
+  database paths; optional cleanup removes only empty old directories.
+- Use padded default destinations in download assignment, completed moves and
+  Organizer plans. Preserve already-started recovery plans and require refreshed
+  Organizer previews after the naming-policy change.
+- Apply the reference's card depth, serif headings, inset fields and spacing to
+  Downloads and Settings. Keep Browse beside the download folder, make settings
+  theme cards responsive, and retain the existing categories and options.
+- Validation: all 677 regression tests passed, followed by five final Settings
+  checks. Rendered the filters, sidebar totals, transfer cards and Settings panels
+  using temporary data; no personal media or database records were modified.
+
+## Season folder naming and separate playback controls — 16 November 2026
+
+- Use a shared `Season 01`, `Season 02` naming policy for new Organizer,
+  loose-file import, torrent staging, completed-download and merge destinations.
+- Reuse an existing legacy season folder instead of creating another spelling;
+  ignore stale or differently numbered database paths during completed moves.
+- Remove the playback controls' shared colored background, round each button
+  independently, and keep a visible 16-pixel gap between Resume and its arrow.
+- Existing personal folders are not automatically renamed or moved.
+- Validation: 675 full-suite tests passed, plus final completed-destination and
+  Organizer-cache checks. Visually verified the separate playback controls.
+
+## Season reconciliation and staged-file movement — 16 November 2026
+
+- Open Edit season directly as a file selector with season buttons, duplicate-slot
+  prevention, explicit episode numbering and reviewed destination-folder choices.
+- Reconcile stale paths using strong identity proof; index newly observed physical
+  files separately instead of guessing that matching names identify the same file.
+- Distinguish the anime root from its season folders, respect real folder numbers,
+  and preserve explicit season assignments through metadata refreshes.
+- Allow empty shared-folder and no-folder entries to be removed without deleting
+  live videos; retain metadata/history and hide empty local source entries.
+- Explain unavailable completed-download moves, support explicit destinations and
+  refreshing, and expose indexed staging files even after queue records are cleared.
+- Verify that new episodes return after Dismiss/Watched and ignore, while Later
+  and Not interested remain persistent choices.
+- Validation: all 671 regression tests and project checks passed using isolated
+  test data. Personal media and database records were not modified by the agent.
+
+## Organizer review presentation — 16 November 2026
+
+- Apply the Manga light master styling to the organization review table instead
+  of its hard-coded dark inline styles.
+- Show Finished before the organization-result alert. Replace stale, disabled
+  Review controls with an explicit Refresh preview action.
+- Validation: three focused Organizer UI regressions passed. No personal file
+  moves, episode renumbering or folder merging were performed.
+
+## Search memory, remembered matches and physical season editing — 16 November 2026
+
+- Restore each anime's last search text, title choice, provider and season. Cache
+  English, Romaji and Japanese title choices for later use.
+- Remember alternate titles with their confirmed encoder, source season and
+  episode-number mapping; refresh matching results immediately. Recognize earlier
+  title-only aliases without rewriting existing records.
+- Default continuous numbering to off. Replace the duplicate match controls with
+  **Confirm season / episodes**, followed by the existing download review.
+- Make Stop idempotent for completed, non-seeding or already detached transfers;
+  preserve their Completed status and files.
+- Restore **Edit season** for continuous and separate-season libraries. Add reviewed
+  episode selection and physical movement into a chosen season folder, updating
+  the database while preserving filenames, file identities and watch history.
+- Keep partial downloads out of physical moves, reject filename collisions, and
+  retain interrupted move plans for explicit retry.
+- See [usage and behavior](docs/SEARCH_MEMORY_AND_SEASON_EDITING.md).
+- Validation: 651 full-suite tests passed; final search/season-move, release-search,
+  confirmed-download, episode-inventory and episode-selection checks also passed.
+  All filesystem tests used temporary databases and files.
+
+## Confirmed download assignments — 16 November 2026
+
+- Reuse episode confirmation for source results, pasted magnets and torrent files.
+- Preserve original filenames while indexing future downloads with confirmed
+  season/episode identities; keep existing records and series numbering unchanged.
+- Ask Replace, Skip or Download another copy for owned episodes. Replace retains
+  the original until the verified new copy reaches the library, then recycles it.
+- Keep manual movement as the default; add opt-in completed movement to an
+  approved season destination, including confirmation for new season folders.
+- Remove Download Missing Episodes. Auto-Grab now searches the next learned
+  source episode and requires user confirmation rather than starting downloads.
+- Preserve learned mappings when completed queue entries are cleared.
+- Keep future downloads in one selected season while files span staging and the
+  library; support Windows short-path aliases and partial moves across drives.
+- See [the approved flow](docs/CONFIRMED_DOWNLOAD_FLOW.md).
+- Validation: 635 full-suite tests passed, followed by 17 confirmed-download and
+  14 move/recovery checks after the final replacement-retry safeguard. Tests used
+  temporary databases and media; no installer was generated.
+
+## Watched-root path identity and download-plan review — 16 November 2026
+
+- Treat Windows slash style, case and trailing separators as one watched-folder
+  identity. Return the existing root ID rather than adding a second spelling.
+- Display legacy aliases once while retaining their saved scan records; root
+  removal explicitly removes all aliases for that same logical watched folder.
+- Deduplicate filesystem watcher registrations using the same path identity.
+- Review the proposed shared download flow against current behaviour and earlier
+  decisions; identify numbering, automatic-move, feature-removal and migration
+  conflicts. No download-flow redesign was applied by this review.
+- See [the review](docs/planning/DOWNLOAD_FLOW_PLAN_REVIEW_2026-11-16.md).
+- Validation: 619 regression tests passed, including four path-identity tests;
+  publication and whitespace checks passed.
+
+## Download/Organizer state synchronization — 15 November 2026
+
+- Use tracked completion rather than file existence/allocated size for readiness.
+- Reconcile Organizer rows after completion/moves and reject stale scan results.
+- Coordinate scan commits with file moves; invalidate old scan locations atomically.
+- Preserve review/retry for interrupted moves; avoid UI rebuilds on progress ticks.
+- Add confirmed red-bin cleanup for empty/missing folder entries, with optional
+  non-recursive empty-directory deletion and metadata/history preservation.
+- Keep existing exclusion rules unchanged. See [flow and test steps](docs/DOWNLOAD_STATE_SYNC.md).
+- Validation: 614 regression checks passed; final focused readiness, move and
+  cleanup checks passed. No personal media or database was changed during tests.
+
+## Shared alerts, Organizer and Manga polish — 15 November 2026
+
+- Separate continuous episode identity from per-file destination season; keep
+  episode numbers editable, preserve filenames, and reject duplicate assignments.
+- Use a shared themed alert dialog with stable hover/press buttons, preserved
+  confirmation roles/defaults and existing path-repair details.
+- Stop auto-selecting Organizer moves; correct status/action column sizing and
+  inset active tabs; allow completed-download review to revalidate cached rows.
+- Reuse existing unindexed season folders instead of creating padded-name duplicates.
+- Save the main library destination immediately; distinguish nested watched roots,
+  shared download staging and selected-transfer folder actions.
+- Prevent move previews from treating another torrent job or a custom staging
+  folder as the anime's permanent library folder.
+- Polish update action hierarchy, discovery cards/popovers, import controls,
+  setup/review panels, missing banners and exit choice visibility.
+- Keep the Home update strip horizontal and restore cached card material when
+  switching theme families.
+- See [changes and verification scope](docs/themes/MANGA_POLISH_FOLLOWUPS.md).
+- Validation: 601 combined regression checks passed; all 14 relocation/recovery
+  checks passed after the final cross-job staging guard. No personal media moved.
+
+## Selected-download confirmation and manual ingest — 15 November 2026
+
+- Apply the Confirm Selected Downloads reference to existing episode matching.
+- Use only Search & Auto Ingest from the Transfer Engine mockup for manual
+  magnet/torrent entry; retain configuration in Settings and queue in Downloads.
+- Keep submission, validation, alias memory and season numbering unchanged.
+- Correct clipped native spinbox editors and stop the hidden queue's timer.
+- Refresh the remaining-screen inventory; see
+  [implementation details](docs/themes/MANGA_DOWNLOAD_CONFIRMATION_UPDATE.md).
+- Validation: 582 full-suite checks passed with local socket access. After
+  final visual refinements, 24 focused matching/numbering/UI tests passed.
+
+## Twelve additional Manga screens — 15 November 2026
+
+- Apply the supplied light designs to password access/change, app exit,
+  episode selection, season numbering, grouping/confirmation, coverage,
+  Full Calendar, duplicate review, Settings and saved update changes.
+- Preserve Settings options, automatic saving and separate sections. Retain
+  existing grouping browsing/duplicate filters; omit declined checksum features.
+- Add the approved read-only Inspect selected file action without changing
+  duplicate selection, protected originals or Recycle Bin confirmation.
+- Reuse master controls and native models/delegates; preserve Sakura styling.
+- Details and decisions: [twelve-screen update](docs/themes/MANGA_TWELVE_SCREEN_UPDATE.md).
+- Validation: 576 full-suite tests and three additional focused tests passed.
+  All twelve workflows were rendered with isolated data; publication and
+  whitespace checks passed. No installer or personal database changes.
+
+## Startup control states and flexible Details band — 15 November 2026
+
+- Keep caption buttons out of automatic startup focus and application button
+  surfaces. Only pointer hover highlights the window controls.
+- Do not animate window-activation focus as button hover; retain Tab feedback.
+  Keep busy Refresh raised and mirror Checking/Refreshing labels into the Manga
+  header, restoring Refresh when the operation finishes.
+- Stretch the Details band: flexible Notes on the left, watch status in the
+  middle and rating on the right. Preserve narrow-window wrapping and Sakura's
+  original arrangement.
+- Verification: 30 focused tests passed across startup/refresh, window chrome,
+  tactile interaction, shared Details controls and the Manga Library. Rendered
+  the caption and flexible Details band with isolated temporary data.
+
+## Rating, entry form and calendar/Details consistency — 15 November 2026
+
+- Fill rating values cumulatively in yellow; selecting 7 fills 1–7, lowering
+  or clearing the value updates all chips. Keep a single saved rating value.
+- Give Manga Add Custom Entry the same combo-backed form and controls as Edit;
+  synchronize Sakura's existing Add rating pills with the shared value.
+- Remove the calendar's accidental nested button/card border. Reserve space
+  around each day for its shadow, split weekday/date, and float TODAY across
+  the top edge. Show transfer tracks only when real progress is available.
+- Restore Details' shared inset personal band, transparent inactive watch
+  statuses, flat cumulative rating chips and inset notes. Preserve actions/data.
+- Keep native window-caption controls outside the Manga application-button
+  policy. Record the reference recheck and remaining differences separately.
+- Fix mixed inline/selector QSS that could suppress rating colours. Verify
+  actual rendered yellow pixels, not only selection properties.
+- Validation: full suite passed 572 tests; the additional high-contrast
+  calendar check passed. Visuals were checked against 17 reference folders.
+  No installer build or personal database/media changes.
+
+## Manga poster card border — 15 November 2026
+
+- Replace the thick white-only Library poster frame with a 1px black inner
+  outline and 3px white outer frame, following the user's recording/instruction.
+  Keep rounded corners, cached artwork, hover effects and Sakura unchanged.
+
+## Shared Manga controls across workflows — 15 November 2026
+
+- Apply Library light states to visible and lazily created buttons, tool
+  buttons, sorting dropdowns and search fields throughout Manga workflows.
+- Reuse cached effects, preserve rail effects and avoid nested effects.
+  Sorting dropdowns use the raised master surface consistently.
+- Restore prior local styles on Sakura switches; preserve layouts and actions.
+- Add tests for lazy controls, reuse, playback, nested effects and restoration.
+- Record supplied and missing Manga designs in the
+  [screen reference inventory](docs/themes/MANGA_SCREEN_REFERENCE_INVENTORY.md).
+- Validation: 567 tests passed; Updates, Details, Edit, Rematch and twelve
+  workflow states were rendered with isolated data. Publication and whitespace
+  checks passed. No installer or personal database changes.
+
+## Library filter outline — 15 November 2026
+
+- Remove the extra blue inner focus ring from Manga Library filter chips.
+  Keyboard focus uses the existing thin pink outer edge; selection, counts and
+  tactile effects are unchanged. Sakura keeps its original focus treatment.
+
+## Light hover treatment correction — 15 November 2026
+
+- Remove the dark hover fills from navigation, Refresh, pagination and shared
+  controls. Keep light faces and dark text, with a raised-to-inset shadow blend
+  on hover and a deeper compression on click, following the user's screenshots.
+- Remove the nested hero graphics effect that could suppress the labels/icons
+  on Resume, Series Details and Folder. Keep their individual effects/actions.
+- Update the shared interaction specification and regression tests to record
+  this correction; it supersedes the previous dark-face hover interpretation.
+
+## Manga tactile interaction animations — 15 November 2026
+
+- Add spring hover lift and cached pink glow to primary actions; retain black
+  text and add a slightly brighter pink hover face.
+- Add shared paint-only lift/press compression to raised controls, filter chips,
+  pagination and hero buttons. Disabled Previous stays recessed.
+- Add sidebar scale/depress feedback and immediate tooltips while preserving
+  the existing navigation blur/reveal. Reuse the calendar preview with a single
+  Manga lift instead of stacking position and paint animations.
+- Respect reduced motion/high contrast, preserve geometry and click signals,
+  and cache the glow alongside existing shadow tiles.
+- Validation: 563 tests passed; focused motion/Library/workflow tests and
+  rendered resting, hover and pressed states also passed review.
+- See [interaction details and validation](docs/themes/MANGA_INTERACTION_MOTION.md).
+
+## Manga master depth and workflow screens — 15 November 2026
+
+- Correct raised/inset shadows for Library pagination, filters, search, sort,
+  refresh and sidebar tiles using cached reusable shadow surfaces.
+- Extend the shared light material to twelve supplied workflow references;
+  reuse the existing five setup steps in one responsive scrolling page.
+- Add approved broadcast filters, clipboard sharing, saved filter presets,
+  per-release Ignore/Find release/date sorting and cached Storage pagination.
+- Keep Sakura themes and existing workflows; omit declined CRC32 and Copy ID
+  features. No installer build or personal database migration was performed.
+- Full checks: 560 tests passed. See
+  [scope, changes and validation](docs/themes/MANGA_WORKFLOW_BATCH.md).
+
+## Navigation discoverability — 15 November 2026
+
+- Keep all inactive navigation and collection controls faintly visible instead
+  of transparent. Reduce blur to retain recognizable button outlines; reveal
+  controls fully on hover or keyboard focus. Preserve overlay positioning.
+- Correct float/integer QVariant animation endpoints so previously blurred
+  controls actually return to zero blur on hover or selection.
+
+## Related-season updates and existing-library detection — 15 November 2026
+
+- Fix dismissed season announcements hiding all subsequent episodes: emit
+  distinct dated episode events for related releases and check linked season
+  identities during online refresh. Keep saved update dispositions intact.
+- Preserve pending notices on linked-release lookup failure and retain related
+  episode timestamps in the existing calendar cache.
+- Show “Already in library” before import for both series and linked seasons;
+  prevent duplicate season imports without changing notes or watch status.
+- Add regression coverage and [diagnosis/change details](docs/RELEASE_UPDATE_TRACKING_FIX.md).
+
+## Selected navigation depth correction — 14 November 2026
+
+- Anchor expanded rail depth to the selected tab/tag. Keep it clear, reduce
+  immediate neighbours to 12% opacity, and hide items at distance two or more.
+  Reveal hovered/keyboard-focused controls temporarily; keep every route active.
+- Preserve overlay geometry and reduced-motion/high-contrast fallback. Verified
+  Library/Updates renders and passed nine focused regressions.
+- Analyze raised/inset shadows and hover/pressed states across all five supplied
+  references. Record Qt fidelity gaps in the neumorphic reference analysis.
+
+## Manga light workflows and motion — 14 November 2026
+
+- Apply the supplied Updates, Anime Details, Edit Anime Entry and Rematch
+  references through shared Manga-only paper surfaces, typography, pink accents,
+  input treatments, cached dot patterns and existing actions. Preserve Sakura.
+- Reproduce the expanding rail animation from the Updates HTML. Replace uniform
+  inactive-item blur with a distance falloff: hovered/focused item sharp, adjacent
+  items slightly softened, farther items progressively softer. Reset on leaving;
+  reduced motion/high contrast apply instantly without blur.
+- Keep expansion above the page in an overlay, with a fixed 94 px layout slot;
+  hovering the rail never pushes or resizes the Library or other page content.
+- Replace black collection tiles with white controls and reveal existing Watching,
+  Plan to watch, Watched, Dropped and Watched/removed filters when the rail expands.
+- Fit seven Library titles per page on wide viewports and six on smaller ones,
+  preserving the visible position when the page size changes. Reuse at most seven
+  Manga grid card slots rather than creating the whole collection.
+- Arrange Manga Edit Entry as a poster column and complete details form. Link its
+  status/rating buttons to the existing fields, including the no-rating choice.
+  Keep all save, folder, image, multi-release rematch and update disposition actions.
+- Correct clipped update-action labels and the Manga play button hover colors.
+- No EXE/installer build is part of this source UI update. Build only on request.
+
+## Manga Brutalism Light — main Library screen
+
+- Register the supplied main-screen image as the light master, retain original
+  assets and save a checksum-verified v1 reference copy. Keep Sakura selectable.
+- Add a separate saved Manga Brutalism Light selection with shared paper/ink/pink
+  tokens, offline Inter/Noto Serif fonts, icon rail, search/action header, light
+  hero, framed posters and real status footer. Preserve existing routes/actions.
+- Implement the approved six-title numbered pagination using six reusable poster
+  slots, and Full Calendar using cached broadcasts, month navigation and existing
+  hover/detail actions. No extra provider requests run when Calendar opens.
+- Preserve existing search, collection filters, updates strip, refresh modes,
+  selection, grid/list, playback and native window controls. Exclude profile,
+  fabricated metadata and the retired qBittorrent client from the mockup.
+- Add focused regressions for selection persistence, theme isolation, card reuse,
+  search reset, cached calendar ownership/month navigation and larger text layout.
+- Details, Edit Entry, Rematch and Updates remain subsequent screen-specific
+  passes. See the [master contract](docs/themes/MANGA_LIGHT_MASTER.md).
+
+## UI working guidelines — 14 November 2026
+
+- Establish the user-approved main Library screen as the master design reference
+  for both light and dark modes. Require explicit approval for conflicting later
+  mockups, while respecting changes already directly requested by the user.
+- Specify reusable shared components/tokens, theme-family preservation,
+  feature retention, reference versioning and rendered visual verification.
+- Add the [UI Design Guidelines](docs/themes/UI_DESIGN_GUIDELINES.md); no screen
+  redesign or runtime behavior changes are included in this documentation update.
+
 ## Preserved Sakura theme family — 14 November 2026
 
 - Name the current designs Sakura Dark and Sakura Light, with a Sakura Match

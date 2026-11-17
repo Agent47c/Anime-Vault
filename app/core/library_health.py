@@ -61,14 +61,19 @@ def episode_inventory(seasons, continuous=False):
     folder_ranges = {}
     for season in main:
         local_episodes = set()
-        for filename in json.loads(season.get("video_files_json") or "[]"):
+        from app.core.identity import mapped_inventory_files
+        inventory=mapped_inventory_files(season,with_paths=True)
+        filenames=json.loads(season.get("video_files_json") or "[]")
+        for filename in filenames:
             path = str((Path(season.get("season_folder_path") or "") / filename).resolve())
             if path in paths:
                 continue
             paths.add(path)
-            numbers = extract_episode_numbers(filename)
+            from app.core.identity import path_key
+            confirmed=inventory.get(path_key(path))
+            numbers = confirmed if confirmed is not None else extract_episode_numbers(filename)
             token = re.search(r'\bS(\d{1,2})[ ._-]*E\d+', Path(filename).name, re.I)
-            if continuous and token:
+            if continuous and token and confirmed is None:
                 relative_keys.update((int(token[1]), number) for number in numbers)
                 relative_seasons.add(season['id'])
             else:

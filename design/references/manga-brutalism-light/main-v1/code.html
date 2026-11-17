@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+/* Dark Neumorphic Custom Elevation & Inset Utilities */
+.neu-raised-sm {
+  box-shadow: 3px 3px 7px rgba(0, 0, 0, 0.65), -2px -2px 6px rgba(255, 255, 255, 0.04);
+}
+.neu-raised {
+  box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.7), -4px -4px 12px rgba(255, 255, 255, 0.035);
+}
+.neu-raised-lg {
+  box-shadow: 10px 10px 24px rgba(0, 0, 0, 0.8), -6px -6px 18px rgba(255, 255, 255, 0.03);
+}
+.neu-sunken {
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.75), inset -2px -2px 5px rgba(255, 255, 255, 0.035);
+}
+.neu-sunken-deep {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.85), inset -2px -2px 6px rgba(255, 255, 255, 0.025);
+}
+.neu-btn {
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.6), -2px -2px 6px rgba(255, 255, 255, 0.04);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neu-btn:hover {
+  box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.7), -3px -3px 8px rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+.neu-btn:active {
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.8), inset -2px -2px 4px rgba(255, 255, 255, 0.03);
+  transform: translateY(1px);
+}
+.neu-pink-btn {
+  box-shadow: 5px 5px 14px rgba(0, 0, 0, 0.65), -2px -2px 8px rgba(255, 46, 147, 0.3);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neu-pink-btn:hover {
+  box-shadow: 6px 6px 18px rgba(0, 0, 0, 0.75), -3px -3px 10px rgba(255, 77, 166, 0.45);
+  transform: translateY(-1px);
+}
+.neu-pink-btn:active {
+  box-shadow: inset 3px 3px 7px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.3);
+  transform: translateY(1px);
+}
+</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary":"#2f3131","tertiary-container":"#fb4aa3","tertiary-fixed-dim":"#ffb0ce","primary-fixed-dim":"#ffb0c9","on-error":"#690005","outline-variant":"#5a3f48","primary-fixed":"#ffd9e3","tertiary":"#ffb0ce","surface-container-low":"#15161a","secondary-fixed-dim":"#c6c6c7","error-container":"#93000a","primary-container":"#ff2e93","outline":"#a98891","on-tertiary":"#64003a","on-tertiary-fixed":"#3e0022","secondary":"#c6c6c7","on-surface":"#e5e2e1","inverse-on-surface":"#313030","surface-container-lowest":"#0d0e11","primary":"#ffb0c9","surface-container-high":"#212329","on-tertiary-container":"#570032","on-primary-fixed-variant":"#8e004c","inverse-primary":"#b90066","on-error-container":"#ffdad6","surface-variant":"#2c2e35","surface":"#141519","surface-container-highest":"#2d2f38","background":"#111215","surface-container":"#1a1b20","secondary-fixed":"#e2e2e2","on-surface-variant":"#e2bdc7","on-primary-fixed":"#3e001e","surface-tint":"#ffb0c9","on-background":"#e5e2e1","on-secondary-fixed":"#1a1c1c","surface-dim":"#111215","on-secondary-fixed-variant":"#454747","surface-bright":"#33353e","inverse-surface":"#e5e2e1","tertiary-fixed":"#ffd9e5","error":"#ffb4ab","on-secondary-container":"#b4b5b5","secondary-container":"#373942","on-tertiary-fixed-variant":"#8c0054","on-primary":"#640034","on-primary-container":"#58002d"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-md":"0.75rem","gutter":"1rem","space-xs":"0.25rem","space-sm":"0.5rem","margin":"1.5rem","space-xl":"1.5rem","space-lg":"1rem"},"fontFamily":{"label-sm":["Inter"],"body-sm":["Inter"],"label-lg":["Inter"],"display":["Noto Serif"],"body-lg":["Inter"],"title-lg":["Inter"],"headline-md":["Noto Serif"],"label-md":["Inter"],"body-md":["Inter"],"headline-lg":["Noto Serif"],"title-md":["Inter"],"headline-sm":["Noto Serif"]},"fontSize":{"label-sm":["0.6875rem",{"lineHeight":"0.875rem","letterSpacing":"0.08em","fontWeight":"700"}],"body-sm":["0.75rem",{"lineHeight":"1rem","fontWeight":"400"}],"label-lg":["0.875rem",{"lineHeight":"1.125rem","letterSpacing":"0.02em","fontWeight":"600"}],"display":["3.5rem",{"lineHeight":"4rem","letterSpacing":"-0.03em","fontWeight":"700"}],"body-lg":["1rem",{"lineHeight":"1.5rem","fontWeight":"400"}],"title-lg":["1.125rem",{"lineHeight":"1.5rem","fontWeight":"600"}],"headline-md":["1.75rem",{"lineHeight":"2.25rem","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["0.75rem",{"lineHeight":"1rem","letterSpacing":"0.04em","fontWeight":"600"}],"body-md":["0.875rem",{"lineHeight":"1.25rem","fontWeight":"400"}],"headline-lg":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.02em","fontWeight":"700"}],"title-md":["1rem",{"lineHeight":"1.375rem","fontWeight":"600"}],"headline-sm":["1.25rem",{"lineHeight":"1.75rem","fontWeight":"600"}]}}}}</script></head><body class="bg-[#EBEDF2] text-[#1D1E24] select-none antialiased min-h-screen"><aside class="fixed left-0 top-0 bottom-0 w-[76px] bg-[#EEF0F5] z-50 flex flex-col justify-between border-r border-black/[0.06] neu-raised-lg select-none"><style>.nav-rail-group:hover .nav-rail-item:not(:hover){opacity:0.35!important;transform:scale(0.94);}.nav-rail-item{transition:opacity 0.22s ease,transform 0.2s cubic-bezier(0.16,1,0.3,1),background-color 0.15s ease,color 0.15s ease,box-shadow 0.2s ease;}</style><div class="flex flex-col h-full items-center"><div class="h-14 w-full flex items-center justify-center border-b border-black/[0.06] bg-[#E6E8EF] relative neu-sunken"><div class="w-9 h-9 bg-primary-container text-on-primary-container font-headline-sm text-headline-sm flex items-center justify-center rounded-[8px] -rotate-3 neu-pink-btn cursor-pointer hover:rotate-0 transition-transform" title="AnimeVault"><span class="font-bold select-none text-[#0A0A0A]">ア</span></div></div><div class="flex-1 w-full overflow-y-auto overflow-x-visible py-4 flex flex-col items-center gap-6"><nav class="nav-rail-group flex flex-col items-center gap-2.5 w-full px-2"><a aria-current="page" class="nav-rail-item group relative flex items-center justify-center w-11 h-11 rounded-[12px] bg-white text-primary-container font-bold border border-white/60 neu-raised hover:scale-[1.06]" data-path="library" href="#"><span class="material-symbols-outlined text-[20px]">video_library</span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-white text-[#1D1E24] border border-black/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_6px_#ff2e93]"></span><span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Library</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-11 h-11 rounded-[12px] text-[#555B6E] hover:text-[#111217] bg-[#EEF0F5] border border-white/80 neu-btn hover:scale-[1.06]" data-path="updates" href="#"><span class="material-symbols-outlined text-[20px]">new_releases</span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-white text-[#1D1E24] border border-black/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Updates</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-11 h-11 rounded-[12px] text-[#555B6E] hover:text-[#111217] bg-[#EEF0F5] border border-white/80 neu-btn hover:scale-[1.06]" data-path="downloads" href="#"><span class="material-symbols-outlined text-[20px]">download</span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-white text-[#1D1E24] border border-black/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Downloads</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-11 h-11 rounded-[12px] text-[#555B6E] hover:text-[#111217] bg-[#EEF0F5] border border-white/80 neu-btn hover:scale-[1.06]" data-path="organizer" href="#"><span class="material-symbols-outlined text-[20px]">auto_awesome_motion</span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-white text-[#1D1E24] border border-black/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Organizer</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-11 h-11 rounded-[12px] text-[#555B6E] hover:text-[#111217] bg-[#EEF0F5] border border-white/80 neu-btn hover:scale-[1.06]" data-path="storage" href="#"><span class="material-symbols-outlined text-[20px]">hard_drive</span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-white text-[#1D1E24] border border-black/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Storage</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-11 h-11 rounded-[12px] text-[#555B6E] hover:text-[#111217] bg-[#EEF0F5] border border-white/80 neu-btn hover:scale-[1.06]" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-white text-[#1D1E24] border border-black/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Settings</span></div></a></nav><div class="w-8 h-[1px] bg-black/50 border-b border-white/[0.04]"></div><div class="nav-rail-group flex flex-col items-center gap-2.5 w-full px-2"><a class="nav-rail-item group relative flex items-center justify-center w-10 h-10 rounded-[10px] bg-surface-container neu-sunken border border-white/[0.03] hover:scale-[1.08]" data-path="watching" href="#"><span class="w-2.5 h-2.5 rounded-full bg-primary-container shadow-[0_0_8px_#ff2e93]"></span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-high text-[#FFFFFF] border border-white/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm font-semibold">Watching</span><span class="font-mono text-label-sm text-outline px-1 bg-surface-container-lowest neu-sunken rounded">14</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-10 h-10 rounded-[10px] bg-surface border border-white/[0.02] neu-btn hover:scale-[1.08]" data-path="plan-to-watch" href="#"><span class="w-2 h-2 rounded-full bg-secondary-fixed-dim opacity-70"></span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-high text-[#FFFFFF] border border-white/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></span><span class="font-label-sm text-label-sm font-semibold">Plan to Watch</span><span class="font-mono text-label-sm text-outline px-1 bg-surface-container-lowest neu-sunken rounded">89</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-10 h-10 rounded-[10px] bg-surface border border-white/[0.02] neu-btn hover:scale-[1.08]" data-path="watched" href="#"><span class="w-2 h-2 rounded-full bg-[#FFFFFF] opacity-80"></span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-high text-[#FFFFFF] border border-white/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-[#FFFFFF]"></span><span class="font-label-sm text-label-sm font-semibold">Watched</span><span class="font-mono text-label-sm text-outline px-1 bg-surface-container-lowest neu-sunken rounded">342</span></div></a><a class="nav-rail-item group relative flex items-center justify-center w-10 h-10 rounded-[10px] bg-surface border border-white/[0.02] neu-btn hover:scale-[1.08]" data-path="dropped" href="#"><span class="w-2 h-2 rounded-full bg-outline-variant"></span><div class="pointer-events-none absolute left-[58px] top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-high text-[#FFFFFF] border border-white/10 rounded-[6px] neu-raised z-50 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-outline-variant"></span><span class="font-label-sm text-label-sm font-semibold">Dropped</span><span class="font-mono text-label-sm text-outline px-1 bg-surface-container-lowest neu-sunken rounded">12</span></div></a></div></div><div class="p-2 w-full border-t border-black/40 bg-surface flex flex-col items-center neu-sunken"><div class="group relative flex flex-col items-center justify-center w-11 h-11 rounded-[10px] bg-white border border-white/70 neu-btn cursor-pointer"><span class="material-symbols-outlined text-[18px] text-primary-container">dns</span><span class="text-[9px] font-mono font-bold text-primary-container leading-none mt-0.5">92%</span><div class="pointer-events-none absolute left-[58px] bottom-1 hidden group-hover:flex flex-col gap-1.5 p-2.5 bg-white text-[#1D1E24] border border-black/10 rounded-[8px] neu-raised-lg z-50 whitespace-nowrap min-w-[150px]"><div class="flex items-center justify-between font-label-sm text-label-sm font-bold"><span>Local Vault (D:)</span><span class="text-primary-container font-bold">92%</span></div><div class="w-full h-1.5 bg-[#E2E5ED] neu-sunken rounded-full flex gap-0.5 overflow-hidden"><div class="h-full bg-primary-container w-[72%] shadow-[0_0_6px_#ff2e93]"></div><div class="h-full bg-[#CBD1DE] w-[20%]"></div></div><div class="flex justify-between font-label-sm text-[10px] text-[#6A7082]"><span>162.76 GB free</span><span>2.0 TB</span></div></div></div></div></div></aside><div class="pl-[76px] flex flex-col min-h-screen bg-[#EBEDF2]"><header class="fixed top-0 left-[76px] right-0 h-14 bg-[#EEF0F5]/95 backdrop-blur-xl border-b border-black/[0.06] z-40 px-margin flex items-center justify-between gap-space-lg neu-raised-sm"><div class="flex-1 max-w-xl"><div class="h-9 bg-[#E3E6EE] border border-white/60 rounded-xl px-space-md flex items-center gap-space-sm neu-sunken"><span class="material-symbols-outlined text-[#6A7082] text-[18px]">search</span><input class="bg-transparent w-full text-[#1A1A1E] placeholder:text-[#7A8094] text-body-sm font-body-sm focus:outline-none" placeholder="Search manga, anime, hashes, episodes... (Ctrl+K)" type="text"/><kbd class="font-label-sm text-label-sm bg-white text-[#4A5064] px-1.5 py-0.5 rounded border border-black/[0.06] neu-raised-sm">Ctrl+K</kbd></div></div><div class="flex items-center gap-space-md"><button class="h-9 px-space-md rounded-xl border border-white/80 bg-white text-[#1D1E24] hover:text-[#000000] neu-btn flex items-center gap-1.5 font-label-sm text-label-sm font-medium"><span class="material-symbols-outlined text-[16px]">refresh</span>Refresh</button><button class="h-10 px-5 bg-gradient-to-br from-[#ff4da6] to-[#ff2e93] text-[#0A0A0A] font-label-lg text-label-lg font-bold rounded-full flex items-center gap-1.5 neu-pink-btn"><span class="material-symbols-outlined text-[18px]">add</span>Add Anime</button><div class="w-8 h-8 rounded-full bg-white border border-white/80 neu-raised-sm flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-primary-container text-[18px]">person</span></div></div></header><main class="relative pt-14 pb-[34px] w-full min-h-[calc(100vh-34px)] bg-[#EBEDF2] px-margin py-margin"><div class="flex flex-col w-full text-on-surface">
+<!-- 1. HERO SECTION: CONTINUE WATCHING / 続 (Embossed Neumorphic Slab) -->
+<section class="relative w-full rounded-[20px] bg-[#EEF0F5] border border-white/80 overflow-hidden neu-raised-lg"><!-- Manga Screentone Dot Matrix Pattern (<8% opacity) -->
+<div class="absolute inset-0 pointer-events-none opacity-[0.06]" style="background-image: radial-gradient(#111215 1.25px, transparent 1.25px); background-size: 8px 8px;"></div>
+<!-- Speed Lines Flare Motif in Top-Right Corner -->
+<div class="absolute top-0 right-0 w-80 h-80 pointer-events-none opacity-[0.05] overflow-hidden">
+<svg class="w-full h-full text-[#111215] fill-current" viewbox="0 0 200 200">
+<polygon points="200,0 120,0 200,80"></polygon>
+<polygon points="200,10 150,0 200,50"></polygon>
+<polygon points="200,95 80,0 95,0 200,120"></polygon>
+<polygon points="200,140 40,0 55,0 200,165"></polygon>
+<polygon points="200,180 0,0 15,0 200,200"></polygon>
+</svg>
+</div>
+<!-- Kanji Watermark: 「続」 (Continue) at subtle opacity -->
+<div class="absolute right-8 -bottom-10 pointer-events-none select-none font-display text-[14rem] font-bold text-[#111215] opacity-[0.04] leading-none tracking-tighter">
+      続
+</div>
+<!-- Backdrop Anime Key Visual with Solid directional Light Scrim -->
+<div class="absolute inset-0 z-0 bg-cover bg-right" data-alt="Intense dark fantasy anime artwork of an armored heavy knight with an obsidian tower shield standing in an underground crystalline labyrinth, gritty manga aesthetic, dynamic cinematic lighting, sharp ink line art with deep shadows and rim light highlights, 4k master anime production visual." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCf3SuY1HDyDVBtBjwz8FIqsxmVUBVrA5vF02ubLF1Bv0cxMbg83uBlKOibUJINcHMpNDgt7jTw0MjtcjcaRbT8eS9PKrQH5u1U0mUsn6n_zB7GcUkHQ5GaXizcwZIUuRO1S5bua7D092_xgvCAtuw4DZ0oMHI46NtjnxZvSvfDlJ5hGsSUHPXUwBdRcZUhfnYI-AuyB6f_vnQimFLnPrJhUKsg-tx39HIFCGif0M86');">
+<!-- High contrast light ink scrim fade for crisp readability -->
+<div class="absolute inset-0 bg-gradient-to-r from-[#EEF0F5] via-[#EEF0F5]/90 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#EEF0F5] via-transparent to-transparent"></div>
+</div>
+<!-- Hero Content Container -->
+<div class="relative z-10 p-6 md:p-8 flex flex-col justify-between min-h-[380px] max-w-2xl">
+<!-- Top Badges & Serial Header -->
+<div class="flex items-center gap-3">
+<div class="bg-white px-2.5 py-1 rounded-[6px] text-[#1D1E24] border border-white/80 neu-raised-sm flex items-center gap-1.5 font-label-sm text-label-sm uppercase tracking-wider font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse shadow-[0_0_6px_#ff2e93]"></span>
+          Continue Watching
+        </div>
+<span class="font-label-sm text-label-sm text-[#6A7082] tracking-widest uppercase font-semibold">SYS.REC // SLOT 01</span>
+</div>
+<!-- Main Metadata & Anime Title -->
+<div class="flex flex-col gap-2.5 my-auto py-4">
+<h1 class="font-headline-lg text-headline-lg text-[#111217] tracking-tight leading-tight font-bold drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
+          The Exiled Heavy Knight Knows How to Game the System
+        </h1>
+<p class="font-body-sm text-body-sm text-[#4B4F5E] flex flex-wrap items-center gap-2">
+<span>Last played: <strong class="text-[#111217]">EP 20 · 20:26</strong></span>
+<span class="text-[#A3A8B8]">/</span>
+<span class="font-mono text-[#555B6E]">[1080p HEVC x265]</span>
+<span class="text-[#A3A8B8]">/</span>
+<span class="font-mono text-[#555B6E]">CRC: 1D48DD5F</span>
+</p>
+<!-- Segmented Episode Progress Tracker (Debossed Inset wells) -->
+<div class="flex flex-col gap-2 mt-2">
+<div class="flex items-center gap-1.5 p-1 rounded-[6px] bg-[#DFE2EB] w-fit neu-sunken border border-white/50">
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-primary-container shadow-[0_0_5px_#ff2e93]"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-[#C9CFDC]/70"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-[#C9CFDC]/70"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-[#C9CFDC]/70"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-[#C9CFDC]/70"></div>
+<div class="w-[18px] h-[8px] rounded-[3px] bg-[#C9CFDC]/70"></div>
+</div>
+<span class="font-label-sm text-label-sm text-[#4B4F5E] font-medium">
+            8 of 13 watched <span class="text-primary-container font-bold">(61%)</span>
+</span>
+</div>
+</div>
+<!-- Action Button Group -->
+<div class="flex items-center gap-3 pt-2">
+<!-- Hot Pink #FF2E93 Neumorphic Tactile Pill Button with JET BLACK text -->
+<button class="h-11 px-6 rounded-[12px] bg-gradient-to-br from-[#ff4da6] to-[#ff2e93] text-[#0A0A0A] font-title-md text-title-md font-bold flex items-center gap-2 neu-pink-btn"><span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>Resume Episode 20</button>
+<!-- Secondary Extruded Soft Neumorphic Action Buttons -->
+<button class="h-11 px-5 rounded-[12px] bg-white border border-white/80 text-[#1D1E24] hover:text-[#000000] font-title-md text-title-md font-semibold neu-btn flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">info</span>
+          Series Details
+        </button>
+<button class="h-11 w-11 rounded-[12px] bg-white border border-white/80 text-[#1D1E24] hover:text-[#000000] neu-btn flex items-center justify-center" title="Open Local Storage Folder">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+</button>
+</div>
+</div></section>
+<!-- 2. AIRING CALENDAR: BROADCAST SCHEDULE / 放送 (Neumorphic Card Wells) -->
+<section class="relative mt-8 flex flex-col gap-3"><!-- Section Header with Subdued Kanji Background Watermark -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-primary-container uppercase tracking-widest font-bold">/// TRACKER</span>
+<h2 class="font-headline-sm text-headline-sm text-[#111217] font-bold tracking-tight">Broadcast Schedule</h2>
+<span class="font-display text-title-lg text-[#888E9E] opacity-40 select-none">「放送」</span>
+</div>
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-[#6A7082]">
+<span>Week 41 (JST)</span>
+<span class="text-[#A3A8B8]">|</span>
+<button class="hover:text-[#111217] flex items-center gap-0.5 transition-colors font-medium">
+          Full Calendar <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- 7 Neumorphic Raised/Embossed Weekday Cards (Mon 09 to Sun 15) -->
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3.5">
+<!-- Mon 09 -->
+<div class="bg-[#F3F4F8] p-3.5 rounded-[12px] border border-white/80 flex flex-col justify-between min-h-[96px] neu-raised hover:-translate-y-0.5 transition-transform">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-[#6A7082] uppercase font-semibold">Mon</span>
+<span class="font-title-md text-title-md font-bold text-[#111217]">09</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#7A8094] truncate">No Vault airings</p>
+</div>
+<!-- Tue 10 -->
+<div class="bg-[#F3F4F8] p-3.5 rounded-[12px] border border-white/80 flex flex-col justify-between min-h-[96px] neu-raised hover:-translate-y-0.5 transition-transform">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-[#6A7082] uppercase font-semibold">Tue</span>
+<span class="font-title-md text-title-md font-bold text-[#111217]">10</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#4B4F5E] truncate">Bleach: TYBW EP 29</p>
+</div>
+<!-- Wed 11 -->
+<div class="bg-[#F3F4F8] p-3.5 rounded-[12px] border border-white/80 flex flex-col justify-between min-h-[96px] neu-raised hover:-translate-y-0.5 transition-transform">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-[#6A7082] uppercase font-semibold">Wed</span>
+<span class="font-title-md text-title-md font-bold text-[#111217]">11</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#4B4F5E] truncate">Re:Zero S3 EP 02</p>
+</div>
+<!-- Thu 12: Active release indicator -->
+<div class="bg-[#E7EAF2] p-3.5 rounded-[12px] border border-white/80 flex flex-col justify-between min-h-[96px] relative overflow-hidden neu-raised hover:-translate-y-0.5 transition-transform">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-[#111217] uppercase font-bold">Thu</span>
+<span class="font-title-md text-title-md font-bold text-[#111217]">12</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-bold text-primary-container truncate">Heavy Knight</span>
+<span class="font-body-sm text-body-sm text-[#4B4F5E] truncate">EP 20 · 20:26</span>
+</div>
+</div>
+<!-- Fri 13 -->
+<div class="bg-[#F3F4F8] p-3.5 rounded-[12px] border border-white/80 flex flex-col justify-between min-h-[96px] neu-raised hover:-translate-y-0.5 transition-transform">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-[#6A7082] uppercase font-semibold">Fri</span>
+<span class="font-title-md text-title-md font-bold text-[#111217]">13</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#4B4F5E] truncate">Dandadan EP 03</p>
+</div>
+<!-- Sat 14: TODAY Card - Neumorphic Elevated Hot Pink Highlight -->
+<div class="bg-white p-3.5 rounded-[12px] border-2 border-primary-container flex flex-col justify-between min-h-[96px] relative neu-raised shadow-[0_0_15px_rgba(255,46,147,0.18)] hover:-translate-y-0.5 transition-transform">
+<!-- Hanko Stamp: TODAY in Pink Fill with Pure Jet Black Text -->
+<div class="absolute -top-2.5 right-2 bg-gradient-to-br from-[#ff4da6] to-[#ff2e93] text-[#0A0A0A] px-2 py-0.5 rounded-[4px] font-label-sm text-label-sm font-bold tracking-tight uppercase neu-pink-btn rotate-[-3deg] z-10">TODAY</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary-container font-bold uppercase">Sat</span>
+<span class="font-title-md text-title-md font-bold text-primary-container">14</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-bold text-[#111217] truncate">Blue Lock S2 EP 02</span>
+<span class="font-body-sm text-body-sm text-[#6A7082] truncate">Airs 23:30 JST</span>
+</div>
+</div>
+<!-- Sun 15 -->
+<div class="bg-[#F3F4F8] p-3.5 rounded-[12px] border border-white/80 flex flex-col justify-between min-h-[96px] neu-raised hover:-translate-y-0.5 transition-transform">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-[#6A7082] uppercase font-semibold">Sun</span>
+<span class="font-title-md text-title-md font-bold text-[#111217]">15</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#7A8094] truncate">2 releases <span class="text-[#A3A8B8]">(Paused)</span></p>
+</div>
+</div></section>
+<!-- 3. ALL ANIME GRID & FILTERS / 書庫 -->
+<section class="mt-10 flex flex-col gap-5">
+<!-- Manga Section Header -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-3 border-b border-black/[0.06] border-t border-white/80 pt-2"><div class="flex items-baseline gap-3"><h2 class="font-headline-md text-headline-md text-[#111217] font-bold tracking-tight">Vault Archive</h2><span class="font-display text-headline-sm text-[#888E9E] opacity-40 select-none">「書庫」</span><span class="font-label-sm text-label-sm text-[#6A7082] tracking-wider uppercase font-semibold">230 ENTRIES INDEXED</span></div><div class="flex items-center gap-2.5"><div class="h-8 px-3 bg-white rounded-[8px] border border-white/80 neu-btn flex items-center gap-1.5 font-label-sm text-label-sm text-[#1D1E24] cursor-pointer"><span class="material-symbols-outlined text-[16px] text-[#6A7082]">sort</span><span>Sort: Name A to Z</span></div><button class="h-8 px-3.5 bg-white hover:text-[#000000] rounded-[8px] border border-white/80 text-[#1D1E24] font-label-sm text-label-sm flex items-center gap-1.5 neu-btn"><span class="material-symbols-outlined text-[16px]">select_all</span>Select anime</button><div class="h-8 bg-[#DFE2EB] rounded-[8px] border border-white/50 neu-sunken flex p-0.5"><button class="h-full px-2.5 rounded-[6px] bg-white text-[#111217] neu-raised-sm flex items-center justify-center" title="Grid View"><span class="material-symbols-outlined text-[16px]">grid_view</span></button><button class="h-full px-2.5 rounded-[6px] text-[#6A7082] hover:text-[#111217] flex items-center justify-center transition-colors" title="List View"><span class="material-symbols-outlined text-[16px]">format_list_bulleted</span></button></div></div></div>
+<!-- Filter Pills Row (Recessed container with tactile debossed/embossed pills) -->
+<div class="flex items-center gap-2 overflow-x-auto p-1.5 rounded-[12px] bg-[#DFE2EB] border border-white/50 neu-sunken"><!-- ACTIVE PILL: Embossed Paper Pill with Jet Black text -->
+<button class="h-8 px-3.5 rounded-[8px] bg-white text-[#0A0A0A] font-label-lg text-label-lg font-bold flex items-center gap-1.5 neu-raised-sm shrink-0 border border-white/80">
+        All <span class="bg-[#111217] text-[#FFFFFF] text-[10px] px-1.5 py-0.2 rounded font-mono">230</span>
+</button>
+<!-- Inactive Pills: Neumorphic Light Soft Debossed Buttons -->
+<button class="h-8 px-3 rounded-[8px] bg-[#EEF0F5] border border-white/80 text-[#555B6E] hover:text-[#111217] font-label-lg text-label-lg neu-btn flex items-center gap-1.5 shrink-0">
+        Watching <span class="text-[#7A8094] text-label-sm font-mono">2</span>
+</button>
+<button class="h-8 px-3 rounded-[8px] bg-[#EEF0F5] border border-white/80 text-[#555B6E] hover:text-[#111217] font-label-lg text-label-lg neu-btn flex items-center gap-1.5 shrink-0">
+        Plan to watch <span class="text-[#7A8094] text-label-sm font-mono">0</span>
+</button>
+<button class="h-8 px-3 rounded-[8px] bg-[#EEF0F5] border border-white/80 text-[#555B6E] hover:text-[#111217] font-label-lg text-label-lg neu-btn flex items-center gap-1.5 shrink-0">
+        On disk <span class="text-[#7A8094] text-label-sm font-mono">98</span>
+</button>
+<button class="h-8 px-3 rounded-[8px] bg-[#EEF0F5] border border-white/80 text-[#555B6E] hover:text-[#111217] font-label-lg text-label-lg neu-btn flex items-center gap-1.5 shrink-0">
+        Has update <span class="text-[#7A8094] text-label-sm font-mono">0</span>
+</button>
+<button class="h-8 px-3 rounded-[8px] bg-[#EEF0F5] border border-white/80 text-[#555B6E] hover:text-[#111217] font-label-lg text-label-lg neu-btn flex items-center gap-1.5 shrink-0">
+        Needs review <span class="text-[#7A8094] text-label-sm font-mono">144</span>
+</button></div>
+<!-- ANIME POSTER CARDS GRID: Neumorphic Extruded Bezels with Soft Shadows & Lift -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"><!-- CARD 1: 86 Eighty-Six (Features NEW EP Hanko Stamp & Hot Pink progress bar) -->
+<div class="group flex flex-col gap-2.5 cursor-pointer">
+<div class="relative w-full aspect-[2/3] rounded-[14px] bg-white p-1 border border-white/80 neu-raised transition-all duration-200 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[9px_9px_20px_rgba(166,175,195,0.65),-6px_-6px_14px_rgba(255,255,255,1)]">
+<div class="relative w-full h-full rounded-[10px] overflow-hidden bg-[#DFE2EB]">
+<img class="w-full h-full object-cover" data-alt="Anime poster art for 86 Eighty-Six showing Vladilena Milize in her white military uniform and Shin Nouzen in combat gear, dramatic stark background with red spider lilies, official clean studio key art illustration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo6SM0c2zHhmg5LQ2EDR6IZ198PmBvy7bTUzvTZjwwXMPxx4rDn8XmkNaPoO25hpOpfEI1E7qUgj7X6whmPtUii9AdDyy5BhP5hPh8uAp2NMi_JZwbDKj2MyxYvixxvGTAA2ZgE8JbFgpMMfVWtyt19Na13zbv7iCbXyBMbQA5i9dEqB1GdRdpCIz_WBy-Vn3o80Y6brm36GGfzftBWf-EL40t3SY-qVMyjSiDndz5"/>
+<!-- Hanko Stamp: NEW EP tilted -3deg in Hot Pink with pure Jet Black text -->
+<div class="absolute top-2.5 right-2 bg-gradient-to-br from-[#ff4da6] to-[#ff2e93] text-[#0A0A0A] px-2 py-0.5 rounded-[4px] font-label-sm text-label-sm font-bold tracking-tight uppercase neu-pink-btn rotate-[-3deg] z-10">NEW EP</div>
+<!-- Needle-thin 4px progress tracker in debossed well -->
+<div class="absolute bottom-0 left-0 right-0 h-[4px] bg-[#0A0A0A]/40 neu-sunken">
+<div class="h-full bg-primary-container w-[82%] shadow-[0_0_6px_#ff2e93]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-0.5">
+<span class="font-title-md text-title-md font-bold text-[#111217] truncate group-hover:text-primary-container transition-colors">86 Eighty-Six S2</span>
+<span class="font-body-sm text-body-sm text-[#5E6375] truncate">A-1 Pictures • EP 21/23</span>
+</div>
+</div>
+<!-- CARD 2: Campfire Cooking in Another World (BD-RIP Badge) -->
+<div class="group flex flex-col gap-2.5 cursor-pointer">
+<div class="relative w-full aspect-[2/3] rounded-[14px] bg-white p-1 border border-white/80 neu-raised transition-all duration-200 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[9px_9px_20px_rgba(166,175,195,0.65),-6px_-6px_14px_rgba(255,255,255,1)]">
+<div class="relative w-full h-full rounded-[10px] overflow-hidden bg-[#DFE2EB]">
+<img class="w-full h-full object-cover" data-alt="Anime promotional key visual of Campfire Cooking in Another World with My Absurd Skill showing Mukoda cooking a roasted cut of meat over campfire with the giant divine wolf Fel and slime Sui, colorful warm food anime artwork by MAPPA." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARDZZZMPqaW_25KsC4kKQxkTPAuIm_fyXoCHRHe1CqnDsJB2eHZg_r-rjqdwIJf0Zwiw5_uhOmfSfKsam89KuRiH9CPDHTvsZ9eREjOoqIEegdNzCLCNtR6_2iJfjdIiaOmyY2mQCmScLv7dZZfWLrzoCYBe3arFUVsdb4l1_DCt0mGNPgjpLYmlVPS_F-3ZjUL8KMJ-Yqi2DJQm1tx_6pysR5WyvcaV9K2qEhwIYg"/>
+<!-- Quality Badge -->
+<div class="absolute top-2.5 left-2 bg-[#FFFFFF]/90 text-[#111217] border border-black/10 px-1.5 py-0.2 rounded font-mono font-label-sm text-label-sm font-bold neu-raised-sm">
+            BD-RIP
+          </div>
+<div class="absolute bottom-0 left-0 right-0 h-[4px] bg-[#0A0A0A]/40 neu-sunken">
+<div class="h-full bg-primary-container w-full shadow-[0_0_6px_#ff2e93]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-0.5">
+<span class="font-title-md text-title-md font-bold text-[#111217] truncate group-hover:text-primary-container transition-colors">Campfire Cooking</span>
+<span class="font-body-sm text-body-sm text-[#5E6375] truncate">MAPPA • 12/12 Completed</span>
+</div>
+</div>
+<!-- CARD 3: Vinland Saga Season 2 -->
+<div class="group flex flex-col gap-2.5 cursor-pointer">
+<div class="relative w-full aspect-[2/3] rounded-[14px] bg-white p-1 border border-white/80 neu-raised transition-all duration-200 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[9px_9px_20px_rgba(166,175,195,0.65),-6px_-6px_14px_rgba(255,255,255,1)]">
+<div class="relative w-full h-full rounded-[10px] overflow-hidden bg-[#DFE2EB]">
+<img class="w-full h-full object-cover" data-alt="Anime poster art for Vinland Saga Season 2 depicting a weathered Thorfinn and Einar standing in a windblown golden wheat field under a stormy sky, mature dramatic manga composition with realistic ink textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrB1JdDT_LYdCThD20OXJtHC-iqMEnf_GbltRN_7zLs4P8rw8vKbkdPuukXD0JQOUfj4Poo2DXErfCoakAN47xtciQrHC9xATbS7wOsCfAW9cMJ83a_Ry-flWFqavxXp1dVE_0aEEXfb3tiievBSSWZ3RwociErqQoDn-vim_uD6C6MelS2SuPDr1OVxee49iQnkN1zogLyldMyyaauuFy-XEhiWP27Vwbb-TTp708"/>
+<div class="absolute bottom-0 left-0 right-0 h-[4px] bg-[#0A0A0A]/40 neu-sunken">
+<div class="h-full bg-primary-container w-[100%] shadow-[0_0_6px_#ff2e93]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-0.5">
+<span class="font-title-md text-title-md font-bold text-[#111217] truncate group-hover:text-primary-container transition-colors">Vinland Saga S2</span>
+<span class="font-body-sm text-body-sm text-[#5E6375] truncate">MAPPA • 24/24 Dual Audio</span>
+</div>
+</div>
+<!-- CARD 4: Frieren: Beyond Journey's End (NEW SEASON Hanko Stamp) -->
+<div class="group flex flex-col gap-2.5 cursor-pointer">
+<div class="relative w-full aspect-[2/3] rounded-[14px] bg-white p-1 border border-white/80 neu-raised transition-all duration-200 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[9px_9px_20px_rgba(166,175,195,0.65),-6px_-6px_14px_rgba(255,255,255,1)]">
+<div class="relative w-full h-full rounded-[10px] overflow-hidden bg-[#DFE2EB]">
+<img class="w-full h-full object-cover" data-alt="Anime poster artwork of Frieren Beyond Journeys End showing the elven mage Frieren sitting on a medieval cobblestone wall holding a staff surrounded by blue sem-flowers, soft atmospheric lighting by Madhouse." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWd5bNH0q-gWOM4RMXlrE1Pth2wpHtPaF5BZu2LDUk6rcKbujwtZRL6NoasNHNYLSltHFg4kqY-PVI9i9RQbePPaTz0p0NYbywUoSFAPEKS35dKXPBt72L_2aFogPTzGZvWT3aJxAW3nbMxmTOuLVk02nGLiQK-WTeOhqf1oL9b5PMl3VYnm2cYmcjkLwKnX6iinoMn1PBz-jGblg1jmKYoCxebFVt3sA_s_s6OitX"/>
+<!-- Hanko Stamp: NEW SEASON in Hot Pink with Jet Black text -->
+<div class="absolute top-2.5 right-2 bg-gradient-to-br from-[#ff4da6] to-[#ff2e93] text-[#0A0A0A] px-2 py-0.5 rounded-[4px] font-label-sm text-label-sm font-bold tracking-tight uppercase neu-pink-btn rotate-[-3deg] z-10">NEW SEASON</div>
+<div class="absolute bottom-0 left-0 right-0 h-[4px] bg-[#0A0A0A]/40 neu-sunken">
+<div class="h-full bg-primary-container w-[45%] shadow-[0_0_6px_#ff2e93]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-0.5">
+<span class="font-title-md text-title-md font-bold text-[#111217] truncate group-hover:text-primary-container transition-colors">Frieren: Beyond End</span>
+<span class="font-body-sm text-body-sm text-[#5E6375] truncate">Madhouse • EP 14/28</span>
+</div>
+</div>
+<!-- CARD 5: Jujutsu Kaisen: Shibuya Incident -->
+<div class="group flex flex-col gap-2.5 cursor-pointer">
+<div class="relative w-full aspect-[2/3] rounded-[14px] bg-white p-1 border border-white/80 neu-raised transition-all duration-200 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[9px_9px_20px_rgba(166,175,195,0.65),-6px_-6px_14px_rgba(255,255,255,1)]">
+<div class="relative w-full h-full rounded-[10px] overflow-hidden bg-[#DFE2EB]">
+<img class="w-full h-full object-cover" data-alt="Dark dramatic anime visual of Jujutsu Kaisen Shibuya Incident showing Yuji Itadori standing amidst shattered concrete and subway wreckage in nighttime Shibuya with red cursed energy flares, gritty key art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTE5QiuW-n17LzNUiPRgy76FZkud54ijeS7wT2GU_tx0sV6__L_NXFDWBEpT4zCyUcJ2RNjXSgHImMlTLf8hqoMygD6sdS_kqWxpECpch92xalpuxHWFf6nBtIC7_XDMamidD8LQhGC6NUM_Az7Z0LzkNpfeYi1m06Ui3YTT_r9EMSf0yEGk8bK5DSO3Op38oEhc72MGJ5hFAgnApyS8tRu7wqN2g_FrtWIyCQpdVs"/>
+<div class="absolute bottom-0 left-0 right-0 h-[4px] bg-[#0A0A0A]/40 neu-sunken">
+<div class="h-full bg-primary-container w-[100%] shadow-[0_0_6px_#ff2e93]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-0.5">
+<span class="font-title-md text-title-md font-bold text-[#111217] truncate group-hover:text-primary-container transition-colors">Jujutsu Kaisen S2</span>
+<span class="font-body-sm text-body-sm text-[#5E6375] truncate">MAPPA • 23/23 1080p REMUX</span>
+</div>
+</div>
+<!-- CARD 6: Chainsaw Man -->
+<div class="group flex flex-col gap-2.5 cursor-pointer">
+<div class="relative w-full aspect-[2/3] rounded-[14px] bg-white p-1 border border-white/80 neu-raised transition-all duration-200 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[9px_9px_20px_rgba(166,175,195,0.65),-6px_-6px_14px_rgba(255,255,255,1)]">
+<div class="relative w-full h-full rounded-[10px] overflow-hidden bg-[#DFE2EB]">
+<img class="w-full h-full object-cover" data-alt="Chainsaw Man official anime poster showing Denji with head chainsaw revved standing on a bloody red beam against the monochrome Tokyo skyscraper skyline, aggressive graphic manga visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKyQRNFgcseNicg--c795e6ZPvfZaoCaDEaJZetP8Ngydja5jh8d1GJseZ-eCN99bfCnCw0w8MXEUANQZMTmPal8FKzVXJFuON2nWMG8jbPD0LsN8wlWxfEWWGBZe6LlYO8e2k7I1l9DInLe-_6ODg-XJGVlZvTGk18sbEAPEa9s2r-s6xG_5xhRy0Qp7W78lWI7mNXz4nlWWqhVqdxQ2wgiCQ-Nbdc8Iwb1bO3JAy"/>
+<!-- Quality Badge -->
+<div class="absolute top-2.5 left-2 bg-[#FFFFFF]/90 text-[#111217] border border-black/10 px-1.5 py-0.2 rounded font-mono font-label-sm text-label-sm font-bold neu-raised-sm">
+            4K HDR
+          </div>
+<div class="absolute bottom-0 left-0 right-0 h-[4px] bg-[#0A0A0A]/40 neu-sunken">
+<div class="h-full bg-primary-container w-[100%] shadow-[0_0_6px_#ff2e93]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-0.5">
+<span class="font-title-md text-title-md font-bold text-[#111217] truncate group-hover:text-primary-container transition-colors">Chainsaw Man</span>
+<span class="font-body-sm text-body-sm text-[#5E6375] truncate">MAPPA • 12/12 Complete</span>
+</div>
+</div></div>
+<!-- Foot Pagination / Index Bar: Neumorphic Soft Raised Panel & Keys -->
+<div class="mt-4 p-4 rounded-[16px] bg-white border border-white/80 neu-raised flex flex-col sm:flex-row items-center justify-between gap-3"><div class="flex items-center gap-3"><span class="font-label-sm text-label-sm text-[#6A7082]">SHOWING 1–6 OF 230 TITLES</span><span class="text-[#A3A8B8]">|</span><span class="font-mono text-label-sm text-[#4B4F5E] font-semibold">PAGE 1 / 39</span></div><div class="flex items-center gap-1.5"><button class="h-8 px-3 rounded-[8px] bg-[#DFE2EB] border border-white/50 text-[#888E9E] cursor-not-allowed font-label-sm text-label-sm neu-sunken">Previous</button><button class="h-8 w-8 rounded-[8px] bg-white text-[#0A0A0A] font-label-sm text-label-sm font-bold flex items-center justify-center neu-raised-sm border border-white/80">1</button><button class="h-8 w-8 rounded-[8px] bg-[#EEF0F5] hover:text-[#000000] text-[#1D1E24] font-label-sm text-label-sm font-medium flex items-center justify-center border border-white/80 neu-btn">2</button><button class="h-8 w-8 rounded-[8px] bg-[#EEF0F5] hover:text-[#000000] text-[#1D1E24] font-label-sm text-label-sm font-medium flex items-center justify-center border border-white/80 neu-btn">3</button><span class="px-1 text-[#888E9E]">...</span><button class="h-8 w-8 rounded-[8px] bg-[#EEF0F5] hover:text-[#000000] text-[#1D1E24] font-label-sm text-label-sm font-medium flex items-center justify-center border border-white/80 neu-btn">39</button><button class="h-8 px-3 rounded-[8px] bg-[#EEF0F5] border border-white/80 text-[#1D1E24] hover:text-[#000000] font-label-sm text-label-sm font-medium neu-btn">Next</button></div></div>
+</section>
+</div></main><footer class="fixed bottom-0 left-[76px] right-0 h-[34px] bg-[#E6E8EF] border-t border-black/[0.06] z-40 px-margin flex items-center justify-between font-label-sm text-label-sm neu-sunken"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#0E7A4D] shadow-[0_0_6px_rgba(14,122,77,0.5)]"></span><span class="text-[#0E7A4D] font-bold">AniList API Sync OK</span></div><span class="text-[#CBD1DE]">|</span><span class="text-[#555B6E]">Last Library Scan: 2 mins ago</span><span class="text-[#CBD1DE]">|</span><div class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-primary-container font-bold">swap_vert</span><span class="text-[#555B6E]">qBittorrent: 2.4 MB/s (12 seeds)</span></div></div><div class="flex items-center gap-space-md"><span class="font-bold text-[#111217]">Vault Storage: 162.76 GB Free</span></div></footer></div>
+</body></html>

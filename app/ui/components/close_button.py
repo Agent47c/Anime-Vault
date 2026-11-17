@@ -16,6 +16,10 @@ class CloseButton(QPushButton):
 
     def paintEvent(self, event):
         palette = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.home_style import colors
+            c=colors();palette=dict(bg_hover=c['raised'],bg_card_alt=c['panel'],border_focus=c['coral'],text_primary=c['text'],text_secondary=c['muted'])
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setBrush(QColor(palette["bg_hover"] if self.underMouse() else palette["bg_card_alt"]))

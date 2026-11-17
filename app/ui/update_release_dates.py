@@ -11,6 +11,12 @@ def dated_changes(franchise):
         change=change.strip()
         if not change:continue
         from app.core.episode_updates import display_episode_change
+        episode_part,separator,release_title=change.partition(' — ')
+        if separator and episode_part.startswith('Episode '):
+            node=by_title.get(release_title.casefold())
+            if node:
+                label=display_episode_change(episode_part,node,franchise.get('_release_schedule',()))
+                if label:changes.append(label+' — '+release_title);continue
         episode_label=display_episode_change(change,media,franchise.get('_release_schedule',())) if isinstance(media,dict) and (media.get('nextAiringEpisode') or franchise.get('_release_schedule')) else None
         if episode_label:
             changes.append(episode_label);continue

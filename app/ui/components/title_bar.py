@@ -11,6 +11,8 @@ class CaptionButton(QPushButton):
         self.role, self.host = role, window
         self.setObjectName("caption_" + role)
         self.setFixedSize(48, 44)
+        self.setFocusPolicy(Qt.NoFocus)
+        self.setStyleSheet('QPushButton{background:transparent;border:none;border-radius:0;padding:0;}')
         self.setAccessibleName({"minimize": "Minimize window", "maximize": "Maximize or restore window", "close": "Close window"}[role])
         self.setToolTip(self.accessibleName())
         self.clicked.connect(callback)
@@ -19,7 +21,7 @@ class CaptionButton(QPushButton):
         colors = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        hover = self.underMouse() or self.hasFocus()
+        hover = self.underMouse()
         if hover:
             painter.fillRect(self.rect(), QColor(colors["accent"] if self.role == "close" else colors["bg_hover"]))
         painter.setPen(QPen(QColor(colors["on_red"] if hover and self.role == "close" else colors["text_primary"]), 1.2))

@@ -14,11 +14,8 @@ import json
 import webbrowser
 from pathlib import Path
 
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QWidget, QFrame, QTextEdit, QFileDialog, QMessageBox,
-    QSizePolicy, QPlainTextEdit, QComboBox, QMenu, QGridLayout, QButtonGroup,
-)
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QTextEdit,QFileDialog,QSizePolicy,QPlainTextEdit,QComboBox,QMenu,QGridLayout,QButtonGroup
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtGui import QPixmap, QFont, QColor, QPainter, QPainterPath
 from PyQt5.QtCore import Qt, pyqtSignal, QRectF,QTimer,QEvent
 
@@ -152,6 +149,8 @@ class DetailModal(QDialog):
             if sip.isdeleted(self) or self._detail_closed or generation!=self._detail_generation:return
             QMessageBox.warning(self,'Could not load anime details',message)
         worker.succeeded.connect(ready);worker.failed.connect(failed)
+        from app.ui.components.operation_progress import watch
+        watch(self,worker,'Loading anime details')
         worker.finished.connect(worker.deleteLater);worker.start()
 
     def done(self,result):
@@ -227,7 +226,7 @@ class DetailModal(QDialog):
         split.setObjectName("detail_play_split")
         split_layout = QHBoxLayout(split)
         split_layout.setContentsMargins(0, 0, 0, 0)
-        split_layout.setSpacing(0)
+        split_layout.setSpacing(16)
         split_layout.addWidget(self.play_button)
         choose_btn = QPushButton()
         self.play_options_button=choose_btn
@@ -430,7 +429,8 @@ class DetailModal(QDialog):
         watch_label = QLabel("WATCH STATUS")
         watch_label.setObjectName("subheading")
         watch_box=QVBoxLayout();watch_box.setSpacing(8);watch_box.addWidget(watch_label)
-        status_track = QFrame()
+        from app.ui.components.neumorphic import NeumorphicTrack
+        status_track = NeumorphicTrack()
         status_track.setObjectName("watch_status_track")
         statuses = QHBoxLayout(status_track)
         statuses.setContentsMargins(0, 0, 0, 0)
@@ -499,13 +499,16 @@ class DetailModal(QDialog):
         self.notes_edit.setText(self.franchise.get("user_notes", ""))
         self.notes_edit.textChanged.connect(self._save_notes)
         notes_box.addWidget(self.notes_edit)
-        personal=FlowLayout();personal.setSpacing(20)
+        self.personal_band=NeumorphicTrack();self.personal_band.setObjectName('detail_personal_band')
+        from app.ui.components.personal_controls_layout import PersonalControlsLayout
+        personal=PersonalControlsLayout(self.personal_band);personal.setSpacing(20)
         for box in (watch_box,rating_box,notes_box):
             section=QWidget();section.setObjectName('detail_personal');section.setLayout(box)
             box.setContentsMargins(0,0,0,0)
-            if box is notes_box:section.setFixedWidth(220)
+            if box is notes_box:
+                self.notes_section=section;section.setFixedWidth(220)
             personal.addWidget(section)
-        right_layout.addLayout(personal)
+        right_layout.addWidget(self.personal_band)
 
         # ===================================================================
         # Section: SEASONS, ARCS, MOVIES & SPECIALS
@@ -516,8 +519,8 @@ class DetailModal(QDialog):
         seasons_title = QLabel("Episodes, movies & specials" if self.continuous_episodes else "Seasons & releases")
         seasons_title.setObjectName('detail_section_heading')
         seasons_box.addWidget(seasons_title)
-        if not self.continuous_episodes and any(s.get('relation_type')=='SEASON' for s in self.seasons):
-            numbering=QPushButton('Edit season numbers')
+        if any(s.get('relation_type')=='SEASON' for s in self.seasons):
+            numbering=QPushButton('Edit season')
             numbering.clicked.connect(self._edit_season_numbers)
             seasons_box.addWidget(numbering,0,Qt.AlignLeft)
         coverage_btn = QPushButton("Episode and movie check")
@@ -593,6 +596,17 @@ class DetailModal(QDialog):
         self.setProperty('animevaultOwnScaledStyle',True)
         stylesheet=qss()
         if self.styleSheet()!=stylesheet:self.setStyleSheet(stylesheet)
+        from app.ui.manga_pages import active
+        from app.ui.components.manga_dots import update_dots
+        update_dots(self.findChild(QFrame,'detail_hero'),active())
+        if hasattr(self,'personal_band'):
+            manga=active();self.personal_band.layout().setContentsMargins(*((16,14,16,14) if manga else (0,0,0,0)))
+            if manga:self.notes_section.setMaximumWidth(16777215);self.notes_section.setMinimumWidth(220)
+            else:self.notes_section.setFixedWidth(220)
+            self.notes_edit.setFixedHeight(36 if manga else 68)
+            self.notes_edit.document().setDocumentMargin(0 if manga else 4)
+            from app.ui.components.neumorphic import install
+            install(self.notes_edit,inset=True,enabled=manga)
         if hasattr(self,'episode_panel'):self.episode_panel.refresh_style()
         if hasattr(self,'play_options_button'):
             from app.ui.icons import icon
@@ -646,6 +660,8 @@ class DetailModal(QDialog):
             )
             return
         self._worker = EpisodeWorker(self.franchise_id, season_ids=ids)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._worker, 'Checking local episode availability')
         self._worker.ready.connect(self._release_checked)
         self._worker.failed.connect(self._release_status.setText)
         self._worker.finished.connect(self._worker.deleteLater)
@@ -720,6 +736,9 @@ class DetailModal(QDialog):
         user_edits().save(self.franchise_id,{"watch_status":status})
 
     def _create_season_table(self, seasons):
+        from app.core.folder_cleanup import hidden_folder_ids
+        hidden=hidden_folder_ids()
+        seasons=[s for s in seasons if s.get('season_folder_path') or s.get('anilist_id') or s['id'] not in hidden]
         table = QFrame()
         table.setObjectName("detail_table")
         grid = QGridLayout(table)
@@ -741,7 +760,7 @@ class DetailModal(QDialog):
             row=row*2-1
             kind = season.get("relation_type")
             title = season.get("title_display") or "Episode folder"
-            if self.continuous_episodes and kind == "SEASON":
+            if self.continuous_episodes and kind == "SEASON" and not season.get('_manual_season_number'):
                 interval = self.episode_coverage["folder_ranges"].get(season["id"])
                 title = f"Episodes {interval[0]}\u2013{interval[1]}" if interval else "Episode folder"
             else:
@@ -812,6 +831,11 @@ class DetailModal(QDialog):
                 locate = QPushButton("Locate")
                 locate.clicked.connect(lambda checked=False, sid=season["id"]: self._locate_season(sid))
                 buttons.addWidget(locate)
+                if not files:
+                    from app.ui.icons import icon
+                    remove=QPushButton();remove.setIcon(icon('trash','#b3261e'));remove.setProperty('danger',True);remove.setFixedWidth(44)
+                    remove.setAccessibleName('Remove leftover folder entry');remove.setToolTip('Remove this empty or missing folder entry')
+                    remove.clicked.connect(lambda checked=False,item=season:self._remove_stale_folder(item));buttons.addWidget(remove)
             grid.addWidget(actions, row, 5)
             rule=QFrame();rule.setObjectName('detail_row_rule');rule.setFixedHeight(1)
             grid.addWidget(rule,row+1,0,1,6)
@@ -841,8 +865,8 @@ class DetailModal(QDialog):
         navigate(page)
 
     def _edit_season_numbers(self):
-        from app.ui.dialogs.season_numbers import SeasonNumbers
-        dialog=SeasonNumbers(self.franchise_id,self)
+        from app.ui.dialogs.season_file_moves import SeasonFileMoves
+        dialog=SeasonFileMoves(self.franchise_id,self)
         dialog.saved.connect(self._on_rematched)
         navigate(dialog)
 
@@ -1330,6 +1354,21 @@ class DetailModal(QDialog):
         if folder:
             from app.ui.io_task import start
             start(self,lambda: db.update_season_folder(season_id,folder),self._located_season)
+
+    def _remove_stale_folder(self,season):
+        from PyQt5.QtWidgets import QCheckBox
+        from app.core.folder_cleanup import remove_stale_folder
+        prompt=QMessageBox(self);prompt.setWindowTitle('Remove leftover folder entry?')
+        prompt.setText(season.get('season_folder_path') or season.get('title_display') or 'Empty season entry')
+        prompt.setInformativeText('Remove this empty or missing folder association from the app? Anime metadata and watch history will be kept. No videos will be deleted.')
+        checkbox=QCheckBox('Also delete the directory if it is empty');checkbox.setEnabled(bool(season.get('season_folder_path')));prompt.setCheckBox(checkbox)
+        remove=prompt.addButton('Remove folder entry',QMessageBox.DestructiveRole);cancel=prompt.addButton(QMessageBox.Cancel);prompt.setDefaultButton(cancel)
+        prompt.exec_()
+        if prompt.clickedButton() is remove:
+            from app.ui.io_task import start
+            delete_empty=checkbox.isChecked()
+            start(self,lambda:remove_stale_folder(season['id'],delete_empty),lambda _:self._reload_async(notify=True))
+        prompt.deleteLater()
 
     def _located_season(self, _):
         self._reload_async(notify=True)

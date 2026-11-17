@@ -1,9 +1,11 @@
 """A shared bottom-edge progress indicator for overlapping refresh workers."""
 from PyQt5.QtWidgets import QProgressBar
+from PyQt5.QtCore import pyqtSignal
 from app.ui.home_style import colors
 
 
 class RefreshProgress(QProgressBar):
+    message_changed = pyqtSignal(str)
     def __init__(self,parent=None):
         super().__init__(parent);self.tasks={};self.setObjectName('app_refresh_progress')
         self.setProperty('animevaultThemeScope',True);self.setProperty('animevaultOwnScaledStyle',True)
@@ -23,8 +25,10 @@ class RefreshProgress(QProgressBar):
         self.tasks.pop(key,None);self._present()
 
     def _present(self):
-        if not self.tasks:self.hide();return
+        if not self.tasks:
+            self.hide();self.message_changed.emit('');return
         current,total,message=next(reversed(self.tasks.values()))
         self.setRange(0,max(0,total))
         if total>0:self.setValue(max(0,min(current,total)))
         self.setToolTip(message);self.setAccessibleDescription(message);self.show()
+        self.message_changed.emit(message)

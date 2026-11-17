@@ -9,6 +9,10 @@ from app.ui.button_system import unified
 
 @unified('QWidget#release_search_page')
 def qss():
+    from app.ui.manga_pages import active
+    if active():
+        from app.ui.manga_workflows import qss as manga_qss
+        return manga_qss('release_search_page')
     c=colors();r='QWidget#release_search_page'
     return transfer_qss('release_search_page')+f'''
     {r} QLabel#download_heading {{font-size:{px(24)}px;font-weight:700;}}

@@ -1,7 +1,7 @@
 """Restyle visible UI sections immediately and hidden sections when opened."""
 import re
 from PyQt5.QtCore import QObject, QEvent
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget,QMessageBox,QMenu
 
 
 def scale_inline(widget, scale):
@@ -25,6 +25,19 @@ class ThemeScopes(QObject):
         self.applying = False
 
     def apply_scope(self, widget):
+        # Transient lists own their complete surface style. Copying the page's
+        # base QSS onto them reintroduces its legacy blue native selection and
+        # removes the popup's padding/transparent shadow margins on first Show.
+        if isinstance(widget,QMenu) or widget.metaObject().className()=='QComboBoxPrivateContainer':
+            changed=widget.property('animevaultScopeStyle')!=self.stylesheet
+            widget.setProperty('animevaultScopeStyle',self.stylesheet)
+            styler=getattr(self.parent(),'_dropdown_styler',None)
+            if styler:styler.style_popup(widget)
+            if changed and hasattr(widget,'refresh_home_style'):widget.refresh_home_style()
+            return
+        if isinstance(widget,QMessageBox) and hasattr(self.parent(),'_message_boxes'):
+            widget.setProperty('animevaultScopeStyle',self.stylesheet)
+            self.parent()._message_boxes.apply(widget);return
         if not self.stylesheet or widget.property("animevaultScopeStyle") == self.stylesheet:
             return
         if widget.property("animevaultScopeStyle") is None and self.parent().styleSheet() == self.stylesheet:

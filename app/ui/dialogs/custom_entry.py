@@ -7,20 +7,8 @@ import json
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (
-    QButtonGroup,
-    QFileDialog,
-    QFrame,
-    QGridLayout,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QMessageBox,
-    QPushButton,
-    QTextEdit,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt5.QtWidgets import QButtonGroup,QFileDialog,QFrame,QGridLayout,QHBoxLayout,QLabel,QLineEdit,QPushButton,QTextEdit,QVBoxLayout,QWidget
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 
 from app.config import COVERS_DIR
 from app.ui.dialogs.drawer import DrawerDialog
@@ -73,6 +61,8 @@ class CustomEntryDialog(DrawerDialog):
         super().__init__(parent)
         self.franchise_data = franchise_data
         self.is_edit = franchise_data is not None
+        from app.ui.manga_pages import active
+        if active():self.centered_workflow=False;self.full_page=True
         self.custom_cover_path = None
         self._rating_readout = None
         self._browse_btn = None
@@ -144,10 +134,10 @@ class CustomEntryDialog(DrawerDialog):
         folder_layout.addWidget(self.folder_input, 1)
         self._browse_btn = action_button("Browse", self._browse_folder, object_name="folder_browse_btn")
         folder_layout.addWidget(self._browse_btn)
-        field_block(body, "Linked folder" if self.is_edit else "Anime folder", folder_row)
+        field_block(body, "Linked folder", folder_row)
 
         self.notes_input = QTextEdit()
-        self.notes_input.setPlaceholderText("Personal notes" if self.is_edit else "Optional")
+        self.notes_input.setPlaceholderText("Personal notes")
         self.notes_input.setMinimumHeight(96)
         self.notes_input.setMaximumHeight(124)
         field_block(body, "Notes", self.notes_input)
@@ -173,6 +163,7 @@ class CustomEntryDialog(DrawerDialog):
             body.addWidget(banner)
 
         body.addStretch()
+        self._entry_body=body;self._entry_top=top_row
 
     def _build_poster_column(self):
         col = QVBoxLayout()
@@ -204,7 +195,7 @@ class CustomEntryDialog(DrawerDialog):
         head.setContentsMargins(0, 0, 0, 0)
         head.setSpacing(8)
         head.addWidget(StatusDot("coral", size=7), 0, Qt.AlignVCenter)
-        section_title = "Title information" if self.is_edit else "Title information and details"
+        section_title = "Title information"
         head.addWidget(plain_label(section_title, "entry_section_heading", word_wrap=False), 1)
         box.addLayout(head)
 
@@ -217,7 +208,7 @@ class CustomEntryDialog(DrawerDialog):
         self.display_title_input.setPlaceholderText("e.g. Frieren: Beyond Journey's End")
         col_0 = QVBoxLayout()
         col_0.setContentsMargins(0, 0, 0, 0)
-        field_block(col_0, "Display title *" if not self.is_edit else "Display title", self.display_title_input)
+        field_block(col_0, "Display title", self.display_title_input)
         grid.addLayout(col_0, 0, 0)
 
         self.title_en_input = QLineEdit()
@@ -255,14 +246,19 @@ class CustomEntryDialog(DrawerDialog):
         col = QVBoxLayout()
         col.setContentsMargins(0, 0, 0, 0)
         col.setSpacing(6)
+        self.rating_combo = TwilightComboBox()
+        self.rating_combo.addItem("No rating", 0)
+        for value in range(1, 11):
+            self.rating_combo.addItem(str(value), value)
+        field_block(col, "Rating", self.rating_combo)
         if self.is_edit:
-            self.rating_combo = TwilightComboBox()
-            self.rating_combo.addItem("No rating", 0)
-            for value in range(1, 11):
-                self.rating_combo.addItem(str(value), value)
-            field_block(col, "Rating", self.rating_combo)
             col.addStretch()
             return col
+
+        # Preserve Sakura's existing add-form pills; Manga uses the same
+        # combo-backed segmented control as Edit, including Clear rating.
+        outer=col;self._add_rating_native=QWidget();col=QVBoxLayout(self._add_rating_native)
+        col.setContentsMargins(0,0,0,0);outer.addWidget(self._add_rating_native)
 
         head = QHBoxLayout()
         head.setContentsMargins(0, 0, 0, 0)
@@ -295,7 +291,8 @@ class CustomEntryDialog(DrawerDialog):
         col.addWidget(rating_widget)
         col.addWidget(plain_label("Click a score pill to toggle rating.", "entry_field_helper"))
         col.addStretch()
-        return col
+        self.rating_combo.currentIndexChanged.connect(self._sync_add_rating)
+        return outer
 
     def refresh_home_style(self):
         """Reapply Twilight Sakura styles and scaled metrics on theme/scale changes."""
@@ -313,6 +310,26 @@ class CustomEntryDialog(DrawerDialog):
             self._browse_btn.setIcon(icon("organizer", c["muted"]))
         if hasattr(self, "save_btn"):
             self.save_btn.setIcon(icon("check", c["on_coral"]))
+        from app.ui.manga_pages import active
+        manga=active()
+        if hasattr(self,'_add_rating_native'):
+            self._add_rating_native.setVisible(not manga)
+            self.rating_combo.parentWidget().setVisible(manga)
+        if manga!=getattr(self,'_manga_form',False):
+            self._manga_form=manga
+            if manga:
+                form=QVBoxLayout();form.setSpacing(18)
+                title=self._entry_top.takeAt(1);form.addWidget(title.widget())
+                while self._entry_body.count()>1:form.addItem(self._entry_body.takeAt(1))
+                self._entry_top.addLayout(form,1);self._manga_form_layout=form
+            else:
+                form=self._manga_form_layout;self._entry_top.removeItem(form)
+                self._entry_top.addWidget(form.takeAt(0).widget(),1)
+                while form.count():self._entry_body.addItem(form.takeAt(0))
+                form.deleteLater()
+        if manga:self.cover_preview.setFixedSize(px(240),px(360))
+        from app.ui.manga_entry import configure_choices
+        configure_choices(self,manga)
 
     def showEvent(self, event):
         center_modal_show(self, event, super().showEvent)
@@ -321,6 +338,12 @@ class CustomEntryDialog(DrawerDialog):
         for button in self.rating_choices.buttons():
             if button is not selected:
                 button.setChecked(False)
+        self.rating_combo.setCurrentIndex(max(0,self.rating_choices.checkedId()))
+        self._update_rating_readout()
+
+    def _sync_add_rating(self,value):
+        for button in self.rating_choices.buttons():
+            button.blockSignals(True);button.setChecked(self.rating_choices.id(button)==value);button.blockSignals(False)
         self._update_rating_readout()
 
     def _update_rating_readout(self):

@@ -184,13 +184,12 @@ QPushButton#watch_status_option:checked { background: $text_primary; color: $bg_
 QFrame#detail_table QWidget { background: transparent; }
 QFrame#detail_table { padding: 0; }
 QFrame#detail_delete_panel { background: $bg_card; border: 1px solid $border; border-radius: 14px; }
-QFrame#detail_play_split { background: $accent; border: none; border-radius: 12px; }
+QFrame#detail_play_split { background: transparent; border: none; }
 QPushButton#detail_play_main, QPushButton#detail_play_arrow {
     background: $accent; color: $on_red; border: none; border-radius: 0; font-size: 13px; font-weight: 600;
 }
-QPushButton#detail_play_main { border-top-left-radius: 12px; border-bottom-left-radius: 12px; padding: 0 16px; }
-QPushButton#detail_play_arrow { border-left: 1px solid rgba(255,255,255,0.35);
-    border-top-right-radius: 12px; border-bottom-right-radius: 12px; padding: 0; }
+QPushButton#detail_play_main { border-radius: 12px; padding: 0 16px; }
+QPushButton#detail_play_arrow { border-radius: 12px; padding: 0; }
 QPushButton#detail_play_main:hover, QPushButton#detail_play_arrow:hover { background: $accent_hover; }
 QMenu#detail_play_menu { background: $bg_card; border: 1px solid $border; border-radius: 12px; padding: 8px; }
 QMenu#detail_play_menu::item { min-height: 24px; padding: 8px 10px; color: $text_primary; border-radius: 6px; }
@@ -729,12 +728,14 @@ def apply_theme(app: QApplication, theme: str = "dark"):
     from PyQt5.QtGui import QPalette
     from PyQt5.QtCore import QTimer
     from app.ui.components.dropdowns import install_dropdown_style
-    install_dropdown_style(app)
     from app.ui.components.wheel_routing import install_wheel_routing
     install_wheel_routing(app)
     requested = theme
     from app.ui.theme_catalog import SAKURA_FAMILY
-    app.setProperty('animevaultThemeFamily',SAKURA_FAMILY)
+    app.setProperty('animevaultThemeFamily','manga' if theme=='manga_light' else SAKURA_FAMILY)
+    if theme=='manga_light':
+        from app.ui.manga_style import load_fonts
+        load_fonts();theme='light'
     if theme == "system":
         theme = "light" if prefs.windows_light_theme() else "dark"
     scale = prefs.text_scale()
@@ -745,6 +746,9 @@ def apply_theme(app: QApplication, theme: str = "dark"):
     app.setProperty("animevaultHighContrast", contrast)
     app.setProperty("animevaultScale", scale)
     app.setProperty('animevaultReducedMotion',prefs.reduced_motion())
+    # Popup effects and existing native containers must see the new family,
+    # palette, scale and contrast rather than the previous theme's values.
+    install_dropdown_style(app)
     stylesheet = build_qss(theme, scale)
     if contrast:
         palette = app.style().standardPalette()
@@ -754,6 +758,10 @@ def apply_theme(app: QApplication, theme: str = "dark"):
         stylesheet += f"QWidget {{ color: {fg}; }} QFrame#settings_panel, QFrame#storage_panel {{ background: {bg}; border: 2px solid {fg}; }} QPushButton, QComboBox, QLineEdit, QTextEdit, QListWidget {{ border: 2px solid {fg}; }} QPushButton:focus, QComboBox:focus {{ border: 2px solid {selection}; }}"
     from app.ui.theme_scopes import update_theme_scopes
     update_theme_scopes(app, stylesheet, QFont("Segoe UI", round(10 * scale)))
+    from app.ui.manga_controls import update as update_manga_controls
+    update_manga_controls(app)
+    from app.ui.components.message_boxes import install as install_message_boxes
+    install_message_boxes(app)
     if not hasattr(app, "_appearance_timer"):
         app._appearance_timer = QTimer(app)
         app._appearance_timer.setInterval(3000)

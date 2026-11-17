@@ -181,11 +181,16 @@ def recycle_file(path, expected=None, recycle=None):
         if path.exists():
             raise OSError('Recycle Bin did not accept this file; original retained')
         with closing(_connection()) as conn, conn:
-            conn.execute("UPDATE physical_files SET availability='RECYCLED' WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)", (identity.path_key(path),))
+            target_key=identity.path_key(path)
+            conn.execute("UPDATE physical_files SET availability='RECYCLED' WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)", (target_key,))
             touched = set()
             for season in conn.execute('SELECT * FROM seasons WHERE season_folder_path IS NOT NULL').fetchall():
+                root_key=identity.path_key(season['season_folder_path'])
+                prefix=root_key.rstrip(os.sep)+os.sep
+                if not target_key.startswith(prefix):continue
+                relative=os.path.normcase(os.path.normpath(target_key[len(prefix):]))
                 names = json.loads(season['video_files_json'] or '[]')
-                remaining = [n for n in names if identity.path_key(Path(season['season_folder_path']) / n) != identity.path_key(path)]
+                remaining = [n for n in names if os.path.normcase(os.path.normpath(n)) != relative]
                 if remaining != names:
                     conn.execute('UPDATE seasons SET video_files_json=?,size_bytes=MAX(0,size_bytes-?),storage_state=? WHERE id=?', (json.dumps(remaining), before[0], season['storage_state'] if remaining else 'WATCHED_REMOVED', season['id']))
                     touched.add(season['franchise_id'])

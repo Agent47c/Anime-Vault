@@ -1,7 +1,8 @@
 """Connected additions to the existing settings panels, grouped by task."""
 from pathlib import Path
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QComboBox,QLineEdit,QListWidget,QFileDialog,QMessageBox,QTableWidget,QTableWidgetItem,QHeaderView,QLabel
+from PyQt5.QtWidgets import QComboBox,QLineEdit,QListWidget,QFileDialog,QTableWidget,QTableWidgetItem,QHeaderView,QLabel
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db,preferences
 from app.ui.io_task import start
 

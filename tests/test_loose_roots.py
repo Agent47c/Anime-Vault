@@ -56,7 +56,7 @@ class LooseRootTests(unittest.TestCase):
         outcome = execute_organize_anime(alpha)
         self.assertEqual(outcome['errors'], [])
         self.assertEqual(outcome['moved'], 3)
-        destination = root / 'Alpha' / 'Season 2'
+        destination = root / 'Alpha' / 'Season 02'
         self.assertEqual(len(list(destination.glob('*.mkv'))), 2)
         for file in destination.glob('*.mkv'):
             self.assertEqual(file.read_bytes(), b'original bytes')

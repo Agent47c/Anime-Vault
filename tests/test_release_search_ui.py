@@ -59,7 +59,9 @@ class ReleaseSearchUITests(unittest.TestCase):
         page=self.page();page.results=self.entries();page.render()
         self.assertIn(page.results[0]['title'],page.model.index(0,0).data(Qt.ToolTipRole))
         labels={b.text() for b in page.findChildren(QPushButton)}
-        for value in ('Confirm highlighted match','Download Missing Episodes','Paste magnet / torrent','Open source in Chrome','Use title','Cancel search'):self.assertIn(value,labels)
+        for value in ('Confirm season / episodes','Paste magnet / torrent','Open source in Chrome','Use title','Cancel search'):self.assertIn(value,labels)
+        self.assertNotIn('Confirm highlighted match',labels);self.assertNotIn('Confirm anime && episodes',labels)
+        self.assertNotIn('Download Missing Episodes',labels)
         with patch('app.ui.pages.release_search_page.IOTask') as task:self.assertIsNone(page._worker)
         task.assert_not_called();page.reject();page.deleteLater()
     def test_simplified_layout_keeps_actions_fixed_and_coverage_above_results(self):

@@ -16,23 +16,20 @@ def due_reminders(now=None):
     return due
 
 def auto_grab(fid,media_id,episode,cancelled=lambda:False):
-    if not isinstance(episode,int) or episode<1:raise ValueError('Choose a valid episode number.')
-    from app.core import download_discovery as discovery,download_queries
-    season=next((s for s in db.get_series_seasons(fid) if s.get('anilist_id')==media_id),None)
-    if not season:raise ValueError('Match this release to a local season first using Rematch.')
-    number=season.get('season_number') or 0
-    context=discovery.library_context(fid,number)
-    key=discovery.episode_key(context['continuous'],number,episode)
-    if key in context['local'] or key in context['pending']:return 'Episode already present or queued.'
+    """Find the next learned source episode; returning results never queues it."""
+    from app.core import download_discovery as discovery,download_assignment
+    assignment=download_assignment.next_search(fid,media_id)
     from app.core import downloads
     sources=discovery.sources();configured=downloads.settings()['source']
-    source=next((s for s in sources if s.get('url')==configured),sources[0])
-    custom=download_queries.custom_query(fid,number)
-    query=(custom.get('query') if custom.get('active') else None) or download_queries.default_query(fid,season['title_display'],number)
-    result=discovery.search(fid,number,source,query+f' {episode:02}',cancelled)
-    entries=[r for r in result['results'] if r.get('status')!='Match Uncertain' and set(r.get('episode_keys') or [])=={key}]
-    if not entries:raise ValueError('No verified single-episode release found. Use Find Download Files to review results.')
-    chosen=max(entries,key=lambda r:r.get('seeders') or 0)
-    if cancelled():raise InterruptedError('Stopped before queueing download.')
-    discovery.submit(fid,[chosen])
-    return 'Verified episode sent to the built-in download queue.'
+    source=next((s for s in sources if s.get('name')==assignment.get('source_name')),None) or next((s for s in sources if s.get('url')==configured),sources[0])
+    result=discovery.search(fid,assignment['season'],source,assignment['query'],cancelled)
+    if cancelled():raise InterruptedError('Search stopped. No download was started.')
+    result['context'].update(assignment)
+    result['context'].update(discovery.library_context(fid,assignment['season'],continuous=assignment['continuous']))
+    result['context'].update(assignment)
+    # Suggestions retain their original source episode. The confirmation form
+    # proposes the learned logical number without treating that as user approval.
+    for entry in result['results']:
+        entry['continuous']=assignment['continuous'];entry['season']=assignment['season']
+    result['assignment_context']=assignment
+    return result

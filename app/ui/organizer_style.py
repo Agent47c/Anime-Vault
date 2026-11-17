@@ -9,6 +9,10 @@ from app.ui.button_system import unified
 
 @unified('QWidget#organizer_screen')
 def qss():
+    from app.ui.manga_pages import active
+    if active():
+        from app.ui.manga_workflows import qss as manga_qss
+        return manga_qss('organizer_screen')
     c=colors();r='QWidget#organizer_screen'
     return base_qss('organizer_screen')+f'''
     {r} QFrame#organizer_card {{background:{c['panel']};border:1px solid {c['line']};border-radius:14px;}}
@@ -42,6 +46,20 @@ def style_cells(page):
             for widget in [cell,*cell.findChildren(QWidget)]:
                 widget.setStyleSheet('')
                 if isinstance(widget,QLabel) and col==2:widget.setObjectName('organizer_badge')
+    from PyQt5.QtWidgets import QHeaderView
+    widths={1:px(90),2:px(164),3:px(156)}
+    for row in range(page.table.rowCount()):
+        for col in (2,3):
+            cell=page.table.cellWidget(row,col)
+            if not cell:continue
+            cell.layout().setContentsMargins(px(14),0,px(14),0)
+            controls=cell.findChildren(QLabel if col==2 else QPushButton)
+            for control in controls:
+                control.ensurePolished()
+                minimum=control.fontMetrics().horizontalAdvance(control.text())+px(36)
+                control.setMinimumWidth(minimum);widths[col]=max(widths[col],minimum+px(28))
+    for col,width in widths.items():
+        page.table.horizontalHeader().setSectionResizeMode(col,QHeaderView.Fixed);page.table.setColumnWidth(col,width)
 
 
 def apply_layout(page):
@@ -86,5 +104,7 @@ def apply_layout(page):
 
 def refresh(page):
     page.season_tab.setStyleSheet(qss());style_cells(page)
+    from app.ui.manga_workflows import finish
+    finish(page.season_tab)
     c=colors()
     page.organizer_tabs.setStyleSheet(f"QTabWidget#organizer_tabs::pane {{border:none;background:{c['bg']};}} QTabBar::tab {{background:{c['panel']};color:{c['muted']};padding:12px 20px;border:none;}} QTabBar::tab:selected {{color:{c['coral']};border-bottom:2px solid {c['coral']};}}")

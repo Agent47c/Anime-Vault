@@ -7,12 +7,8 @@ Settings Page — Folder paths, .txt importer, JSON/CSV export, media player, ba
 import os
 from pathlib import Path
 
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QFrame, QGroupBox, QGridLayout, QFormLayout, QComboBox,
-    QCheckBox, QFileDialog, QListWidget, QListWidgetItem,
-    QMessageBox, QProgressBar, QApplication, QLineEdit, QButtonGroup, QTabWidget,
-)
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QFrame,QGroupBox,QGridLayout,QFormLayout,QComboBox,QCheckBox,QFileDialog,QListWidget,QListWidgetItem,QProgressBar,QApplication,QLineEdit,QButtonGroup,QTabWidget
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, pyqtSignal, QThread
 
@@ -84,12 +80,28 @@ class SettingsPage(QWidget):
     def refresh_home_style(self):
         from app.ui.settings_style import qss
         self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(qss())
+        from app.ui.manga_pages import active
+        nav=self.findChild(QFrame,'settings_navigation')
+        if nav:
+            nav.setFixedWidth(310 if active() else 242)
+            if nav.parentWidget():nav.parentWidget().parentWidget().setFixedWidth(326 if active() else 258)
         if hasattr(self,'download_config'):
             from app.ui.home_style import colors,px
-            c=colors();panel='#1c1a27' if QApplication.instance().property('animevaultTheme')!='light' and not QApplication.instance().property('animevaultHighContrast') else c['panel']
+            c=colors();panel='#1c1a27' if not active() and QApplication.instance().property('animevaultTheme')!='light' and not QApplication.instance().property('animevaultHighContrast') else c['panel']
             self.download_config.setStyleSheet(f"QDialog#workflow_drawer, QDialog#workflow_drawer QWidget#workflow_body, QDialog#workflow_drawer QWidget#workflow_field {{background:{panel};color:{c['text']};border:none;}} QDialog#workflow_drawer QLabel {{font-size:{px(14)}px;background:transparent;color:{c['text']};}} QDialog#workflow_drawer QLineEdit, QDialog#workflow_drawer QComboBox {{font-size:{px(14)}px;}}")
         for switch in self.findChildren(SettingsSwitch):switch.setProperty('animevaultTwilightSwitch',True);switch.update()
         for card in getattr(self,'theme_cards',[]):card.update()
+        from app.ui.settings_style import arrange_theme_cards
+        arrange_theme_cards(self)
+        for panel in self.findChildren(QFrame,'settings_panel'):
+            panel.layout().setContentsMargins(*((30,30,30,30) if active() else (20,20,20,20)))
+        for code in self.findChildren(QLabel,'settings_panel_code'):code.setVisible(active())
+        if nav:nav.setMaximumHeight(nav.sizeHint().height())
+
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+        from app.ui.settings_style import arrange_theme_cards
+        arrange_theme_cards(self)
 
     preferences_changed = pyqtSignal()
 
@@ -107,12 +119,16 @@ class SettingsPage(QWidget):
         extend_settings(self)
 
     def _panel(self, title):
-        panel = QFrame()
+        from app.ui.components.paper_card import PaperCard
+        panel = PaperCard()
         panel.setObjectName("settings_panel")
         panel.setProperty("settings_section", title)
         box = QVBoxLayout(panel)
         box.setContentsMargins(20, 20, 20, 20)
         box.setSpacing(0)
+        code=QLabel('/// '+title.upper().replace(' AND ','_').replace(' ','_'))
+        code.setObjectName('settings_panel_code');box.addWidget(code)
+        box.addSpacing(8)
         heading = QLabel(title)
         heading.setObjectName("settings_panel_title")
         box.addWidget(heading)
@@ -212,8 +228,8 @@ class SettingsPage(QWidget):
 
         panel, box = self._panel("Appearance and accessibility")
         self.theme_combo = QComboBox()
-        from app.ui.theme_catalog import SAKURA_CHOICES
-        for label, value in SAKURA_CHOICES:
+        from app.ui.theme_catalog import THEME_CHOICES
+        for label, value in THEME_CHOICES:
             self.theme_combo.addItem(label, value)
         self.theme_combo.setCurrentIndex(max(0, self.theme_combo.findData(get_theme())))
         self.theme_combo.currentIndexChanged.connect(self._on_theme_changed)
@@ -470,6 +486,8 @@ class SettingsPage(QWidget):
         self.scan_status.setText("Scanning directories...")
 
         self._scan_worker = ScanWorker()
+        from app.ui.components.operation_progress import watch
+        watch(self, self._scan_worker, 'Scanning library folders', progress=self._scan_worker.progress, major=True)
         from app.ui.io_task import track
         track(self._scan_worker)
         self._scan_worker.progress.connect(self._on_scan_progress)

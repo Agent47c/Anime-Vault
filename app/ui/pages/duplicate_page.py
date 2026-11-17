@@ -1,15 +1,14 @@
 """On-demand Organizer review for exact duplicate episode files."""
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTreeWidget,
-    QTreeWidgetItem, QMessageBox, QHeaderView, QFrame,QMenu,
-)
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QTreeWidget,QTreeWidgetItem,QHeaderView,QFrame,QMenu
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app.core.duplicates import find_duplicates, delete_duplicate,save_review,load_review
 
 
 class DuplicateWorker(QThread):
     ready = pyqtSignal(object)
     status = pyqtSignal(str)
+    progress = pyqtSignal(str, int, int)
     failed = pyqtSignal(str)
 
     def __init__(self, selected=None, parent=None,from_database=False):
@@ -25,9 +24,12 @@ class DuplicateWorker(QThread):
                 if not self.from_database:save_review(result)
             else:
                 deleted = 0
+                verified_keepers={}
                 for group, file in self.selected:
-                    delete_duplicate(group, file, self.isInterruptionRequested)
+                    self.progress.emit('Verifying and recycling '+file['path'], deleted, len(self.selected))
+                    delete_duplicate(group, file, self.isInterruptionRequested,verified_keepers=verified_keepers)
                     deleted += 1
+                    self.progress.emit('Recycled '+file['path'], deleted, len(self.selected))
                 result = deleted
             self.ready.emit(result)
         except InterruptedError:
@@ -65,6 +67,9 @@ class DuplicatePage(QDialog):
         self.stop.setEnabled(False)
         self.stop.clicked.connect(self._stop)
         actions.addWidget(self.stop)
+        self.inspect=QPushButton('Inspect selected file');self.inspect.setEnabled(False)
+        self.inspect.clicked.connect(self._inspect);actions.addWidget(self.inspect)
+        self.select_all=QPushButton('Select all duplicate copies');self.select_all.clicked.connect(self._select_all);actions.addWidget(self.select_all)
         actions.addStretch()
         self.delete = QPushButton("Delete selected copies")
         self.delete.clicked.connect(self._delete)
@@ -78,17 +83,20 @@ class DuplicatePage(QDialog):
         self.tree.setHeaderLabels(["Anime / episode / file", "Action"])
         self.tree.setColumnWidth(0, 760)
         self.tree.itemChanged.connect(self._selection_changed)
+        self.tree.currentItemChanged.connect(lambda current,previous:self.inspect.setEnabled(bool(current and current.data(0,Qt.UserRole+1))))
         layout.addWidget(self.tree, 1)
         layout.setContentsMargins(24,20,24,24);layout.setSpacing(18)
         layout.removeWidget(title);layout.removeWidget(note)
         from app.ui.components.design import MotifHeader
-        header=MotifHeader('重複');header.setObjectName('merge_panel');head=QVBoxLayout(header);head.setContentsMargins(24,24,24,24);head.setSpacing(10)
+        header=MotifHeader('重複');header.setObjectName('merge_panel');head=QVBoxLayout(header);head.setContentsMargins(16,10,16,10);head.setSpacing(4)
+        from app.ui.home_style import px
+        self.title_label=title;title.setProperty('animevaultOwnScaledStyle',True);title.setStyleSheet(f'font-size:{px(22)}px;')
         header.setAttribute(Qt.WA_StyledBackground,True)
         head.addWidget(title);head.addWidget(note);layout.insertWidget(0,header)
         safety=QLabel('One verified copy in each group is kept. Only additional identical copies can be selected for the Recycle Bin.');safety.setWordWrap(True);safety.setObjectName('merge_hint');layout.insertWidget(layout.indexOf(self.tree),safety)
         footer=QFrame();footer.setObjectName('merge_panel');foot=QVBoxLayout(footer);guarantee=QLabel('Safe deletion: reviewed copies go to the OS Recycle Bin. One verified copy is always protected.');guarantee.setWordWrap(True);foot.addWidget(guarantee);layout.addWidget(footer)
         layout.removeItem(actions)
-        overview=QFrame();overview.setObjectName('merge_panel');overview_box=QVBoxLayout(overview);overview_box.setContentsMargins(16,16,16,16);overview_box.setSpacing(16)
+        overview=QFrame();overview.setObjectName('merge_panel');overview_box=QVBoxLayout(overview);overview_box.setContentsMargins(12,8,12,8);overview_box.setSpacing(6)
         stats=QHBoxLayout();self.summary_labels=[]
         for caption in ('Affected series','Identical copies found','Potential reclaim'):
             tile=QFrame();tile.setObjectName('duplicate_stat');tile_box=QVBoxLayout(tile);label=QLabel(caption);label.setObjectName('merge_hint');tile_box.addWidget(label);value=QLabel('—');value.setObjectName('duplicate_value');tile_box.addWidget(value);self.summary_labels.append(value);stats.addWidget(tile)
@@ -102,6 +110,8 @@ class DuplicatePage(QDialog):
         self.refresh_home_style()
 
     def refresh_home_style(self):
+        from app.ui.home_style import px
+        self.title_label.setStyleSheet(f'font-size:{px(22)}px;')
         from app.ui.merge_duplicate_style import qss
         self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(qss('duplicate_page'))
 
@@ -109,6 +119,8 @@ class DuplicatePage(QDialog):
         return any(worker and worker.isRunning() for worker in (self._worker, self._batch_worker))
 
     def _start(self, worker, deleting=False):
+        from app.ui.components.operation_progress import watch
+        watch(self, worker, 'Moving duplicate copies to the Recycle Bin' if deleting else 'Checking duplicate files on drive' if not worker.from_database else 'Loading saved duplicate results', progress=worker.progress, status=worker.status, major=deleting or not worker.from_database)
         self.scan.setEnabled(False)
         self.delete.setEnabled(False)
         self.tree.setEnabled(False)
@@ -159,12 +171,17 @@ class DuplicatePage(QDialog):
             title = group["files"][0]["title"]
             if title not in parents:
                 parents[title] = QTreeWidgetItem(self.tree, [title])
+                parents[title].setFlags(parents[title].flags()|Qt.ItemIsUserCheckable)
+                parents[title].setData(0,Qt.UserRole+2,True)
+                parents[title].setCheckState(0,Qt.Unchecked)
             episodes = ", ".join(map(str, group["files"][0]["episodes"]))
             branch = QTreeWidgetItem(parents[title], ["Episode " + episodes, "Verified identical files"])
+            branch.setFlags(branch.flags()|Qt.ItemIsUserCheckable);branch.setData(0,Qt.UserRole+2,True);branch.setCheckState(0,Qt.Unchecked)
             for index, file in enumerate(group["files"]):
                 size=(file.get('signature') or [0])[0]
                 item = QTreeWidgetItem(branch, [file["path"]+'\n'+format_bytes(size), "Protected / Keep" if index == 0 else "Verified identical copy"])
                 item.setToolTip(0, file["path"])
+                item.setData(0,Qt.UserRole+1,dict(file=file,protected=index==0))
                 if index==0:item.setFlags(item.flags() & ~Qt.ItemIsUserCheckable)
                 if index:
                     item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
@@ -175,6 +192,18 @@ class DuplicatePage(QDialog):
         self.status.setToolTip("\n".join(errors[:20]))
         for error in errors:
             warning=QTreeWidgetItem(self.tree,[error,'Review location / rescan drive']);warning.setToolTip(0,error)
+
+    def _select_all(self):
+        if self._busy():return
+        self.tree.blockSignals(True)
+        for i in range(self.tree.topLevelItemCount()):
+            anime=self.tree.topLevelItem(i)
+            for j in range(anime.childCount()):
+                branch=anime.child(j)
+                for k in range(branch.childCount()):
+                    item=branch.child(k)
+                    if item.data(0,Qt.UserRole):item.setCheckState(0,Qt.Checked)
+        self.tree.blockSignals(False);self._selection_changed()
 
     def _selected(self):
         items = []
@@ -189,7 +218,48 @@ class DuplicatePage(QDialog):
                         items.append(item.data(0, Qt.UserRole))
         return items
 
+    def _inspect(self):
+        item=self.tree.currentItem();data=item.data(0,Qt.UserRole+1) if item else None
+        if not data:return
+        from app.ui.components.workflow import chrome,text
+        from app.core.storage import format_bytes
+        from app.ui.navigation import navigate
+        dialog=QDialog(self);dialog.centered_workflow=True;dialog.workflow_width=680
+        body,close=chrome(dialog,'Inspect duplicate file','Read-only details from the loaded duplicate review.','重複','Close',dialog.accept)
+        file=data['file']
+        for value in (file.get('title','Anime'),file.get('path',''),
+                      'Episodes: '+', '.join(map(str,file.get('episodes',[]))),
+                      'Size: '+format_bytes((file.get('signature') or [0])[0]),
+                      'Protected original — kept' if data['protected'] else 'Redundant copy — eligible for review',
+                      'Verification reflects the loaded scan. Scan again to revalidate its current location.'):
+            label=text(value);label.setTextInteractionFlags(Qt.TextSelectableByMouse);body.addWidget(label)
+        body.addStretch()
+        from app.ui.manga_pages import active
+        if active():
+            from app.ui.manga_additional import qss
+            dialog.setObjectName('duplicate_inspect');dialog.setStyleSheet(qss('duplicate_inspect'))
+        navigate(dialog)
+
     def _selection_changed(self, *args):
+        def eligible(parent):
+            for n in range(parent.childCount()):
+                child=parent.child(n)
+                if child.data(0,Qt.UserRole):yield child
+                else:yield from eligible(child)
+        self.tree.blockSignals(True)
+        try:
+            item=args[0] if args else None
+            if item and item.data(0,Qt.UserRole+2):
+                state=Qt.Checked if item.checkState(0)==Qt.Checked else Qt.Unchecked
+                for child in eligible(item):child.setCheckState(0,state)
+            for n in range(self.tree.topLevelItemCount()):
+                parent=self.tree.topLevelItem(n)
+                for scope in [parent]+[parent.child(j) for j in range(parent.childCount())]:
+                    leaves=list(eligible(scope))
+                    if leaves:
+                        count=sum(child.checkState(0)==Qt.Checked for child in leaves)
+                        scope.setCheckState(0,Qt.Checked if count==len(leaves) else Qt.PartiallyChecked if count else Qt.Unchecked)
+        finally:self.tree.blockSignals(False)
         selected=self._selected()
         self.delete.setEnabled(not self._busy() and bool(selected))
         from app.core.storage import format_bytes

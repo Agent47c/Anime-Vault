@@ -8,10 +8,8 @@ Updates Page — New season & airing sequel alerts.
 Shows anime that have new sequels, movies, or currently airing seasons.
 """
 
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QFrame, QSizePolicy, QDialog, QComboBox, QButtonGroup, QMessageBox,QMenu,QCheckBox,
-)
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QFrame,QSizePolicy,QDialog,QComboBox,QButtonGroup,QMenu,QCheckBox
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtGui import QFont, QPixmap, QColor
 from PyQt5.QtCore import Qt, pyqtSignal, QThread, QTimer
 
@@ -60,7 +58,9 @@ class UpdateActionWorker(QThread):
         self.error='\n'.join(failures) if failures else None
 
 
-class UpdateCard(QFrame):
+from app.ui.components.paper_card import PaperCard
+
+class UpdateCard(PaperCard):
     """A card showing an anime with an available update."""
 
     clicked = pyqtSignal(int)  # franchise_id
@@ -92,7 +92,8 @@ class UpdateCard(QFrame):
         """)
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(12, 10, 12, 10)
+        from app.ui.manga_pages import active
+        outer.setContentsMargins(*((24,22,24,22) if active() else (12,10,12,10)))
         outer.setSpacing(12)
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -192,7 +193,24 @@ class UpdateCard(QFrame):
         while first.count():
             item=first.takeAt(0)
             if item.widget():visible_actions.addWidget(item.widget())
+        from app.ui.manga_pages import active
+        if active():
+            while visible_actions.count():
+                item=visible_actions.takeAt(0)
+                if item.widget():item.widget().hide()
+            primary=QPushButton('Find Download Files');primary.setProperty('accent',True);primary.clicked.connect(self._find_download_files);visible_actions.addWidget(primary)
+            changes=QPushButton('View changes');changes.clicked.connect(self._show_changes);visible_actions.addWidget(changes)
+            if self.disposition=='new':
+                later=QPushButton('Later');later.clicked.connect(lambda:self._defer('later'));visible_actions.addWidget(later)
+            else:
+                restore=QPushButton('Restore updates');restore.clicked.connect(self._restore);visible_actions.addWidget(restore)
+            more=QPushButton('More');menu=QMenu(more)
+            for label,callback in [('Not interested',lambda:self._defer('not_interested')),('Mute anime',self._mute),('Watched and ignore',self._watched_and_ignore),('Dismiss',self._dismiss)]:menu.addAction(label,callback)
+            more.setMenu(menu);visible_actions.addWidget(more)
         remove = QPushButton('Remove anime')
+        remove.setProperty('role','destructive')
+        from app.ui.icons import icon
+        remove.setIcon(icon('trash','#b3261e'))
         remove.clicked.connect(self._remove_anime)
         visible_actions.addWidget(remove)
         from app.ui.home_style import px
@@ -206,7 +224,8 @@ class UpdateCard(QFrame):
             control.setMinimumHeight(px(36))
             control.setFixedWidth(px(138))
             control.setAccessibleName(control.text() + " for " + franchise.get("display_title", "anime"))
-        self.setStyleSheet('')
+        from app.ui.manga_pages import active
+        self.setStyleSheet('QFrame#update_card{background:transparent;border:none;}' if active() else '')
         for label in (title,summary,preview,poster):label.setStyleSheet('')
 
     def _remove_anime(self):
@@ -221,7 +240,12 @@ class UpdateCard(QFrame):
 
     def _find_download_files(self):
         from app.ui.pages.release_search_page import open_release_search
-        open_release_search(self,self.franchise_id)
+        from app.core.download_assignment import release_context
+        title=None
+        if len(self.changes)==1:
+            raw=self.changes[0]
+            title=raw.partition(' — ')[2] if raw.startswith('Episode ') else raw.partition(' — ')[0]
+        open_release_search(self,self.franchise_id,release_context(self.franchise_id,title=title))
 
     def _perform_action(self, action):
         if self.async_actions:
@@ -370,7 +394,7 @@ class UpdatesPage(QWidget):
         self.list_widget = QWidget()
         self.list_widget.setObjectName('transfer_clear')
         self.list_layout = QVBoxLayout(self.list_widget)
-        self.list_layout.setSpacing(8)
+        self.list_layout.setSpacing(20)
         self.list_layout.setAlignment(Qt.AlignTop)
 
         scroll.setWidget(self.list_widget)
@@ -385,6 +409,11 @@ class UpdatesPage(QWidget):
         style=qss('updates_page')
         if self.styleSheet()!=style:self.setStyleSheet(style)
         self.select_button.setIcon(icon('select-multiple',colors()['muted']))
+        from app.ui.manga_pages import active
+        family=active();previous=getattr(self,'_card_material_family',None);self._card_material_family=family
+        if previous is not None and previous!=family:
+            for _,card in self._update_card_pool.values():card.hide();card.deleteLater()
+            self._update_card_pool.clear();self._render_cards()
     def set_selection_mode(self,enabled):
         self._selection_mode=bool(enabled)
         if not enabled:self.selected_fids.clear()

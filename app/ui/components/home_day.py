@@ -24,11 +24,30 @@ class HomeDay(AiringDay):
         self.availability_bar=QProgressBar();self.availability_bar.setRange(0,1000);self.availability_bar.setTextVisible(False);self.availability_bar.setFixedHeight(3)
         self.surface.layout().addWidget(self.availability_bar);self.surface.layout().setSpacing(6)
         self.surface.setMinimumWidth(0)
+        from app.ui.theme_catalog import is_manga
+        self._manga_day=is_manga()
+        if self._manga_day:
+            self.setFixedHeight(156);self.surface.setFixedHeight(128)
+            header=self.surface.layout().itemAt(0).layout()
+            self.day_number=QLabel(self.date.strftime('%d'));self.day_number.setStyleSheet('background:transparent;color:#111217;font:700 20px Inter;');header.addWidget(self.day_number)
+            self.today_badge=self.surface.findChild(QLabel,'airing_today_badge')
+            if self.today_badge:
+                header.removeWidget(self.today_badge);self.today_badge.setParent(self)
+                self.today_badge.setFixedSize(72,26)
+                from app.ui.manga_style import shadow
+                shadow(self.today_badge,12,4);self.today_badge.show()
+            self.availability_bar.hide()
     def resizeEvent(self,event):
         super().resizeEvent(event);self.dot.hide()
+        if getattr(self,'_manga_day',False):
+            self.surface.resize(max(1,self.width()-24),128);self.surface.move(12,14)
+            self.date_label.setText(self.date.strftime('%a').upper())
+            if self.today_badge:
+                self.today_badge.move(max(12,self.width()-96),1);self.today_badge.raise_()
     def download_state(self,label='',progress=None):
         more=self.release_button.findChild(QLabel,'airing_more')
         if more:more.hide()
         self.transfer_label.setVisible(bool(label));self.transfer_label.setText(label);self.transfer_label.setToolTip(label)
         self.availability_bar.setValue(round(progress*1000) if progress is not None else 0)
+        if getattr(self,'_manga_day',False):self.availability_bar.setVisible(progress is not None and bool(label))
         self.availability_bar.setAccessibleName(label or 'No active transfer for this release')

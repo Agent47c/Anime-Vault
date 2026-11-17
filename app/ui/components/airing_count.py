@@ -183,6 +183,8 @@ class _DaySurface(QFrame):
 
     def paintEvent(self, event):
         super().paintEvent(event)
+        from app.ui.theme_catalog import is_manga
+        if is_manga():return
         app = QApplication.instance()
         if app.property("animevaultDecorations") is False:
             return
@@ -266,6 +268,14 @@ class AiringDay(QWidget):
         self.lift = QPropertyAnimation(self.surface, b"pos", self)
         self.lift.setEasingCurve(QEasingCurve.OutCubic)
         self.setAccessibleName(self.release_button.accessibleName())
+        from app.ui.theme_catalog import is_manga
+        if is_manga():
+            from app.ui.components.neumorphic import install
+            install(self.surface)
+            effect=self.surface.graphicsEffect()
+            if effect is not None and getattr(effect,'motion',None) is not None:
+                effect.motion.kind='chip'
+                self.release_button.installEventFilter(effect.motion)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -279,6 +289,10 @@ class AiringDay(QWidget):
         self.dot.setVisible(bool(self.release_button.entries) and (not self.today or self.width() >= 160))
 
     def _lift(self, hovering):
+        from app.ui.components.neumorphic import NeumorphicEffect
+        effect=self.surface.graphicsEffect()
+        if isinstance(effect,NeumorphicEffect):
+            self.lift.stop();effect.motion.target(1. if hovering else 0.);return
         from app.preferences import motion_duration
         self.lift.stop()
         self.lift.setDuration(motion_duration(180))

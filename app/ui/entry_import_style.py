@@ -57,6 +57,10 @@ def palette():
             primary_end=c["coral"],
         )
         return c
+    from app.ui.manga_pages import active
+    if active():
+        c.update(card=c['panel'],line_light=c['line'],muted_dim=c['muted'],coral_soft='#ffe0ef',coral_border='#ff2e93',indigo='#c4005f',indigo_soft='#ffe0ef',indigo_border='#ff2e93',ok_soft='#e1f4ec',ok_border=c['ok'],amber_soft='#fff3cf',amber_border=c['amber'],danger='#b3261e',danger_soft='#ffe5e2',danger_border='#b3261e',primary_end=c['coral'])
+        return c
     if light:
         c.update(
             panel="#ffffff",
@@ -430,6 +434,11 @@ def center_modal_show(dialog, event, base_show=None):
 @unified(lambda root_name: f"QDialog#{root_name}")
 def dialog_qss(root_name):
     """Return scoped Twilight Sakura QSS for CustomEntryDialog and WatchedImportDialog."""
+    from app.ui.manga_pages import active,entry_qss
+    if root_name=='custom_entry_dialog' and active():return entry_qss(root_name)
+    if root_name=='watched_import_dialog' and active():
+        from app.ui.manga_workflows import import_qss
+        return import_qss(root_name)
     c = palette()
     r = f"QDialog#{root_name}"
     return f"""

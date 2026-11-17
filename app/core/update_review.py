@@ -43,5 +43,35 @@ def read_changes(identifiers, refresh=False, cancelled=lambda:False):
             records.append(record)
     history=saved()
     for record in records:record['_release_schedule']=history
-    return dict(changes=list(dict.fromkeys(change for record in records for change in dated_changes(record))),
+    entries=[]
+    for record in records:
+        raw=[p.strip() for p in (record.get('update_details') or '').split(' | ') if p.strip()]
+        try:media=json.loads(record.get('metadata_json') or '{}') or {}
+        except (ValueError,TypeError):media={}
+        nodes=[media]+[(edge.get('node') or {}) for edge in (media.get('relations') or {}).get('edges',[])]
+        for original,label in zip(raw,dated_changes(record)):
+            title=original.partition(' — ')[2] if original.startswith('Episode ') else original.partition(' — ')[0]
+            node=next((node for node in nodes if title in (node.get('title') or {}).values()),{})
+            date=node.get('startDate') or {}
+            from app.core.download_assignment import release_context
+            context=release_context(record['id'],node.get('id'),title)
+            entries.append(dict(fid=record['id'],raw=original,text=label,title=title,date=(date.get('year') or 0,date.get('month') or 0,date.get('day') or 0),assignment_context=context))
+    return dict(changes=list(dict.fromkeys(change for record in records for change in dated_changes(record))),entries=entries,
                 warnings=warnings,refreshed=refreshed)
+
+
+def ignore_entry(fid,raw):
+    """Dismiss this exact pending event, preserving every other event and choice."""
+    import json
+    from contextlib import closing
+    with closing(db.get_connection()) as conn,conn:
+        row=conn.execute('SELECT update_details FROM franchises WHERE id=?',(fid,)).fetchone()
+        if not row:return
+        pending=[p.strip() for p in (row['update_details'] or '').split(' | ') if p.strip()]
+        if raw not in pending:return
+        key=f'dismissed_updates:{fid}';saved=conn.execute('SELECT value FROM app_state WHERE key=?',(key,)).fetchone()
+        dismissed=set(json.loads(saved['value'])) if saved else set();dismissed.add(raw)
+        conn.execute('INSERT OR REPLACE INTO app_state(key,value) VALUES (?,?)',(key,json.dumps(sorted(dismissed))))
+        remaining=' | '.join(p for p in pending if p!=raw) or None
+        muted=conn.execute('SELECT value FROM app_state WHERE key=?',(f'muted_updates:{fid}',)).fetchone()
+        conn.execute('UPDATE franchises SET update_details=?,has_new_update=? WHERE id=?',(remaining,bool(remaining) and not bool(muted and muted['value']=='1'),fid))

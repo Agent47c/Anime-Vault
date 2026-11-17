@@ -6,6 +6,8 @@ from app.ui.button_system import unified
 
 @unified('QDialog#series_details')
 def qss():
+    from app.ui.manga_pages import active,details_qss
+    if active():return details_qss()
     c=colors()
     return f'''
     QDialog#series_details, QWidget#detail_canvas, QWidget#detail_lower {{background:{c['bg']};border:none;color:{c['text']};font-family:'Plus Jakarta Sans';}}
@@ -23,10 +25,10 @@ def qss():
     QDialog#series_details QPushButton {{background:{c['raised']};color:{c['text']};border:1px solid {c['line']};border-radius:16px;padding:0 12px;min-height:32px;font-size:{px(12)}px;}}
     QDialog#series_details QPushButton:hover {{background:{c['panel']};border-color:{c['coral']};}}
     QDialog#series_details QPushButton:focus {{border:2px solid {c['coral']};}}
-    QDialog#series_details QFrame#detail_play_split {{background:{c['coral']};border:none;border-radius:18px;}}
+    QDialog#series_details QFrame#detail_play_split {{background:transparent;border:none;}}
     QDialog#series_details QPushButton#detail_play_main, QDialog#series_details QPushButton#detail_play_arrow {{background:{c['coral']};color:{c['on_coral']};border:none;border-radius:24px;min-height:48px;font-weight:700;}}
-    QDialog#series_details QPushButton#detail_play_main {{border-top-right-radius:0;border-bottom-right-radius:0;}}
-    QDialog#series_details QPushButton#detail_play_arrow {{border-top-left-radius:0;border-bottom-left-radius:0;padding:0;}}
+    QDialog#series_details QPushButton#detail_play_main {{padding:0 16px;}}
+    QDialog#series_details QPushButton#detail_play_arrow {{border-radius:12px;padding:0;}}
     QDialog#series_details QPushButton#detail_play_arrow::menu-indicator {{width:0;height:0;image:none;}}
     QDialog#series_details QPushButton#detail_play_main:hover, QDialog#series_details QPushButton#detail_play_arrow:hover {{background:{c['amber']};color:{c['on_coral']};}}
     QDialog#series_details QFrame#watch_status_track {{background:transparent;border:none;}}

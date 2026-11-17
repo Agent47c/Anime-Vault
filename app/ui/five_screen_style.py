@@ -3,6 +3,14 @@ from app.ui.review_reference_style import reference_colors
 from app.ui.home_style import px,load_fonts
 
 def qss(name):
+    from app.ui.manga_pages import active,page_qss
+    if name in ('coverage_report','group_series_screen') and active():
+        from app.ui.manga_additional import qss as extra_qss
+        return extra_qss(name)
+    if name=='metadata_rematch' and active():return page_qss(name)
+    if name=='release_news' and active():
+        from app.ui.manga_workflows import qss as manga_qss
+        return manga_qss(name)
     load_fonts()
     from app.ui.home_style import colors
     c=colors() if name=='release_news' else reference_colors();r=f'QWidget#{name}'

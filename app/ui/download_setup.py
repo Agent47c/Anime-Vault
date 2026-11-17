@@ -1,5 +1,5 @@
 """Revisitable five-step download setup using the existing drawer and IO worker."""
-from PyQt5.QtCore import Qt,QUrl
+from PyQt5.QtCore import Qt,QUrl,QTimer
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QStackedWidget,QLineEdit,QComboBox,QFileDialog,QProgressBar
 from pathlib import Path
@@ -44,10 +44,38 @@ class DownloadSetup(DrawerDialog):
         self.quality=QLineEdit(config['quality']);field(box,'Default quality (optional)',self.quality)
         box.addWidget(text('Example: https://nyaa.si/?q={query}&f=0&c=0_0. Other sites need readable magnet links. Enable this exact website in the Chrome popup.'));box.addStretch()
         box=columns[4];self.results=text('Test the download engine, folder access and live Chrome/source connection.');box.addWidget(self.results)
-        box.addWidget(button('Save and finish later',self.accept));box.addStretch()
+        box.addWidget(button('Save and finish later',self.finish_later));box.addStretch()
         self.status=text('Your existing library and transfers remain available.');body.addWidget(self.status)
         self.loading=QProgressBar();self.loading.setRange(0,0);self.loading.setFixedHeight(4);self.loading.hide();body.addWidget(self.loading)
         body.addWidget(button('Back',self.back))
+        self._setup_body=body;self._all_steps_requested=False;self.refresh_home_style()
+
+    def refresh_home_style(self):
+        from app.ui.manga_pages import active
+        from app.ui.manga_workflows import qss
+        from app.ui.manga_setup import configure,arrange
+        manga=active();configure(self,manga);arrange(self)
+        self.setObjectName('download_setup' if manga else 'workflow_drawer')
+        self.setProperty('animevaultOwnScaledStyle',True);self.setStyleSheet(qss('download_setup') if manga else '')
+        from app.ui.manga_workflows import finish
+        finish(self)
+
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+        from app.ui.manga_setup import arrange
+        arrange(self)
+
+    def test_all_steps(self):
+        if self.checked:self.accept();return
+        if getattr(self,'_apply_worker',None) and self._apply_worker.isRunning():return
+        self._all_steps_requested=True
+        if self.extension.text().strip():self.show_step(0)
+        else:self.skip_extension()
+
+    def finish_later(self):
+        if not getattr(self,'_manga_setup_active',False):self.accept();return
+        config=dict(downloads.settings(),destination=self.destination.text().strip(),source=self.source.text().strip(),group=self.group.text().strip(),quality=self.quality.text().strip())
+        start(self,lambda:downloads.save_settings(config,None),lambda _:self.accept())
 
     def choose_folder(self):
         path=QFileDialog.getExistingDirectory(self,'Choose download folder',self.destination.text())
@@ -61,11 +89,21 @@ class DownloadSetup(DrawerDialog):
         self.checked=False
         self.step=index;self.stack.setCurrentIndex(index);self.progress.setText(f'Step {index+1} of 5 · {self.titles[index]}')
         self.next_button.setText('Test connections' if index==4 else 'Next')
+        if getattr(self,'_manga_setup_active',False):self.next_button.setText('Test connections && finish')
+        if getattr(self,'_manga_setup_active',False):
+            from app.ui.manga_setup import update_steps
+            update_steps(self)
+        if getattr(self,'_all_steps_requested',False):
+            if index==4:self._all_steps_requested=False
+            QTimer.singleShot(0,self.advance)
 
     def back(self): self.show_step(max(0,self.step-1))
 
     def render_steps(self):
         self.overview.setText(' · '.join(name+': '+state for name,state in zip(['Chrome','Engine','Folder','Sources','Test'],self.steps)))
+        if getattr(self,'_manga_setup_active',False):
+            from app.ui.manga_setup import update_steps
+            update_steps(self)
 
     def record_step(self,index,state):
         self.steps[index]=state;db.set_state('download_setup.progress',json.dumps(self.steps));self.render_steps()

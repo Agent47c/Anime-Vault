@@ -320,6 +320,9 @@ def resolve_path(path):
 
 def relocate(conn, source, target):
     """Update location and all compatibility references in the SAME transaction."""
+    conn.execute("UPDATE scan_scopes SET fingerprint='changed-by-move' WHERE (root_id,scope) IN (SELECT root_id,scope FROM scan_files WHERE path_key IN (?,?))",(path_key(source),path_key(target)))
+    conn.execute('UPDATE scan_files SET present=0 WHERE path_key=?',(path_key(source),))
+    conn.execute("INSERT INTO app_state VALUES ('files.move_revision','1') ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INTEGER)+1")
     row = conn.execute('SELECT file_id FROM file_locations WHERE path_key=?', (path_key(source),)).fetchone()
     if row:
         conn.execute('UPDATE file_locations SET path=?,path_key=? WHERE file_id=?', (str(target), path_key(target), row[0]))
@@ -334,6 +337,10 @@ def relocate(conn, source, target):
             continue
         try:common = Path(os.path.commonpath([str(path.parent) for path in updated]))
         except ValueError:common=Path(season['season_folder_path'])
+        if conn.execute('SELECT 1 FROM app_state WHERE key=?',('download.scoped_inventory:'+str(season['id']),)).fetchone():
+            # A logical season can temporarily span staging and its final folder.
+            # Do not broaden its folder to a drive root during a partial move.
+            common=Path(season['season_folder_path'])
         def relative_or_absolute(path):
             try:return os.path.relpath(path,common).replace('\\','/')
             except ValueError:return str(path)
@@ -452,20 +459,36 @@ def episode_state(episode, now=None):
     return episode.get('release_state') or 'UNKNOWN'
 
 
-def mapped_inventory_files(season):
+def mapped_inventory_files(season, with_paths=False):
+    """Reuse verified display inventories within one read snapshot only."""
+    snapshot=db.current_refresh_view()
+    if snapshot is None:return _mapped_inventory_files(season,with_paths)
+    key=(season.get('id'),season.get('season_folder_path'),season.get('video_files_json'),with_paths)
+    cache=snapshot.setdefault('_mapped_inventory_cache',{})
+    if key not in cache:cache[key]=_mapped_inventory_files(season,with_paths)
+    result=cache[key]
+    # Callers may edit their presentation inventory; never expose the cached list.
+    return {path:list(numbers) for path,numbers in result.items()} if isinstance(result,dict) else list(result)
+
+
+def _mapped_inventory_files(season, with_paths=False):
     """Use verified release numbers for health checks, without rewriting names."""
     names = json.loads(season.get('video_files_json') or '[]')
     if not season.get('id') or not season.get('season_folder_path'):
-        return names
+        return {} if with_paths else names
     with closing(db.get_connection()) as conn:
         rows = conn.execute('SELECT l.path,e.release_number,e.mapping_verified FROM physical_files f JOIN file_locations l ON l.file_id=f.id JOIN file_episodes fe ON fe.file_id=f.id JOIN episodes e ON e.id=fe.episode_id WHERE f.season_id=? AND f.availability=\'AVAILABLE\'', (season['id'],)).fetchall()
-    # Keep ambiguous basenames untouched. No filename-only identity assignment.
+    if with_paths:
+        grouped={}
+        for row in rows:grouped.setdefault(path_key(row['path']),[]).append(row)
+        return {key:[r['release_number'] for r in values] for key,values in grouped.items() if all(r['mapping_verified'] and r['release_number'] is not None for r in values)}
+    # Full locations disambiguate encodings with the same basename.
     mapped = {}
     for row in rows:
-        mapped.setdefault(os.path.normcase(Path(row['path']).name), []).append(row)
+        mapped.setdefault(path_key(row['path']), []).append(row)
     result = []
     for name in names:
-        matches = mapped.get(os.path.normcase(Path(name).name), [])
+        matches = mapped.get(path_key(Path(season['season_folder_path'])/name), [])
         paths = {row['path'] for row in matches}
         if len(paths) == 1 and matches and all(row['mapping_verified'] and row['release_number'] is not None for row in matches):
             result.extend(f"Episode {row['release_number']}.mkv" for row in matches)

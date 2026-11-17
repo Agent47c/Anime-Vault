@@ -34,6 +34,26 @@ class DownloadRecoveryTests(unittest.TestCase):
         file,root,job=self.fixture();plan=download_library.preview();target=Path(plan['rows'][0]['target']);target.parent.mkdir(parents=True);target.write_bytes(b'keep')
         self.assertFalse(download_library.preview()['rows']);download_library.move(plan)
         self.assertEqual(target.read_bytes(),b'keep');self.assertEqual(file.read_bytes(),b'video')
+    def test_preview_targets_padded_season_folder_without_moving_files(self):
+        file,root,job=self.fixture()
+        anime=root/'One Piece';season=anime/'Season 2';season.mkdir(parents=True)
+        db.update_franchise_field(self.fid,'root_folder_path',str(anime))
+        plan=download_library.preview()
+        self.assertEqual(Path(plan['rows'][0]['target']).parent,anime/'Season 02')
+        self.assertTrue(file.exists());self.assertFalse((anime/'Season 02').exists())
+        (anime/'Season 02').mkdir()
+        ambiguous=download_library.preview()
+        self.assertFalse(ambiguous['rows']);self.assertIn('Multiple folders',ambiguous['notes'][0])
+    def test_custom_staging_from_another_job_is_not_a_final_anime_folder(self):
+        file,root,job=self.fixture()
+        staging=root/'incoming';old=staging/'Black Clover-older-job';old.mkdir(parents=True)
+        db.set_state('downloads.settings',json.dumps(dict(destination=str(staging))))
+        db.update_franchise_field(self.fid,'root_folder_path',str(old))
+        downloads._save_jobs([dict(id='older',root=str(old),fid=self.fid,indexed=False),job])
+        plan=download_library.preview()
+        self.assertEqual(len(plan['rows']),1)
+        self.assertEqual(Path(plan['rows'][0]['target']),root/'One Piece'/'Season 02'/file.name)
+        self.assertTrue(file.exists());self.assertEqual(list(old.iterdir()),[])
     def test_copy_move_recovery_proves_target_without_losing_history(self):
         file,root,job=self.fixture();target=root/'copy.mkv'
         original=file_operations._complete

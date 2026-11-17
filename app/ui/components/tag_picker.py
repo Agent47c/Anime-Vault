@@ -1,5 +1,6 @@
 """Readable boxed choices in a reusable, keyboard-accessible filter popover."""
-from PyQt5.QtCore import Qt,QPoint,pyqtSignal
+from PyQt5.QtCore import Qt,QPoint,QPointF,pyqtSignal
+from PyQt5.QtGui import QPainter,QPen,QPainterPath,QColor
 from PyQt5.QtWidgets import QPushButton,QFrame,QVBoxLayout,QHBoxLayout,QLabel,QWidget,QScrollArea
 from app.ui.components.flow_layout import FlowLayout
 from app.ui.home_style import colors,px
@@ -57,8 +58,15 @@ class TagPicker(QPushButton):
         labels=[self.items[i][0] for i in sorted(self.selected)]
         value=(self.items[0][0] if self.items else self.title) if not labels else labels[0] if len(labels)==1 else f'{self.title} · {len(labels)} selected'
         if self.multiple and len(labels)==1:value+=' · 1 selected'
-        self.setText(value+'  ▾');self.setToolTip('\n'.join(labels) or value)
+        self.setText(value+'    ');self.setToolTip('\n'.join(labels) or value)
         self.setAccessibleDescription(f'{len(labels)} selected. '+', '.join(labels))
+    def paintEvent(self,event):
+        super().paintEvent(event)
+        # Paint the chevron rather than relying on a glyph absent from Inter.
+        painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(QPen(QColor(colors()['muted']),1.6,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin))
+        x=self.width()-19;y=self.height()/2-2
+        path=QPainterPath(QPointF(x-4,y));path.lineTo(x,y+4);path.lineTo(x+4,y);painter.drawPath(path)
     def _refresh_checks(self):
         if self.popup is None:return
         for i,button in enumerate(self.tag_buttons):
@@ -66,7 +74,13 @@ class TagPicker(QPushButton):
         self.count_label.setText(f'{len(self.selected)} selected' if self.multiple else 'Choose one')
     def _style_popup(self,popup):
         c=colors();popup.setProperty('animevaultOwnScaledStyle',True)
-        popup.setStyleSheet(f'''QFrame#tag_picker_popup {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;}}
+        from app.ui.manga_pages import active
+        from PyQt5.QtWidgets import QApplication
+        from app.ui.components.dropdown_depth import popup_depth
+        manga=active() and not QApplication.instance().property('animevaultHighContrast')
+        popup_depth(popup,manga)
+        if popup.layout():popup.layout().setContentsMargins(*((28,28,28,28) if manga else (16,16,16,16)))
+        popup.setStyleSheet(f'''QFrame#tag_picker_popup {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;}}
             QLabel {{color:{c['text']};background:transparent;border:none;font-size:{px(14)}px;}}
             QWidget#tag_choices, QScrollArea, QScrollArea>QWidget {{background:transparent;border:none;}}
             QPushButton {{background:{c['raised']};color:{c['text']};border:1px solid {c['line']};border-radius:9px;padding:6px 12px;min-height:{px(32)}px;font-size:{px(14)}px;}}
@@ -77,7 +91,7 @@ class TagPicker(QPushButton):
             self._style_popup(self.popup);self._position_popup();return
         popup=_TagPopup(self,Qt.Popup|Qt.FramelessWindowHint);self.popup=popup;popup.setObjectName('tag_picker_popup');popup.setAccessibleName(self.title+' options')
         self._style_popup(popup)
-        box=QVBoxLayout(popup);box.setContentsMargins(16,16,16,16);box.setSpacing(12)
+        box=QVBoxLayout(popup);box.setContentsMargins(16,16,16,16);box.setSpacing(12);self._style_popup(popup)
         header=QHBoxLayout();header.addWidget(QLabel(self.title),1);self.count_label=QLabel();header.addWidget(self.count_label);box.addLayout(header)
         scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setFrameShape(QFrame.NoFrame);scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         content=QWidget();content.setObjectName('tag_choices');flow=FlowLayout(content);self.tag_buttons=[]
@@ -85,14 +99,15 @@ class TagPicker(QPushButton):
             tag=QPushButton(label);tag.setCheckable(True);tag.setCursor(Qt.PointingHandCursor);tag.setAccessibleName(label);tag.setMinimumWidth(px(110) if self.multiple else px(260))
             tag.clicked.connect(lambda checked=False,i=index:self.toggle(i));flow.addWidget(tag);self.tag_buttons.append(tag)
         scroll.setWidget(content);box.addWidget(scroll)
-        done=QPushButton('Done' if self.multiple else 'Close');done.setCursor(Qt.PointingHandCursor);done.clicked.connect(self.hidePopup);box.addWidget(done,0,Qt.AlignRight)
+        done=QPushButton('Done' if self.multiple else 'Close');done.setCursor(Qt.PointingHandCursor);done.clicked.connect(self.hidePopup);box.addWidget(done,0,Qt.AlignRight);done.setVisible(not getattr(self,'dismiss_on_outside',False))
         self._content=content;self._flow=flow;self._scroll=scroll
         self._position_popup()
     def _position_popup(self):
         popup=self.popup;screen=self.screen().availableGeometry();width=min(px(520 if self.multiple else 360),screen.width()-24)
         popup.setFixedWidth(width)
         for tag in self.tag_buttons:tag.ensurePolished()
-        height=self._flow.heightForWidth(width-36);self._content.setMinimumHeight(height)
+        margins=popup.layout().contentsMargins()
+        height=self._flow.heightForWidth(width-margins.left()-margins.right()-4);self._content.setMinimumHeight(height)
         self._scroll.setFixedHeight(min(height+8,max(120,screen.height()-190)))
         popup.adjustSize();self._refresh_checks()
         point=self.mapToGlobal(QPoint(0,self.height()+6));x=max(screen.left()+8,min(point.x(),screen.right()-popup.width()-8));y=point.y()

@@ -32,7 +32,8 @@ class VaultMenu(ContainedMenu):
 
     def refresh_home_style(self):
         c=colors();self.setMinimumWidth(px(self.menu_width))
-        self.setStyleSheet(f"QMenu {{background:{c['panel']};border:1px solid {c['line']};border-radius:16px;padding:10px;font-size:{px(14)}px;menu-scrollable:1;}} "
+        from app.ui.manga_pages import active
+        self.setStyleSheet(f"QMenu {{background:{c['panel']};border:1px solid {c['line']};border-radius:16px;margin:{12 if active() else 0}px;padding:10px;font-size:{px(14)}px;menu-scrollable:1;}} "
                            f"QMenu::item {{min-height:{px(30)}px;padding:8px 18px;}} QMenu::separator {{height:1px;margin:6px 10px;background:{c['line']};}}")
 
     def _prepare_bounds(self):
@@ -50,7 +51,14 @@ class VaultMenu(ContainedMenu):
 
     def paintEvent(self,event):
         c=colors();p=QPainter(self);p.setRenderHint(QPainter.Antialiasing);p.setRenderHint(QPainter.TextAntialiasing)
-        p.setPen(QPen(QColor(c['line']),1));p.setBrush(QColor(c['panel']));p.drawRoundedRect(QRectF(self.rect()).adjusted(.5,.5,-.5,-.5),16,16)
+        from app.ui.manga_pages import active
+        from PyQt5.QtWidgets import QApplication
+        manga=active() and not QApplication.instance().property('animevaultHighContrast')
+        face=QRectF(self.rect()).adjusted(12.5,12.5,-12.5,-12.5) if manga else QRectF(self.rect()).adjusted(.5,.5,-.5,-.5)
+        if manga:
+            from app.ui.components.neumorphic import paint_depth
+            paint_depth(p,face,radius=16)
+        p.setPen(QPen(QColor(c['line']),1));p.setBrush(QColor(c['panel']));p.drawRoundedRect(face,16,16)
         for action in self.actions():
             if not action.isVisible():continue
             rect=self.actionGeometry(action).adjusted(2,1,-2,-1)
@@ -71,7 +79,12 @@ class VaultMenu(ContainedMenu):
                     font.setPixelSize(px(11));p.setFont(font);p.setPen(QColor(c['amber']));p.drawText(rect.adjusted(10,px(68),-10,0),Qt.AlignTop,self.metadata)
                 continue
             selected=action is self.activeAction() or bool(action.property('richActive'))
-            if selected:
+            if manga:
+                from app.ui.components.dropdown_depth import option_face
+                native=self.actionGeometry(action);gap=min(5,max(1,(native.height()-p.fontMetrics().height()-4)//2))
+                rect=native.adjusted(4,gap,-4,-gap)
+                option_face(p,QRectF(rect),selected,action.isEnabled())
+            elif selected:
                 tint=QColor(c['coral']);tint.setAlpha(45);p.setPen(Qt.NoPen);p.setBrush(tint);p.drawRoundedRect(QRectF(rect),9,9)
                 p.setBrush(QColor(c['coral']));p.drawRoundedRect(QRectF(rect.left(),rect.top()+6,3,rect.height()-12),1.5,1.5)
             color=c['coral'] if action.property('richDanger') else c['text'] if action.isEnabled() else c['muted']

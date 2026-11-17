@@ -20,6 +20,8 @@ from app.core.parser import (
 )
 from app import db
 from app.core.consolidation import explicit_season
+from app.core.file_operations import serialized
+from app.core.season_paths import existing_or_new_season_folder
 
 # Supported subtitle and font extensions
 SUBTITLE_EXTENSIONS = {".srt", ".ass", ".vtt", ".sub", ".idx"}
@@ -52,6 +54,7 @@ def is_clean_season_name(name: str) -> bool:
     return False
 
 
+@serialized
 def inspect_anime_folder(
     folder_path: str,
     anime_name: Optional[str] = None,
@@ -73,6 +76,8 @@ def inspect_anime_folder(
         rules = DEFAULT_RULES
 
     root = Path(folder_path)
+    from app.core.download_inventory import Snapshot
+    readiness=Snapshot();readiness.assert_not_moving(root)
     if not root.is_dir():
         return {
             "folder_path": folder_path,
@@ -93,7 +98,7 @@ def inspect_anime_folder(
     direct_fonts = []
     try:
         for entry in root.iterdir():
-            if entry.is_file():
+            if entry.is_file() and readiness.can_organize(entry):
                 ext = entry.suffix.lower()
                 if ext in VIDEO_EXTENSIONS:
                     direct_videos.append(entry)
@@ -114,7 +119,7 @@ def inspect_anime_folder(
             if entry.is_dir():
                 sub_vids = [
                     f for f in entry.rglob("*")
-                    if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS
+                    if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS and readiness.can_organize(f)
                 ]
                 if not sub_vids:
                     continue
@@ -163,7 +168,7 @@ def inspect_anime_folder(
         if season_num == 0:
             target_sub = "Movies & OVAs"
         else:
-            target_sub = f"Season {season_num}"
+            target_sub = existing_or_new_season_folder(root, season_num).name
 
         target_dir = root / target_sub
         target_path = target_dir / vfile.name
@@ -203,13 +208,13 @@ def inspect_anime_folder(
         if detected_season == 0:
             target_sub = "Movies & OVAs"
         else:
-            target_sub = f"Season {detected_season}"
+            target_sub = existing_or_new_season_folder(root, detected_season).name
 
         target_dir = root / target_sub
         for vfile in sub_vids:
             if detected_season > 0:
                 file_season = explicit_season(vfile.stem) or explicit_season(sub_dir.name) or explicit_season(root.name) or detected_season
-                target_dir = root / f"Season {file_season}"
+                target_dir = existing_or_new_season_folder(root, file_season)
             target_path = target_dir / vfile.name
             is_in_place = (vfile.parent == target_dir)
             moves.append({
@@ -347,10 +352,13 @@ def inspect_all_library(
         if progress_callback:
             progress_callback(disp_name, idx + 1, total_targets)
 
-        item = inspect_anime_folder(fpath, anime_name=disp_name, rules=rules)
-        if item["video_count"] > 0:
-            from app.core.scanner import index_local_folder
-            fid = index_local_folder(fpath, disp_name)
+        from app.core.download_inventory import InventoryDeferred
+        try:
+            item = inspect_anime_folder(fpath, anime_name=disp_name, rules=rules)
+            if item["video_count"] > 0:
+                from app.core.scanner import index_local_folder
+                fid = index_local_folder(fpath, disp_name)
+        except InventoryDeferred:continue
         item["franchise_id"] = fid
 
         # Only include if there are video files
@@ -363,13 +371,8 @@ def inspect_all_library(
 
     # Staging is never a generic anime folder. Completed jobs retain their
     # explicit series identity and use the reviewed download relocation path.
-    hidden = set(json.loads(db.get_state('library.removed_ids', '[]')))
-    for job in downloads.jobs():
-        if job.get('fid') in hidden: continue
-        if not job.get('indexed') or not job.get('verified_files') or job.get('library_moved') or job.get('integrity_missing'):continue
-        series=db.get_series(job['fid'])
-        if not series:continue
-        item=dict(anime_name=series['display_title'],folder_path=job['destination'],franchise_id=job['fid'],download_job_id=job['id'],video_count=len(job.get('verified_files') or []),is_organized=False,status_badge='Download ready',status_reason='Completed download — review move to its anime and season folder',moves=[])
+    from app.core.download_inventory import organizer_rows
+    for item in organizer_rows():
         unorganized_list.append(item);all_list.append(item)
     return {
         "unclassified_loose": unclassified_loose,
@@ -393,6 +396,7 @@ def find_missing_library_files(should_stop=lambda: False):
 # ---------------------------------------------------------------------------
 # Execution
 # ---------------------------------------------------------------------------
+@serialized
 def execute_organize_anime(
     item: Dict[str, Any],
     rules: Optional[Dict[str, Any]] = None,
@@ -412,6 +416,10 @@ def execute_organize_anime(
     errors = []
 
     moves = item.get("moves", [])
+    from app.core.download_inventory import Snapshot
+    readiness=Snapshot()
+    if any(not readiness.can_organize(entry['source']) for entry in moves):
+        raise ValueError('This preview contains tracked download files. Wait for completion and use the completed-download Review action.')
     root_path = Path(item["folder_path"])
     franchise_id = item.get("franchise_id")
 

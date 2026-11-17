@@ -20,6 +20,8 @@ class SeasonNumbers(QDialog):
         self.setObjectName('season_numbers');self.setWindowTitle('Edit season numbers')
         self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint);self.resize(740,850)
         self.refresh_home_style()
+        from app.ui.components.workflow import button
+        body.addWidget(button('Move episodes into a season…',self.move_files),0,Qt.AlignLeft)
         self.rows=[s for s in db.get_series_seasons(fid) if s.get('relation_type')=='SEASON']
         self.expected=[tuple(s[k] for k in ('id','franchise_id','anilist_id','title_display','season_number')) for s in sorted(self.rows,key=lambda s:s['id'])]
         for season in self.rows:
@@ -51,6 +53,10 @@ class SeasonNumbers(QDialog):
         if not self.reviewed.isChecked():return
         values={sid:control.value() for sid,control in self.controls.items()}
         start(self,lambda:save_manual(self.fid,values,self.expected),self.saved_result)
+    def move_files(self):
+        from app.ui.dialogs.season_file_moves import SeasonFileMoves
+        from app.ui.navigation import navigate
+        dialog=SeasonFileMoves(self.fid,self);dialog.saved.connect(self.saved_result);navigate(dialog)
     def saved_result(self,_):self.saved.emit(self.fid);self.accept()
     def reject(self):
         if getattr(self,'_apply_worker',None) and self._apply_worker.isRunning():return

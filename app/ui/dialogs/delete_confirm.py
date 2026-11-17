@@ -1,7 +1,8 @@
 """Recycle Bin confirmation with the existing three-step review flow."""
 import json
 from pathlib import Path
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QStackedWidget, QWidget, QFrame, QMessageBox
+from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QCheckBox,QStackedWidget,QWidget,QFrame
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtCore import Qt, pyqtSignal, QThread
 from app import db
 from app.config import COVERS_DIR
@@ -164,6 +165,8 @@ class DeleteConfirmDialog(QDialog):
         self.delete_button.setEnabled(False)
         self.delete_status.setText("Moving files to the Recycle Bin. Keep the app open...")
         self._apply_worker = RecycleWorker(self.franchise_data["id"], self.seasons, self.mark_watched_checkbox.isChecked(), self._file_signatures, self)
+        from app.ui.components.operation_progress import watch
+        watch(self, self._apply_worker, 'Moving files to the Recycle Bin', major=True)
         self._apply_worker.finished.connect(self._recycle_worker_finished)
         self._apply_worker.start()
 

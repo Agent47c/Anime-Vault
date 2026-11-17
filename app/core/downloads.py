@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlsplit, urlencode, parse_qsl, urlunsplit
 from app import db
+from app.core.season_paths import season_folder_name
 
 _lock = threading.RLock()
 _closing = False
@@ -16,8 +17,9 @@ DEFAULTS = {
 
 
 def settings():
-    config={**DEFAULTS, **json.loads(db.get_state('downloads.settings','{}'))}
-    if config['destination']==DEFAULTS['destination']:
+    saved=json.loads(db.get_state('downloads.settings','{}'))
+    config={**DEFAULTS, **saved}
+    if 'destination' not in saved:
         root=library_root()
         if root:config['destination']=str(Path(root)/'.animevault-downloads')
     # Old connection settings cannot select an external engine after upgrading.
@@ -29,10 +31,19 @@ def settings():
 
 
 def library_root():
-    preferred=db.get_state('merge_destination')
+    preferred=db.get_state('library.main_root') or db.get_state('merge_destination')
     if preferred and Path(preferred).is_absolute():return preferred
-    roots=db.get_watched_directories()
-    return roots[0]['folder_path'] if len(roots)==1 else None
+    import os
+    roots=[];seen=set()
+    for row in db.get_watched_directories():
+        if not Path(row['folder_path']).is_absolute():continue
+        path=os.path.abspath(row['folder_path']);key=os.path.normcase(path)
+        if key not in seen:roots.append(path);seen.add(key)
+    # Nested watched folders and staging directories are not additional main
+    # libraries. Preserve ambiguity between genuinely separate library roots.
+    roots=[root for root in roots if Path(root).name.lstrip('.').casefold()!='animevault-downloads']
+    outer=[root for root in roots if not any(root!=other and Path(root).is_relative_to(Path(other)) for other in roots)]
+    return outer[0] if len(outer)==1 else None
 
 
 def validate_url(value, local=False):
@@ -106,7 +117,15 @@ def jobs():
 
 
 def _save_jobs(items):
-    db.set_state('downloads.jobs',json.dumps(items))
+    from contextlib import closing
+    from app.core.download_inventory import signature
+    from app.core.file_operations import _operation_lock
+    with _operation_lock,closing(db.get_connection()) as conn,conn:
+        previous=conn.execute("SELECT value FROM app_state WHERE key='downloads.jobs'").fetchone()
+        if signature(json.loads(previous[0]) if previous else [])!=signature(items):
+            conn.execute("INSERT INTO app_state VALUES ('downloads.inventory_revision','1') ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INTEGER)+1")
+            conn.execute("INSERT OR REPLACE INTO app_state VALUES ('organizer_preview_stale','1')")
+        conn.execute("INSERT OR REPLACE INTO app_state VALUES ('downloads.jobs',?)",(json.dumps(items),))
 
 
 def add_download(fid,source,season=0,origin=None,context=None):
@@ -131,7 +150,9 @@ def add_download(fid,source,season=0,origin=None,context=None):
                 continue
             if previous.get('desired')=='cancelled': continue
             if source_identity and previous.get('source_identity')==source_identity:
-                raise ValueError('This torrent is already tracked. Open its existing download.')
+                from app.core.download_queue import status as queue_status
+                if not (context and context.get('duplicate_action') in ('replace','redownload') and previous.get('indexed') and queue_status(previous) in ('Completed','Seeding')):
+                    raise ValueError('This torrent is already tracked. Open its existing download.')
             from app.core.download_queue import status as queue_status
             if context and previous['fid']==fid and queue_status(previous) in ('Queued','Downloading','Paused'):
                 if set(context.get('episode_keys') or [])&set(previous.get('episode_keys') or []):
@@ -211,6 +232,21 @@ def poll(cancelled=lambda:False):
                 item['status']='Needs review: external client removed. Retry with Anime Vault or remove entry; files are kept.'
                 item.pop('retry_after',None)
         _save_jobs(items)
+        automatic=[j for j in items if j.get('assignment_version')==1 and j.get('move_when_completed') and j.get('indexed') and not j.get('library_moved') and not j.get('library_move_error')]
+        if automatic and not cancelled():
+            from app.core import download_library
+            try:
+                plan=download_library.preview()
+                identifiers={j['id'] for j in automatic}
+                plan['rows']=[r for r in plan['rows'] if r['job_id'] in identifiers]
+                for job in automatic:
+                    if not any(r['job_id']==job['id'] for r in plan['rows']):job['library_move_error']='Automatic move needs review. '+('; '.join(plan['notes']) or 'No ready files found.')
+                _save_jobs(items)
+                if plan['rows']:download_library.move(plan,cancelled);changed=True
+            except (OSError,ValueError) as error:
+                for job in automatic:job['library_move_error']=str(error)
+                _save_jobs(items)
+            items=jobs()
         return items,changed
 
 
@@ -222,14 +258,26 @@ def _index_completed(item,files):
         identity=conn.execute('SELECT franchise_id FROM library_series WHERE id=?',(item.get('series_id'),)).fetchone()
     if not identity or identity[0]!=item['fid']:
         raise ValueError('The original series identity changed. Review this download before linking it.')
-    from app.core.scanner import _update_on_disk_info
-    inventory={str(path):(s.st_size,s.st_mtime_ns,str(s.st_dev),str(s.st_ino)) for path in files for s in [path.stat()]}
-    _update_on_disk_info(item['fid'],item['root'],inventory=inventory)
+    if item.get('assignment_version') == 1:
+        from app.core.download_assignment import register,remember
+        if not item.get('source_episodes') and len(files)==1:
+            from app.core.parser import extract_episode_numbers
+            original=extract_episode_numbers(files[0].name)
+            if len(original)==len(item.get('episode_keys') or []):
+                item['source_episodes']=original
+                item['release_title']=files[0].stem
+        register(item,files)
+        remember(item)
+    else:
+        from app.core.scanner import _update_on_disk_info
+        inventory={str(path):(s.st_size,s.st_mtime_ns,str(s.st_dev),str(s.st_ino)) for path in files for s in [path.stat()]}
+        _update_on_disk_info(item['fid'],item['root'],inventory=inventory,verified_download=True)
     db.set_state('organizer_preview_stale','1')
     item['verified_files']=[dict(path=str(path),size=path.stat().st_size) for path in files]
     item['integrity_missing']=False
     item['indexed']=True
     item['completed_once']=True
+    if item.get('desired')=='stopped':item.update(desired='cancelled',status='Completed',transfer_stopped=True)
 
 
 def _add_builtin(fid,source,season,origin,config,context=None,source_identity=None):
@@ -257,7 +305,7 @@ def _add_builtin(fid,source,season,origin,config,context=None,source_identity=No
     identifier=uuid.uuid4().hex
     title=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',series['display_title']).strip(' .')[:100] or 'Anime'
     root=Path(config['destination']).resolve()/(title+'-'+identifier[:10])
-    target=root/(f'Season {season:02}' if season else 'Episodes')
+    target=root/(season_folder_name(season) if season else 'Episodes')
     item={'id':identifier,'engine':'builtin','origin':origin,'fid':fid,'series_id':series_id,'title':series['display_title'],
           'root':str(root),'destination':str(target),'status':'Fetching torrent metadata','progress':0,
           'created':time.time(),'season':season,'desired':'running',
@@ -267,8 +315,15 @@ def _add_builtin(fid,source,season,origin,config,context=None,source_identity=No
     from app.core.builtin_torrents import engine
     adapter=engine(config)
     params=adapter.prepare(item,source)
-    if any(job.get('torrent_identity')==item['torrent_identity'] and job.get('desired')!='cancelled' for job in items):
-        raise ValueError('This torrent already has a tracked download. Use its existing entry.')
+    duplicates=[job for job in items if job.get('torrent_identity')==item['torrent_identity'] and job.get('desired')!='cancelled']
+    for previous in duplicates:
+        from app.core.download_queue import status as queue_status
+        if not (context and context.get('duplicate_action') in ('replace','redownload') and previous.get('indexed') and queue_status(previous) in ('Completed','Seeding')):
+            raise ValueError('This torrent already has a tracked download. Use its existing entry.')
+        control_builtin(previous['id'],'cancel')  # Detach only; retain old payload.
+        items=jobs()
+        old=next(j for j in items if j['id']==previous['id']);old['retired_for_redownload']=True
+        _save_jobs(items)
     items.append(item)
     _save_jobs(items)  # Durable identity and destination before native submission.
     try:
@@ -316,8 +371,25 @@ def control_builtin(identifier,action,selected=None):
             if item.get('indexed'):
                 raise ValueError('These files were already indexed. Start a separate download to change the selection.')
             item.update(selected_files=sorted(set(selected)),selection_confirmed=True,desired='running')
+            if item.get('assignment_version')==1:
+                from app.config import VIDEO_EXTENSIONS
+                from app.core.parser import extract_episode_numbers
+                videos=[e for i,e in enumerate(entries) if i in selected and Path(e['name']).suffix.lower() in VIDEO_EXTENSIONS]
+                keys=item.get('episode_keys') or [];source=item.get('source_episodes') or []
+                mapping=dict(zip(source,keys)) if len(source)==len(keys) else {}
+                bindings={}
+                for entry in videos:
+                    numbers=extract_episode_numbers(entry['name'])
+                    assigned=[mapping[n] for n in numbers] if numbers and all(n in mapping for n in numbers) else keys if len(videos)==1 and len(keys)==1 else []
+                    if not assigned:raise ValueError('These files need an explicit episode assignment. Confirm their anime and episodes before changing the selection.')
+                    bindings[str(Path(entry['name']))]=assigned
+                if not bindings:raise ValueError('Select at least one video file.')
+                chosen_keys={k for value in bindings.values() for k in value}
+                item['episode_keys']=[k for k in keys if k in chosen_keys]
+                if mapping:item['source_episodes']=[n for n,k in zip(source,keys) if k in chosen_keys]
+                item['file_bindings']=bindings
             prefixes={key.rsplit(':',1)[0] for key in item.get('episode_keys') or []}
-            if len(prefixes)==1:
+            if len(prefixes)==1 and item.get('assignment_version')!=1:
                 from app.core.parser import extract_episode_numbers
                 prefix=next(iter(prefixes))
                 mapped={prefix+':'+str(number) for i in selected for number in extract_episode_numbers(entries[i]['name'])}
@@ -349,4 +421,6 @@ def begin_shutdown():
 def _apply_download_context(item,context):
     if context:
         item.update(release_title=context.get('title'),episode_keys=context.get('episode_keys') or [],
-                    source_name=context.get('source'),quality=context.get('quality'),group=context.get('group'),season=context.get('season'))
+                    source_name=context.get('source'),quality=context.get('quality'),group=context.get('group'),season=context.get('season'),continuous=context.get('continuous'))
+        for key in ('assignment_version','source_episodes','local_season_id','file_bindings','move_when_completed','approved_destination','duplicate_action','replacement_files'):
+            if key in context:item[key]=context[key]

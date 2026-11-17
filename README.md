@@ -6,6 +6,11 @@
 
 A Windows anime library manager and episode tracker with AniList and Jikan metadata, a release calendar, folder organization, storage review, and built-in torrent downloads.
 
+**Version 1.1.0** adds the Manga Brutalism light theme, clearer download/season
+workflows, retained navigation and in-memory library reuse. See the
+[changelog](CHANGELOG.md) for the accumulated fixes and
+[performance review](docs/PERFORMANCE_REVIEW_2026-11-17.md) for verification details.
+
 [![Checks](https://github.com/Agent47c/Anime-Vault/actions/workflows/checks.yml/badge.svg)](https://github.com/Agent47c/Anime-Vault/actions/workflows/checks.yml)
 ![Windows](https://img.shields.io/badge/platform-Windows_10%20%2F%2011-0078D4)
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)

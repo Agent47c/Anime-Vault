@@ -55,6 +55,16 @@ class HomePosterCard(PosterCard):
         self.title_label.setStyleSheet(f'background:transparent;color:{c["text"]};font-family:"Plus Jakarta Sans";font-size:{px(13)}px;font-weight:600;')
         self.subline_label.setStyleSheet(f'background:transparent;color:{c["muted"]};font-family:"JetBrains Mono";font-size:{px(11)}px;')
         self._status_color=None;self.update_facts(getattr(self,'facts',{}),getattr(self,'badge',None));self._update_title()
+        from app.ui.theme_catalog import is_manga
+        manga=is_manga()
+        self.title_label.setStyleSheet(f'background:transparent;color:{c["text"]};font-family:{"Inter" if manga else "Plus Jakarta Sans"};font-size:{px(16 if manga else 13)}px;font-weight:700;')
+        if getattr(self,'_manga_frame',False)!=manga:
+            self._manga_frame=manga
+            if manga:
+                from app.ui.manga_style import shadow
+                shadow(self.poster_slot,15,6)
+            else:self.poster_slot.setGraphicsEffect(None)
+            self.poster_label.setPixmap(self._create_poster_pixmap())
 
     def _create_poster_pixmap(self):
         ratio=self.devicePixelRatioF();pix=QPixmap(round(self.CARD_WIDTH*ratio),round(self.POSTER_HEIGHT*ratio));pix.setDevicePixelRatio(ratio);pix.fill(Qt.transparent)
@@ -82,6 +92,13 @@ class HomePosterCard(PosterCard):
             star=QPolygonF([QPointF(self.CARD_WIDTH-59+math.cos(-math.pi/2+n*math.pi/5)*(4.5 if n%2==0 else 2),20+math.sin(-math.pi/2+n*math.pi/5)*(4.5 if n%2==0 else 2)) for n in range(10)])
             p.setBrush(QColor(c['amber']));p.drawPolygon(star)
             font=self.font();font.setPixelSize(11);p.setFont(font);p.setPen(QColor(c['amber']));p.drawText(QRectF(self.CARD_WIDTH-50,9,39,23),Qt.AlignCenter,label)
+        from app.ui.theme_catalog import is_manga
+        if is_manga():
+            # Artwork -> 1px ink keyline -> 3px white outer frame.
+            # Paint once into the cached DPR-aware poster; hover reuses it.
+            p.setClipping(False);p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor('white'),3));p.drawRoundedRect(QRectF(1.5,1.5,self.CARD_WIDTH-3,self.POSTER_HEIGHT-3),10.5,10.5)
+            p.setPen(QPen(QColor('#0a0a0a'),1));p.drawRoundedRect(QRectF(3.5,3.5,self.CARD_WIDTH-7,self.POSTER_HEIGHT-7),8.5,8.5)
         p.end();return pix
 
     def bind_record(self,record):
@@ -99,6 +116,8 @@ class HomePosterCard(PosterCard):
         self.facts=facts;self.badge=badge;found=facts.get('found',0);total=facts.get('total',0)
         self.subline_label.setText(f'{found} / {total} eps' if facts.get('verified_total') else f'{found} local eps' if found else self.franchise_data.get('storage_state','NOT_DOWNLOADED').replace('_',' ').title())
         self.coverage_bar.setValue(round(found/total*1000) if total else 0)
+        from app.ui.theme_catalog import is_manga
+        self.coverage_bar.setVisible(not is_manga() or bool(found or total or badge))
         self.coverage_bar.setAccessibleName(f'{found} local episodes, {total} known episodes' if total else 'Episode coverage unverified')
         label=badge.get('label') if badge else 'On disk' if self.franchise_data.get('storage_state')=='ON_DISK' else 'Partial' if self.franchise_data.get('storage_state')=='PARTIALLY_ON_DISK' else ''
         self.download_label.setText(label or '');self.download_label.setToolTip(label or '')

@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from app.core.parser import clean_title, extract_season_number, extract_episode_range, extract_episode_numbers
+from app.core.season_paths import season_folder_name
 
 VIDEOS = {'.mkv', '.mp4', '.avi', '.webm', '.ts', '.mov', '.m4v'}
 SIDECARS = {'.ass', '.srt', '.sub', '.idx', '.vtt', '.ttf', '.otf', '.jpg', '.jpeg', '.png', '.webp', '.nfo', '.xml'}
@@ -98,7 +99,7 @@ def release_folder(relative, release_title=None, absolute=False):
         episodes = extract_episode_numbers(name)
         if absolute and number == 1 and episodes and min(episodes) > 62 and not explicit_season(name):
             return 'Unassigned episodes', 'Absolute episode numbering; arc needs review'
-        return f'Season {number:02}', None
+        return season_folder_name(number), None
     if release_title and re.search(r'\bArc\b|hen\b', release_title, re.I):
         return 'Arcs/' + safe_name(release_title), None
     return 'Unassigned episodes', 'No reliable season or arc identifier'

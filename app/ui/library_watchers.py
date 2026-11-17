@@ -25,7 +25,8 @@ class LibraryWatchers(QObject):
             from pathlib import Path
             with closing(db.get_connection()) as conn:
                 candidates=[row[0] for row in conn.execute('SELECT folder_path FROM watched_directories UNION SELECT season_folder_path FROM seasons WHERE season_folder_path IS NOT NULL')]
-            return [path for path in candidates if not worker.isInterruptionRequested() and Path(path).is_dir()]
+            unique={db.watched_path_key(path):db.normalized_watched_path(path) for path in candidates if path}
+            return [path for path in unique.values() if not worker.isInterruptionRequested() and Path(path).is_dir()]
         worker=IOTask(paths);self.paths_worker=worker;track(worker)
         worker.succeeded.connect(self.loaded_paths);worker.finished.connect(self.paths_finished);worker.start()
         if preferences.enabled('list_watchers'): self.import_timer.start()

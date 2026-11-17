@@ -20,12 +20,8 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 from PyQt5.QtWidgets import QMenu, QApplication
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QComboBox, QScrollArea, QGridLayout, QFrame,
-    QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
-    QCheckBox, QMessageBox, QStackedWidget, QSizePolicy,
-)
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QComboBox,QScrollArea,QGridLayout,QFrame,QTableWidget,QTableWidgetItem,QHeaderView,QAbstractItemView,QCheckBox,QStackedWidget,QSizePolicy
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtGui import QFont, QPainter, QColor, QLinearGradient, QPixmap, QPainterPath, QRadialGradient, QPen
 from PyQt5.QtCore import QSize, Qt, pyqtSignal, QRectF, QSettings, QTimer
 
@@ -41,7 +37,7 @@ from app.ui.components.airing_count import AiringCount
 from app.ui.components.home_day import HomeDay as AiringDay
 from app.ui.icons import icon
 from app.ui.theme import COLORS
-from app.ui.components.smooth_scroll import SmoothScrollArea
+from app.ui.components.smooth_scroll import SmoothScrollArea,HorizontalStrip
 from app.ui.artwork import artwork_loader, valid_image
 from app.ui.dialogs.delete_confirm import DeleteConfirmDialog
 
@@ -51,6 +47,7 @@ def section_heading(glyph, title):
     row.setSpacing(10)
     chip = QLabel(glyph)
     chip.setObjectName("section_chip")
+    chip.setProperty('sectionGlyph',glyph)
     chip.setAlignment(Qt.AlignCenter)
     chip.setFixedHeight(22)
     from app.ui.home_style import colors
@@ -62,6 +59,8 @@ def section_heading(glyph, title):
     heading.setObjectName("library_heading")
     row.addWidget(heading)
     row.addStretch()
+    from app.ui.manga_style import section_chip
+    section_chip(chip,glyph)
     return row, heading
 
 
@@ -368,12 +367,14 @@ class LibraryPage(QWidget):
         calendar_layout.setSpacing(12)
         layout.addWidget(self.calendar_panel)
         airing_heading, airing_title = section_heading("\u653e\u9001", "Airing this week")
+        self.airing_heading=airing_heading
         airing_title.setText('Broadcast Schedule')
         calendar_layout.addLayout(airing_heading)
         self._calendar_offset = 0
         self.calendar_range = QLabel()
         self.calendar_range.setObjectName('subheading')
         calendar_controls = QHBoxLayout()
+        self.calendar_controls=calendar_controls
         calendar_controls.setSpacing(8)
         calendar_controls.addWidget(self.calendar_range)
         calendar_controls.addStretch()
@@ -383,6 +384,7 @@ class LibraryPage(QWidget):
             button.clicked.connect(lambda checked=False, step=delta: self._change_calendar_week(step))
             calendar_controls.addWidget(button)
         airing_heading.addLayout(calendar_controls)
+        self.full_calendar_button=QPushButton('Full Calendar →');self.full_calendar_button.setCursor(Qt.PointingHandCursor);self.full_calendar_button.clicked.connect(self.open_full_calendar);calendar_controls.addWidget(self.full_calendar_button)
         self.airing_week = QGridLayout()
         self._airing_week_signature = None
         self.airing_week.setSpacing(8)
@@ -392,10 +394,11 @@ class LibraryPage(QWidget):
         self.release_heading_widget = QWidget()
         self.release_heading_widget.setLayout(release_heading)
         layout.addWidget(self.release_heading_widget)
-        self.release_scroll = QScrollArea()
+        self.release_scroll = HorizontalStrip()
         self.release_scroll.setWidgetResizable(True)
         self.release_scroll.setFrameShape(QFrame.NoFrame)
         self.release_scroll.setFixedHeight(410)
+        self.release_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         release_content = QWidget()
         self.release_layout = QHBoxLayout(release_content)
         self.release_layout.setContentsMargins(0, 0, 0, 8)
@@ -406,6 +409,7 @@ class LibraryPage(QWidget):
 
         # 2. Section Header & Controls Row
         header_row = QHBoxLayout()
+        self.archive_header_row=header_row
         header_row.setSpacing(12)
 
         # Left: Library Title & Counts
@@ -432,6 +436,7 @@ class LibraryPage(QWidget):
 
         # Sort Dropdown
         self.sort_combo = QComboBox()
+        self.sort_combo.setObjectName('library_sort')
         self.sort_combo.addItem("Name A to Z", "display_title|ASC")
         self.sort_combo.addItem("Name Z to A", "display_title|DESC")
         self.sort_combo.addItem("Sort  User Rating (Highest)", "user_rating|DESC")
@@ -446,7 +451,8 @@ class LibraryPage(QWidget):
         controls_row.addWidget(self.sort_combo)
 
         # View Mode Toggle (Grid / Compact)
-        view_toggle_frame = QFrame()
+        from app.ui.components.neumorphic import NeumorphicTrack
+        view_toggle_frame = NeumorphicTrack()
         view_toggle_frame.setStyleSheet("""
             QFrame {
                 background-color: #15161d;
@@ -482,7 +488,8 @@ class LibraryPage(QWidget):
 
         # 3. Horizontal Filter Pills Row
         from app.ui.components.flow_layout import FlowLayout
-        filter_strip=QWidget();filter_strip.setObjectName('home_filter_strip');pills_layout=FlowLayout(filter_strip)
+        from app.ui.components.neumorphic import NeumorphicTrack
+        filter_strip=NeumorphicTrack();filter_strip.setObjectName('home_filter_strip');pills_layout=FlowLayout(filter_strip)
         pills_layout.setSpacing(8)
 
         self.pill_buttons = {}
@@ -510,6 +517,7 @@ class LibraryPage(QWidget):
             pills_layout.addWidget(btn)
 
         sort_controls=QWidget();sort_controls.setObjectName('home_sort_controls');sort_controls.setProperty('homeAlignRight',True);sort_controls.setLayout(controls_row)
+        self.sort_controls=sort_controls;self.filter_strip=filter_strip
         pills_layout.addWidget(sort_controls)
         layout.addWidget(filter_strip)
 
@@ -618,6 +626,8 @@ class LibraryPage(QWidget):
 
         self.views_stack.addWidget(self.compact_table)
         layout.addWidget(self.views_stack, 1)
+        from app.ui.components.library_pagination import LibraryPagination
+        self.pagination=LibraryPagination(self);self.pagination.changed.connect(self.refresh_display);layout.addWidget(self.pagination)
 
         self._update_toggle_buttons()
         self.shortcut_hint=QLabel('Space  Play/pause   ·   F11  Fullscreen');self.shortcut_hint.setObjectName('home_meta')
@@ -625,6 +635,10 @@ class LibraryPage(QWidget):
         self.refresh_home_style()
 
     def refresh_home_style(self):
+        from app.ui.manga_library import configure
+        configure(self)
+        from app.ui.manga_library import fit_calendar_controls
+        fit_calendar_controls(self)
         from app.ui.home_style import qss
         self.setProperty('animevaultOwnScaledStyle',True)
         self.setStyleSheet(qss())
@@ -637,6 +651,11 @@ class LibraryPage(QWidget):
         from app.ui.review_reference_style import list_style
         self.compact_table.setStyleSheet(list_style())
         if hasattr(self,'virtual_list'):self.virtual_list.refresh_style()
+
+    def open_full_calendar(self):
+        from app.ui.pages.full_calendar_page import FullCalendarPage
+        from app.ui.navigation import navigate
+        navigate(FullCalendarPage(self))
 
     def apply_downloads(self,jobs):
         self._home_jobs=jobs
@@ -696,6 +715,11 @@ class LibraryPage(QWidget):
             self.views_stack.setCurrentIndex(1)
         for button,active in ((self.grid_btn,self.view_mode=='grid'),(self.list_btn,self.view_mode!='grid')):
             button.setStyleSheet(f'border:none;border-radius:12px;background:{palette["raised"] if active else palette["panel"]};color:{palette["text"]};')
+            from app.ui.manga_pages import active as manga_active
+            if manga_active():
+                button.setStyleSheet(f'border:none;border-radius:8px;background:{"white" if active else "transparent"};')
+            from app.ui.components.neumorphic import install
+            install(button,enabled=manga_active())
 
     def set_search_query(self, query: str):
         """Called when user types in the top master search bar."""
@@ -740,6 +764,8 @@ class LibraryPage(QWidget):
             btn.setProperty("active", "true" if val == filter_val else "false")
             btn.style().unpolish(btn)
             btn.style().polish(btn)
+            btn.update()
+            if btn.graphicsEffect():btn.graphicsEffect().update()
         self.refresh_display()
 
     def _change_calendar_week(self, step):
@@ -765,34 +791,11 @@ class LibraryPage(QWidget):
             if date in schedule:
                 schedule[date][(fid, release_id, episode)] = (title, airing.strftime("%H:%M"), season_id, stamp)
 
-        with closing(db.get_connection()) as conn:
-            for row in conn.execute(
-                "SELECT franchise_id, title_display, next_airing_at, next_airing_ep, anilist_id, id FROM seasons WHERE next_airing_at IS NOT NULL"
-            ):
-                add(*tuple(row))
-        for record in db.get_all_franchises():
-            try:
-                media = json.loads(record.get("metadata_json") or "{}") or {}
-                next_episode = media.get("nextAiringEpisode") or {}
-                add(record["id"], record["display_title"], next_episode.get("airingAt"), next_episode.get("episode"), record.get("anilist_id"))
-            except (AttributeError, TypeError, ValueError):
-                continue
-
-        # Map provider releases only to currently linked local anime/seasons.
-        # Cached history survives the provider's nextAiringEpisode moving on.
-        from app.core.release_calendar import saved
-        owners = {}
-        for record in db.get_all_franchises():
-            if record.get('anilist_id'):
-                owners.setdefault(record['anilist_id'], (record['id'], record['display_title'], None))
-        with closing(db.get_connection()) as conn:
-            for row in conn.execute('SELECT anilist_id, franchise_id, title_display, id FROM seasons WHERE anilist_id IS NOT NULL'):
-                owners[row[0]] = (row[1], row[2], row[3])
-        for release in saved():
-            owner = owners.get(release.get('mediaId'))
-            if owner:
-                fid, title, sid = owner
-                add(fid, title, release.get('airingAt'), release.get('episode'), release.get('mediaId'), sid)
+        # Use the same ownership rules as Full Calendar, including cached
+        # official sequel IDs that do not yet have a local season record.
+        from app.core.calendar_view import entries as calendar_entries
+        for release in calendar_entries(dates[0],dates[-1]):
+            add(release['fid'],release['title'],release['airing_at'],release['episode'],release.get('release_id'),release.get('season_id'))
 
         signature = (today, tuple((date, tuple(schedule[date].items())) for date in dates))
         if signature == self._airing_week_signature:
@@ -833,6 +836,13 @@ class LibraryPage(QWidget):
         self._refresh_filter_counts()
         self.refresh_display()
 
+    def refresh_imported(self):
+        """Publish committed imports without hero, calendar or drive refreshes."""
+        from app.core.library_index import LibraryIndex
+        self._library_index=LibraryIndex()
+        self.stats_subtitle.setText(f'{len(self._library_index.groups)} anime')
+        self._refresh_release_cards();self._refresh_filter_counts();self.refresh_display()
+
     def apply_update_choices(self,records):
         if self._library_index is None:return False
         self._library_index.apply_update_choices(records)
@@ -860,6 +870,8 @@ class LibraryPage(QWidget):
             card.update_facts(self._home_facts.get(f['id'],{}),self._download_badges.get(f['id']))
             self.release_layout.addWidget(card)
             card.show()
+        self.release_layout.invalidate()
+        self.release_scroll.setFixedHeight(max(410,self.release_layout.minimumSize().height()+self.release_scroll.horizontalScrollBar().sizeHint().height()+4))
         release_ids={record['id'] for record in releases}
         for fid in list(self._release_card_pool):
             if fid not in release_ids:self._release_card_pool.pop(fid)[1].deleteLater()
@@ -911,6 +923,12 @@ class LibraryPage(QWidget):
         elif self._current_filter == 'REVIEW':
             franchises = [f for f in franchises if any(self._library_index.by_id[mid].get('needs_review') for mid in f['series_member_ids'])]
 
+        from app.ui.theme_catalog import is_manga
+        if is_manga():
+            from app.ui.home_style import px
+            margins=self._content_layout.contentsMargins()
+            self.pagination.fit_width(self.page_scroll.viewport().width()-margins.left()-margins.right(),px(100)/100)
+            franchises=self.pagination.present(franchises)
         if self.view_mode == "grid":
             self._render_grid(franchises)
         else:
@@ -918,7 +936,8 @@ class LibraryPage(QWidget):
 
     def _render_grid(self, franchises: List[Dict]):
         self.views_stack.setCurrentWidget(self.grid_container)
-        if hasattr(self,'_virtual_posters') and (len(franchises)>64 or self._virtual_posters.active):
+        from app.ui.theme_catalog import is_manga
+        if not is_manga() and hasattr(self,'_virtual_posters') and (len(franchises)>64 or self._virtual_posters.active):
             self._virtual_posters.set_records(franchises)
             return
         self.grid_container.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Preferred)
@@ -940,9 +959,13 @@ class LibraryPage(QWidget):
                 if cached is None or cached[0] != fingerprint:
                     if cached is not None:
                         cached[1].deleteLater()
-                    card = PosterCard(record, self.grid_container)
-                    card.clicked.connect(self.card_clicked.emit)
-                    card.selection_changed.connect(self._on_item_checked)
+                    reusable=next(((fid,item[1]) for fid,item in self._card_pool.items() if fid not in {r['id'] for r in franchises}),None) if is_manga() else None
+                    if reusable:
+                        old,card=reusable;self._card_pool.pop(old);card.bind_record(record)
+                    else:
+                        card = PosterCard(record, self.grid_container)
+                        card.clicked.connect(self.card_clicked.emit)
+                        card.selection_changed.connect(self._on_item_checked)
                     self._card_pool[record["id"]] = (fingerprint, card)
                     if not valid_image(record.get("cover_filename")):
                         artwork_loader().request(record)
@@ -952,6 +975,7 @@ class LibraryPage(QWidget):
                 card.set_selected(record['id'] in self.selected_fids)
                 card.set_selection_mode(self._selection_mode)
                 card.update_facts(self._home_facts.get(record['id'],{}),self._download_badges.get(record['id']))
+                card.restyle()
                 card.show()
             valid_ids = set(self._library_index.by_id) if self._library_index else {record["id"] for record in franchises}
             for fid in list(self._card_pool):
@@ -967,6 +991,14 @@ class LibraryPage(QWidget):
         self._reflow_grid()
 
     def _reflow_grid(self):
+        from app.ui.manga_library import fit_calendar_controls
+        fit_calendar_controls(self)
+        from app.ui.theme_catalog import is_manga
+        if is_manga():
+            from app.ui.home_style import px
+            margins=self._content_layout.contentsMargins()
+            if self.pagination.fit_width(self.page_scroll.viewport().width()-margins.left()-margins.right(),px(100)/100):
+                self.refresh_display();return
         if hasattr(self,'_virtual_posters') and self._virtual_posters.active:
             self._virtual_posters.reflow()
             return
@@ -978,6 +1010,7 @@ class LibraryPage(QWidget):
         available = max(1,self.page_scroll.viewport().width() - margins.left() - margins.right())
         gap = self.grid_layout.horizontalSpacing()
         cols = max(1, (available + gap) // (PosterCard.CARD_WIDTH + gap))
+        if is_manga():cols=min(self.pagination.size,max(1,(available+gap)//(px(200)+gap)))
         width, extra = divmod(max(1,available - gap * (cols - 1)),cols)
         for idx,card in enumerate(self._cards):
             card.set_card_width(width + (1 if idx % cols < extra else 0))

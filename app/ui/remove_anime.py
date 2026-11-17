@@ -1,5 +1,6 @@
 """Explicit library removal with optional existing Recycle Bin review."""
-from PyQt5.QtWidgets import QMessageBox,QDialog
+from PyQt5.QtWidgets import QDialog
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core.library_removal import removal_context,remove_entry
 from app.ui.io_task import start

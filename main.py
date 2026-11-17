@@ -39,7 +39,8 @@ if __name__=='__main__' and sys.argv[1:2]==['--builtin-torrent-host']:
 from app.startup import prepare_windowed_logging
 prepare_windowed_logging()
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication
+from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from PyQt5.QtCore import Qt, QLockFile
 
 from app import db
