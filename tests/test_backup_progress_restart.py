@@ -50,3 +50,8 @@ class BackupProgressRestartTests(unittest.TestCase):
         host=SimpleNamespace(_restore_restart_required=True,_save_geometry=Mock(),hide=Mock(),_cleanup_and_exit=Mock(return_value=False))
         with patch('app.ui.main_window.QTimer.singleShot'):MainWindow._force_exit(host)
         host._save_geometry.assert_not_called()
+
+    def test_required_restart_close_does_not_reenter_shutdown(self):
+        host=SimpleNamespace(_restore_restart_required=True,_force_exiting=True,_force_exit=Mock());event=Mock()
+        MainWindow.closeEvent(host,event)
+        event.ignore.assert_called_once();host._force_exit.assert_not_called()

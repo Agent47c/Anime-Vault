@@ -1360,7 +1360,9 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         if getattr(self,'_restore_restart_required',False):
-            event.ignore();self._force_exit();return
+            event.ignore()
+            if not getattr(self,'_force_exiting',False):self._force_exit()
+            return
         from app.ui.user_edits import user_edits
         user_edits().flush()
         if getattr(self, "_shutdown_pending", False):
