@@ -34,13 +34,18 @@ class PreferencesTests(unittest.TestCase):
             item.stop()
         self.temp.cleanup()
 
-    def test_preferences_persist_and_theme_follows_windows(self):
+    def test_preferences_persist_and_legacy_system_theme_defaults_to_sakura_dark(self):
+        from app.config import get_theme, set_theme
         prefs.save("reduce_motion", True)
         self.assertEqual(prefs.motion_duration(220), 0)
         db.set_state("text_scale", "1.3")
-        with patch.object(prefs, "windows_light_theme", return_value=True):
-            apply_theme(self.app, "system")
-        self.assertEqual(self.app.property("animevaultTheme"), "light")
+        self.assertEqual(get_theme(), "dark")
+        db.set_state("theme", "system")
+        self.assertEqual(get_theme(), "dark")
+        apply_theme(self.app, "system")
+        self.assertEqual(self.app.property("animevaultRequestedTheme"), "dark")
+        set_theme("light")
+        self.assertEqual(get_theme(), "light")
         self.assertEqual(self.app.property("animevaultScale"), 1.3)
         prefs.save("decorations", False)
         apply_theme(self.app, "dark")

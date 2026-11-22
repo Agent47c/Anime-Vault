@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt,QObject,QEvent,QTimer,QRectF,QRect,QPoint
 from PyQt5.QtGui import QImage,QPixmap,QPainter,QColor,QFont,QPen
 from PyQt5.QtWidgets import QWidget,QFrame,QVBoxLayout,QApplication
 from app.ui.home_style import px
+from app.ui.manga_style import manga_colors,material
+from app.ui.theme_catalog import is_manga_dark
 
 SHADOW=18
 
@@ -29,10 +31,16 @@ class BlurredBackdrop(QWidget):
         self.setAttribute(Qt.WA_TransparentForMouseEvents,True)
         self.setAttribute(Qt.WA_ShowWithoutActivating,True)
         self.setFocusPolicy(Qt.NoFocus)
+    def paint_background(self,painter,target):
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.fillRect(target,QColor(manga_colors()['bg']))
+        painter.drawPixmap(target,self.image)
+        tint=QColor(0,0,0,120) if is_manga_dark() else QColor(91,102,126,85)
+        painter.fillRect(target,tint)
     def paintEvent(self,event):
-        p=QPainter(self);p.setRenderHint(QPainter.SmoothPixmapTransform)
-        p.drawPixmap(self.rect(),self.image)
-        p.fillRect(self.rect(),QColor(91,102,126,85));p.end()
+        painter=QPainter(self)
+        self.paint_background(painter,self.rect())
+        painter.end()
 
 
 class ModalSurface(QFrame):
@@ -43,7 +51,8 @@ class ModalSurface(QFrame):
         p=QPainter(self);p.setRenderHint(QPainter.Antialiasing)
         face=QRectF(self.rect()).adjusted(SHADOW,SHADOW,-SHADOW,-SHADOW)
         paint_depth(p,face,radius=22)
-        p.setBrush(QColor('white'));p.setPen(QPen(QColor('#d9dee8'),1));p.drawRoundedRect(face,22,22)
+        colors=manga_colors()
+        p.setBrush(QColor(colors['panel']));p.setPen(QPen(QColor(colors['line'] if is_manga_dark() else '#d9dee8'),1));p.drawRoundedRect(face,22,22)
         if self.glyph and QApplication.instance().property('animevaultDecorations') is not False:
             p.setPen(QColor(166,175,195,28));p.setFont(QFont('Yu Gothic',54,QFont.Bold))
             p.drawText(face.adjusted(20,8,-20,-8),Qt.AlignTop|Qt.AlignRight,self.glyph)
@@ -52,7 +61,7 @@ class ModalSurface(QFrame):
 
 def modal_qss(name):
     r=f'QWidget#{name}'
-    return f'''
+    return material(f'''
     {r} {{background:transparent;border:none;}}
     {r} QWidget#compact_modal_content, {r} QFrame#compact_modal_surface,
     {r} QWidget#workflow_header, {r} QWidget#workflow_body,
@@ -68,7 +77,7 @@ def modal_qss(name):
     {r} QLabel#group_notice {{background:#eef0f5;border:1px solid #e2e5ed;border-radius:10px;padding:12px;font-size:{px(12)}px;}}
     {r} QCheckBox#group_reviewed {{background:#f1f3f7;border:1px solid #e2e5ed;border-radius:10px;padding:8px;}}
     {r} QLabel#group_badge[primary='true'] {{background:#ff2e93;color:#111217;border:none;}}
-    '''
+    ''')
 
 
 def install(dialog,width,glyph=''):
@@ -109,13 +118,13 @@ class ModalController(QObject):
             self.background=snapshot
     def cache_backplate(self):
         if sip.isdeleted(self.dialog):return
-        self.backplate=QPixmap(self.dialog.size());self.backplate.fill(QColor('#eef0f5'))
+        self.backplate=QPixmap(self.dialog.size());self.backplate.fill(QColor(manga_colors()['bg']))
         if self.host is not None and self.backdrop is not None:
-            p=QPainter(self.backplate);p.setRenderHint(QPainter.SmoothPixmapTransform)
-            origin=self.host.mapFromGlobal(self.dialog.mapToGlobal(QPoint()))
-            target=QRect(-origin.x(),-origin.y(),self.host.width(),self.host.height())
-            p.drawPixmap(target,self.backdrop.image)
-            p.fillRect(self.backplate.rect(),QColor(91,102,126,85));p.end()
+            origin=self.backdrop.mapFromGlobal(self.dialog.mapToGlobal(QPoint()))
+            target=QRect(-origin,self.backdrop.size())
+            painter=QPainter(self.backplate)
+            self.backdrop.paint_background(painter,target)
+            painter.end()
         self.dialog.update()
     def ensure_front(self):
         if sip.isdeleted(self.dialog) or not self.dialog.isVisible():return
@@ -172,7 +181,7 @@ class ModalController(QObject):
             elif event.type()==QEvent.LayoutRequest and self.dialog.isVisible():QTimer.singleShot(0,self.fit)
             elif event.type()==QEvent.Paint:
                 p=QPainter(self.dialog)
-                p.fillRect(self.dialog.rect(),QColor('#eef0f5'))
+                p.fillRect(self.dialog.rect(),QColor(manga_colors()['bg']))
                 if not self.backplate.isNull():p.drawPixmap(0,0,self.backplate)
                 p.end();return True
         elif obj is self.host and event.type()==QEvent.Resize:

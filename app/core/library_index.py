@@ -8,7 +8,9 @@ class LibraryIndex:
     def __init__(self):
         self.records = db.get_all_franchises()
         from app.ui.refresh import artwork_version
+        choices = db.update_dispositions()
         for record in self.records:
+            record['has_new_update'] = db.has_pending_update(record, choices.get(record['id'], 'new'))
             record["_cover_version"] = artwork_version(record.get("cover_filename"))
         self.by_id = {row["id"]: row for row in self.records}
         related = list(json.loads(db.get_state("series_relation_cache", "{}")).values())
@@ -24,7 +26,10 @@ class LibraryIndex:
         for group in self.groups:
             members=group['series_member_ids']
             if not any(fid in records for fid in members):continue
-            group['has_new_update']=any(self.by_id[fid].get('has_new_update') for fid in members)
+            group['has_new_update']=any(
+                db.has_pending_update(self.by_id[fid], self.by_id[fid].get('_update_disposition','new'))
+                for fid in members
+            )
             if group['id'] in records and 'watch_status' in records[group['id']]:group['watch_status']=records[group['id']]['watch_status']
 
     def select(self, sort_by="display_title", sort_order="ASC", search="", storage_state=None, watch_status=None):

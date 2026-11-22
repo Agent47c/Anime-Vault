@@ -1,4 +1,5 @@
 """Shared native Qt presentation for the five approved Twilight Sakura screens."""
+from app.ui.manga_style import material
 from app.ui.review_reference_style import reference_colors
 from app.ui.home_style import px,load_fonts
 
@@ -14,7 +15,7 @@ def qss(name):
     load_fonts()
     from app.ui.home_style import colors
     c=colors() if name=='release_news' else reference_colors();r=f'QWidget#{name}'
-    return f'''
+    return material(f'''
     {r} {{background:{c['bg']};color:{c['text']};font-family:'Plus Jakarta Sans';}}
     {r} QLabel {{background:transparent;border:none;color:{c['muted']};font-size:{px(13)}px;}}
     {r} QLabel#transfer_heading, {r} QLabel#download_heading, {r} QLabel#workflow_title {{font-size:{px(24)}px;font-weight:700;color:{c['text']};}}
@@ -38,4 +39,4 @@ def qss(name):
     {r} QCheckBox::indicator, {r} QRadioButton::indicator {{width:20px;height:20px;border:1px solid {c['muted']};background:{c['bg']};border-radius:5px;}}
     {r} QRadioButton::indicator {{border-radius:10px;}}
     {r} QCheckBox::indicator:checked, {r} QRadioButton::indicator:checked {{background:{c['coral']};border-color:{c['coral']};}}
-    '''
+    ''')

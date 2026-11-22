@@ -11,18 +11,18 @@ PREFIX='source_request:'
 def connection():
     try: state=json.loads(db.get_state('source_bridge.connection','{}'))
     except (ValueError,TypeError): state={}
-    state['connected']=bool(time.time()-state.get('seen',0)<15)
+    state['connected']=bool(state.get('online',True) and time.time()-state.get('seen',0)<15)
     return state
 
 
-def heartbeat(site_or_sites, enabled):
+def heartbeat(site_or_sites, enabled, *, online=True):
     if isinstance(site_or_sites, list):
         sites = site_or_sites
         site = sites[0] if sites else ''
     else:
         site = site_or_sites or ''
         sites = [site] if site else []
-    db.set_state('source_bridge.connection', json.dumps(dict(site=site, sites=sites, enabled=bool(enabled), seen=time.time())))
+    db.set_state('source_bridge.connection', json.dumps(dict(site=site, sites=sites, enabled=bool(enabled), online=bool(online), seen=time.time())))
 
 
 def enqueue(url,source_name='Source'):

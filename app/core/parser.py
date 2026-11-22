@@ -13,7 +13,7 @@ from typing import Optional, Tuple, Dict
 # ---------------------------------------------------------------------------
 _SEASON_PATTERNS = [
     # "S02", "s01"
-    re.compile(r"[Ss](\d{1,2})"),
+    re.compile(r"\bS[ ._-]*(\d{1,2})(?!\d)(?=\b|E)", re.IGNORECASE),
     # "Season 2", "Season 02"
     re.compile(r"[Ss]eason\s*(\d{1,2})", re.IGNORECASE),
     # "2nd Season", "3rd Season"
@@ -31,8 +31,11 @@ _ROMAN_MAP = {
 
 # Episode patterns for filenames
 _EPISODE_PATTERNS = [
+    re.compile(r"\b\d{1,2}x(\d{1,4})", re.IGNORECASE),
+    # Full words must precede EP/E so "Episode 08" leaves no "isode" suffix.
+    re.compile(r"\bEpisodes?\s*(\d{1,4})", re.IGNORECASE),
     # "E01", "E12", "EP01", "Ep 12"
-    re.compile(r"[Ee][Pp]?\s*(\d{1,4})"),
+    re.compile(r"\bE(?:P(?:ISODE)?)?[ ._-]*(\d{1,4})", re.IGNORECASE),
     # "- 01", " - 12v2"
     re.compile(r"\s-\s+(\d{1,4})(?:v\d)?"),
     # "S02E05"
@@ -50,6 +53,25 @@ _JUNK_PATTERNS = [
     re.compile(r"\b(?:Dual Audio|Multi Sub|BATCH)\b", re.IGNORECASE),
     re.compile(r"[_.]"),                     # Replace underscores/dots with spaces
 ]
+
+
+_SEASON_EPISODE = re.compile(
+    r'\b(?:S(?:EASON)?[ ._-]*)(\d{1,2})[ ._-]*E(?:P(?:ISODE)?)?[ ._-]*(\d{1,4})(?!\d)', re.I)
+
+
+def season_episode_match(text):
+    """One token reader for matching and next-search query generation."""
+    return _SEASON_EPISODE.search(str(text).replace('_',' '))
+
+
+def explicit_season_number(text):
+    """Read explicit source notation without guessing a default season."""
+    text=str(text).replace('_',' ')
+    match=re.search(r'\b(?:S[ ._-]*(\d{1,2})(?!\d)(?=\b|E)|R(\d{1,2})\b|(\d{1,2})x\d{1,4})',str(text),re.I)
+    if match:return int(next(value for value in match.groups() if value))
+    if re.search(r'\bseason\s*\d|\d+(?:st|nd|rd|th)\s+season',str(text),re.I):
+        return extract_season_number(str(text),None)
+    return None
 
 
 def clean_title(raw: str) -> str:
@@ -110,10 +132,11 @@ def extract_episode_numbers(filename: str) -> list:
     if re.search(r"\b(?:movies?|films?|specials?|extras?|bonus|samples?|proof|NCOP|NCED|OP|ED)\b|\bSP\d+\b|\d+SP\b", classification_filename(name), re.I):
         return []
     name = re.sub(r"\[[^]]*\]", " ", name)
+    name = name.replace('_',' ')
     name = re.sub(r"\.(?:mkv|mp4|avi|webm|m4v|ts|mov)$", "", name, flags=re.I)
     patterns = [
         r"\b\d{1,2}x(\d{1,4})(?:\s*-\s*(?:\d{1,2}x)?(\d{1,4}))?",
-        r"\bS\d{1,2}[ ._-]*E(?:P)?[ ._-]*(\d{1,4})(?:v\d+)?(?:[ ._]*-[ ._]*(?:E(?:P)?)?[ ._]*(\d{1,4})(?:v\d+)?)?",
+        r"\bS[ ._-]*\d{1,2}[ ._-]*E(?:P)?[ ._-]*(\d{1,4})(?:v\d+)?(?:[ ._]*-[ ._]*(?:E(?:P)?)?[ ._]*(\d{1,4})(?:v\d+)?)?",
         r"\bE(?:P(?:ISODE)?)?[ ._-]*(\d{1,4})(?:v\d+)?(?:[ ._]*-[ ._]*(?:E(?:P)?)?[ ._]*(\d{1,4})(?:v\d+)?)?",
         r"\s-\s*(\d{1,4})(?:[ ._]*v\d+)?(?:[ ._]*-[ ._]*(\d{1,4})(?:v\d+)?)?(?!\d)",
         r"^\s*(\d{1,4})(?:v\d+)?(?:[ ._]*-[ ._]*(\d{1,4}))?(?:\s|$|[.(])",

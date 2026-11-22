@@ -20,8 +20,10 @@ class DownloadLibraryMove(QDialog):
     dispose_on_leave=True
     def __init__(self,plan,parent=None):
         super().__init__(parent);self.plan=plan;self._worker=None;self.setWindowTitle('Move completed downloads to library');box=QVBoxLayout(self)
-        self.setObjectName('downloads_page');self.refresh_home_style()
-        title=QLabel('Move completed downloads to library');title.setStyleSheet('font-size:24px;font-weight:700;');box.addWidget(title)
+        self.setObjectName('downloads_page')
+        title=QLabel('Move completed downloads to library')
+        self.move_heading=title
+        box.addWidget(title)
         note=QLabel(f"{len(plan['rows'])} verified files → {plan['root']}\nExisting files are never overwritten. Active downloads and unknown files stay in place. Keep the app open until the current file finishes.");self.note=note;note.setWordWrap(True);box.addWidget(note)
         self.folder_overrides={};self.only_job_id=plan.get('only_job_id');self.destination_choice=QComboBox()
         for destination in plan.get('destinations',[]):self.destination_choice.addItem(destination['title']+f' / Season {destination["season"]}',destination)
@@ -38,12 +40,13 @@ class DownloadLibraryMove(QDialog):
         box.addWidget(controls)
         for control in (choose,other,refresh):control.setMinimumHeight(44);control.setCursor(Qt.PointingHandCursor)
         self.destination_choice.currentIndexChanged.connect(self.choice_changed);self.choice_changed()
-        table=QTableView();self.table=table;self.move_model=MoveModel(plan['rows'],table);table.setModel(self.move_model);table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch);table.setEditTriggers(QAbstractItemView.NoEditTriggers);table.setTextElideMode(Qt.ElideMiddle);box.addWidget(table,1)
+        table=QTableView();table.setObjectName('completed_move_table');self.table=table;self.move_model=MoveModel(plan['rows'],table);table.setModel(self.move_model);table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch);table.setEditTriggers(QAbstractItemView.NoEditTriggers);table.setTextElideMode(Qt.ElideMiddle);box.addWidget(table,1)
         self.status=QLabel('\n'.join(plan['notes']));self.status.setWordWrap(True);box.addWidget(self.status)
         row=QHBoxLayout();back=QPushButton('Cancel');back.clicked.connect(self.reject);row.addWidget(back);row.addStretch()
         self.stop=QPushButton('Stop after current file');self.stop.setEnabled(False);self.stop.clicked.connect(self.interrupt);row.addWidget(self.stop)
         self.move_button=QPushButton(f"Move {len(plan['rows'])} files");self.move_button.setEnabled(bool(plan['rows']));self.move_button.clicked.connect(self.begin);row.addWidget(self.move_button);box.addLayout(row)
         for button in (back,self.stop,self.move_button):button.setMinimumHeight(44);button.setCursor(Qt.PointingHandCursor)
+        self.refresh_home_style()
     def choice_changed(self,*_):
         choice=self.destination_choice.currentData() or {}
         self.choose_button.setEnabled(bool(choice.get('id')) and not self._worker)
@@ -103,7 +106,24 @@ class DownloadLibraryMove(QDialog):
         worker.succeeded.connect(ready);worker.failed.connect(lambda message:ready('Review and retry: '+message));worker.finished.connect(done);worker.start()
     def refresh_home_style(self):
         from app.ui.transfer_style import qss
-        self.setStyleSheet(qss('downloads_page'))
+        from app.ui.theme_catalog import is_manga_dark
+        style=qss('downloads_page')
+        if is_manga_dark():
+            from app.ui.manga_style import manga_colors
+            colors=manga_colors()
+            style+=f'''
+                QTableView#completed_move_table {{background:{colors['panel']};
+                    color:{colors['text']};border:1px solid {colors['line']};border-radius:12px;}}
+                QTableView#completed_move_table QHeaderView::section {{background:{colors['raised']};
+                    color:{colors['muted']};font-family:"JetBrains Mono";padding:10px;}}
+            '''
+        self.setStyleSheet(style)
+        if hasattr(self,'move_heading'):
+            from app.ui.home_style import px
+            font=f'font:800 {px(28)}px "Noto Serif";' if is_manga_dark() else 'font-size:24px;font-weight:700;'
+            self.move_heading.setStyleSheet(font)
+        if hasattr(self,'move_button'):
+            self.move_button.setProperty('accent',True if is_manga_dark() else None)
     def interrupt(self):
         if self._worker and not sip.isdeleted(self._worker):self._worker.requestInterruption()
     def done(self,result):

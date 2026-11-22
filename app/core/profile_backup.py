@@ -121,6 +121,7 @@ def restore_backup(filename):
                 pending=target.with_name(target.name+'.restore-'+uuid.uuid4().hex)
                 try:shutil.copy2(source,pending);os.replace(pending,target)
                 finally:pending.unlink(missing_ok=True)
+            db.sync_database_path()
         except Exception:
             for target,old in reversed(applied):
                 if old.exists():shutil.copy2(old,target)

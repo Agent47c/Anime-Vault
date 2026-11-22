@@ -28,9 +28,9 @@ class HomeHeader(QFrame):
             button.clicked.connect(lambda checked=False,i=index:host._on_nav_clicked(i));tabs.addWidget(button);self.tabs[index]=button
         row.addWidget(capsule)
         self.utility_side=QWidget();utilities=QHBoxLayout(self.utility_side);utilities.setContentsMargins(0,0,0,0);utilities.setSpacing(8);utilities.addStretch();row.addWidget(self.utility_side,1)
-        self.search=QLineEdit();self.search.setObjectName('home_quick_find');self.search.setPlaceholderText('Quick Find');self.search.setClearButtonEnabled(True)
+        self.search=QLineEdit();self.search.setObjectName('home_quick_find');self.search.setPlaceholderText('Search by English title');self.search.setClearButtonEnabled(True)
         self.search.setMinimumWidth(180);self.search.setMaximumWidth(260);self.search.setFixedHeight(40);self.search.setAccessibleName('Search library by title')
-        self.search.setToolTip('Search library · Ctrl+K');self.search.textChanged.connect(host.top_search_input.setText)
+        self.search.setToolTip('Search library by title');self.search.textChanged.connect(host.top_search_input.setText)
         host.top_search_input.textChanged.connect(self.search.setText);utilities.addWidget(self.search)
         self.search.returnPressed.connect(host.top_search_input.returnPressed.emit)
         self.search.addAction(icon('search',colors()['muted']),QLineEdit.LeadingPosition)

@@ -175,4 +175,4 @@ def connected_loop(initial,caller,source,target):
                 if message is None: return 0
             except queue.Empty: pass
     finally:
-        source_bridge.heartbeat(sites or site,False)
+        source_bridge.heartbeat(sites or site,False,online=False)

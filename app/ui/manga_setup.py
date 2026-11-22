@@ -1,4 +1,5 @@
 """Single-screen layout adapter around the existing five setup operations."""
+from app.ui.manga_style import set_material
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget,QGridLayout,QLabel,QPushButton,QSizePolicy,QVBoxLayout,QHBoxLayout
 
@@ -20,7 +21,7 @@ def configure(dialog,active):
         for i,page in enumerate(dialog._setup_pages):
             dialog.stack.removeWidget(page);page.setObjectName('setup_card')
             title=QLabel(f'Step {i+1} of 5 · {dialog.titles[i]}');title.setObjectName('workflow_row_title');page.layout().insertWidget(0,title);page._manga_step_title=title
-            wrapper=PaperCard();wrapper.setObjectName('setup_depth');wrapper.setStyleSheet('QFrame#setup_depth{background:transparent;border:none;}');frame=QVBoxLayout(wrapper);frame.setContentsMargins(10,10,10,10);frame.addWidget(page);dialog._setup_wrappers.append(wrapper)
+            wrapper=PaperCard();wrapper.setObjectName('setup_depth');set_material(wrapper,'QFrame#setup_depth{background:transparent;border:none;}');frame=QVBoxLayout(wrapper);frame.setContentsMargins(10,10,10,10);frame.addWidget(page);dialog._setup_wrappers.append(wrapper)
             page.layout().setContentsMargins(22,22,22,22);grid.addWidget(wrapper,i if i<3 else i-3,0 if i<3 else 1);page.show()
             from PyQt5.QtCore import Qt
             for control in page.findChildren(QPushButton):
@@ -52,4 +53,4 @@ def update_steps(dialog):
     from app.ui.home_style import px
     for i,(label,name,state) in enumerate(zip(dialog._setup_statuses,('Extension','Engine','Folder','Sources','Finish'),dialog.steps)):
         label.setText(f'{i+1:02}  {name}\n{state}')
-        label.setStyleSheet(f'background:#e2e5ed;color:#111217;border:1px solid {"#ff2e93" if i==dialog.step else "white"};border-radius:10px;padding:{px(12)}px;font-size:{px(12)}px;')
+        set_material(label,f'background:#e2e5ed;color:#111217;border:1px solid {"#ff2e93" if i==dialog.step else "white"};border-radius:10px;padding:{px(12)}px;font-size:{px(12)}px;')

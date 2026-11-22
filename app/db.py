@@ -156,6 +156,60 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
+def sync_database_path(conn: Optional[sqlite3.Connection] = None) -> str:
+    """Ensure the path stored inside the database matches the active local user database path."""
+    def _apply(c):
+        c.execute(
+            "INSERT INTO app_state(key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            ("database_path", str(DB_PATH)),
+        )
+        c.execute(
+            "INSERT INTO app_state(key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            ("database_local_path", str(DB_PATH)),
+        )
+        c.execute(
+            "INSERT INTO app_state(key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            ("data_directory", str(DATA_DIR)),
+        )
+        row = c.execute("SELECT value FROM app_state WHERE key = 'backup_directory'").fetchone()
+        if row and row[0]:
+            try:
+                b_path = Path(row[0])
+                if not b_path.exists() or not b_path.is_absolute():
+                    c.execute(
+                        "INSERT INTO app_state(key, value) VALUES (?, ?) "
+                        "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                        ("backup_directory", str(DATA_DIR / "backups")),
+                    )
+            except Exception:
+                c.execute(
+                    "INSERT INTO app_state(key, value) VALUES (?, ?) "
+                    "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                    ("backup_directory", str(DATA_DIR / "backups")),
+                )
+        c.commit()
+
+    if conn is not None:
+        _apply(conn)
+    else:
+        with closing(get_connection()) as c:
+            _apply(c)
+    return str(DB_PATH)
+
+
+def get_database_path() -> Path:
+    """Return the active local database path."""
+    return DB_PATH
+
+
+def get_stored_database_path() -> Optional[str]:
+    """Return the database path stored inside app_state."""
+    return get_state("database_path")
+
+
 def init_db():
     """Run the full schema DDL (safe to call multiple times)."""
     conn = get_connection()
@@ -176,6 +230,7 @@ def init_db():
     migrate(conn)
     from app.core.scan_state import migrate as migrate_scanning
     migrate_scanning(conn)
+    sync_database_path(conn)
     conn.close()
 
 
@@ -768,12 +823,17 @@ def restore_database(backup_path: str) -> bool:
         incoming.execute('SELECT COUNT(*) FROM franchises').fetchone()
         rollback=backup_database()
         try:
-            with closing(get_connection()) as target: incoming.backup(target)
+            with closing(get_connection()) as target:
+                incoming.backup(target)
+                sync_database_path(target)
+                target.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             init_db()
             return True
         except Exception:
             with closing(sqlite3.connect(rollback)) as safety, closing(get_connection()) as target:
                 safety.backup(target)
+                sync_database_path(target)
+                target.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             raise
 
 
@@ -838,6 +898,10 @@ def cache_media(fid: int, media: Dict[str, Any], cover=None, banner=None):
     data = extract_franchise_data(media)
     with closing(get_connection()) as conn, conn:
         conn.execute("UPDATE franchises SET synopsis=?, genres=?, metadata_json=?, cover_filename=COALESCE(?,cover_filename), banner_filename=COALESCE(?,banner_filename) WHERE id=?", (data["synopsis"], data["genres"], json.dumps(media, ensure_ascii=False), cover, banner, fid))
+
+
+def has_pending_update(record, disposition):
+    return bool(record.get("has_new_update")) and disposition == "new"
 
 
 def update_dispositions():

@@ -1,3 +1,4 @@
+from app.ui.manga_style import set_material
 from app.ui.navigation import navigate
 """
 Detail Modal — Faithful reproduction of the Anime Details reference mockup.
@@ -964,7 +965,7 @@ class DetailModal(QDialog):
         """Create a season card row matching the reference mockup."""
         row = QFrame()
         row.setObjectName("season_row")
-        row.setStyleSheet("""
+        set_material(row,"""
             QFrame#season_row {
                 background-color: #1d1f29;
                 border: 1px solid #242938;
@@ -992,7 +993,7 @@ class DetailModal(QDialog):
         tag_lbl.setFixedSize(28, 28)
         tag_lbl.setAlignment(Qt.AlignCenter)
         tag_lbl.setContentsMargins(0, 0, 0, 0)
-        tag_lbl.setStyleSheet("""
+        set_material(tag_lbl,"""
             background-color: #242938;
             color: #b0b3c2;
             border-radius: 6px;
@@ -1023,7 +1024,7 @@ class DetailModal(QDialog):
         t_lbl.setTextFormat(Qt.PlainText)
         t_lbl.setWordWrap(True)
         t_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        t_lbl.setStyleSheet("font-size: 13px; font-weight: 600; color: #f3f4f6;")
+        set_material(t_lbl,"font-size: 13px; font-weight: 600; color: #f3f4f6;")
         info_box.addWidget(t_lbl)
 
         # Subtitle (Folder path or Airing status)
@@ -1035,7 +1036,7 @@ class DetailModal(QDialog):
         sub_lbl.setTextFormat(Qt.PlainText)
         sub_lbl.setToolTip(sub_text)
         sub_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        sub_lbl.setStyleSheet("font-size: 11px; color: #898d9f;")
+        set_material(sub_lbl,"font-size: 11px; color: #898d9f;")
         info_box.addWidget(sub_lbl)
         layout.addLayout(info_box, 1)
 
@@ -1044,13 +1045,13 @@ class DetailModal(QDialog):
         st_pill = QLabel()
         if st == "ON_DISK":
             st_pill.setText("On disk")
-            st_pill.setStyleSheet("background-color: rgba(34, 197, 94, 0.15); color: #22c55e; border-radius: 8px; padding: 2px 8px; font-size: 11px; font-weight: 600;")
+            set_material(st_pill,"background-color: rgba(34, 197, 94, 0.15); color: #22c55e; border-radius: 8px; padding: 2px 8px; font-size: 11px; font-weight: 600;")
         elif st == "WATCHED_REMOVED":
             st_pill.setText("Watched, removed")
-            st_pill.setStyleSheet("background-color: #242938; color: #b0b3c2; border-radius: 8px; padding: 2px 8px; font-size: 11px;")
+            set_material(st_pill,"background-color: #242938; color: #b0b3c2; border-radius: 8px; padding: 2px 8px; font-size: 11px;")
         else:
             st_pill.setText("Announced · Not released" if s.get('airing_status')=='NOT_YET_RELEASED' else "Not downloaded")
-            st_pill.setStyleSheet("background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border-radius: 8px; padding: 2px 8px; font-size: 11px;")
+            set_material(st_pill,"background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border-radius: 8px; padding: 2px 8px; font-size: 11px;")
         layout.addWidget(st_pill)
 
         # 4. Size
@@ -1062,7 +1063,7 @@ class DetailModal(QDialog):
         else:
             sz_str = "—"
         sz_lbl = QLabel(sz_str)
-        sz_lbl.setStyleSheet("color: #b0b3c2; font-size: 12px; font-weight: 600;")
+        set_material(sz_lbl,"color: #b0b3c2; font-size: 12px; font-weight: 600;")
         layout.addWidget(sz_lbl)
 
         # Health indicator
@@ -1077,12 +1078,12 @@ class DetailModal(QDialog):
             if health["missing_episodes"]:
                 miss_str = f"Missing: {', '.join(f'{m:02d}' for m in health['missing_episodes'][:3])}"
                 health_pill = QLabel(miss_str)
-                health_pill.setStyleSheet("background-color: rgba(242, 185, 75, 0.15); color: #f2b94b; border-radius: 8px; padding: 2px 8px; font-size: 10px; font-weight: 600;")
+                set_material(health_pill,"background-color: rgba(242, 185, 75, 0.15); color: #f2b94b; border-radius: 8px; padding: 2px 8px; font-size: 10px; font-weight: 600;")
                 health_pill.setToolTip("Missing within the checked interval: " + ", ".join(map(str, health["missing_episodes"])) + "\n" + health["range_note"])
                 layout.addWidget(health_pill)
             elif rel in ("SEASON", "COLLECTION"):
                 count = QLabel(f"{health['found_count']} episodes" + (" · range unverified" if not health["range_verified"] else ""))
-                count.setStyleSheet("color: #b0b3c2; font-size: 10px; padding: 0;")
+                set_material(count,"color: #b0b3c2; font-size: 10px; padding: 0;")
                 count.setToolTip(health["range_note"])
                 layout.addWidget(count)
 
@@ -1097,7 +1098,7 @@ class DetailModal(QDialog):
             if video_files:
                 play_btn = QPushButton("Play")
                 play_btn.setCursor(Qt.PointingHandCursor)
-                play_btn.setStyleSheet("""
+                set_material(play_btn,"""
                     QPushButton {
                         background-color: #1e2230;
                         color: #f3f4f6;
@@ -1117,7 +1118,7 @@ class DetailModal(QDialog):
 
             btn = QPushButton("Delete...")
             btn.setCursor(Qt.PointingHandCursor)
-            btn.setStyleSheet("""
+            set_material(btn,"""
                 QPushButton {
                     background-color: transparent;
                     color: #ef4444;
@@ -1138,7 +1139,7 @@ class DetailModal(QDialog):
         else:
             btn = QPushButton("Locate")
             btn.setCursor(Qt.PointingHandCursor)
-            btn.setStyleSheet("""
+            set_material(btn,"""
                 QPushButton {
                     background-color: #242938;
                     color: #f3f4f6;
@@ -1167,10 +1168,10 @@ class DetailModal(QDialog):
             }
             lbl = labels.get(rating, "")
             self.rating_title.setText(f"YOUR RATING:  ★ {rating}/10  ·  {lbl}")
-            self.rating_title.setStyleSheet("font-size: 11px; font-weight: 700; color: #df2545; letter-spacing: 0.5px;")
+            set_material(self.rating_title,"font-size: 11px; font-weight: 700; color: #df2545; letter-spacing: 0.5px;")
         else:
             self.rating_title.setText("YOUR RATING:  Not Rated Yet (Click 1-10)")
-            self.rating_title.setStyleSheet("font-size: 11px; font-weight: 700; color: #b0b3c2; letter-spacing: 0.5px;")
+            set_material(self.rating_title,"font-size: 11px; font-weight: 700; color: #b0b3c2; letter-spacing: 0.5px;")
 
     def _on_play_episode(self):
         """Play first available local video file across all on-disk seasons."""

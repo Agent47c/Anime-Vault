@@ -134,6 +134,39 @@ def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE'
     has_next=bool((result.get('pageInfo') or {}).get('hasNextPage'))
     return [m for m in media if isinstance(m,dict) and (allow_adult or not m.get('isAdult')) and (not adult_only or m.get('isAdult'))],has_next
 
+def discover_grid(upcoming=False,page=1,force=False,announced=False,sort='START_DATE',*,capacity=18,cache_info=None,**filters):
+    """Page visible cards without dropping the remainder of a provider page.
+
+    Provider pages keep their existing cache keys and 20-item request size. Earlier
+    pages are reused from cache, including when adult filtering reduced a page.
+    """
+    capacity=max(1,min(60,int(capacity)));skip=(max(1,int(page))-1)*capacity
+    cards=[];provider_page=1;more=True;network=False;stamps=[]
+    while more and len(cards)<capacity:
+        info={}
+        try:
+            items,more=discover(upcoming,provider_page,force and skip<20,announced,sort,cache_info=info,**filters)
+        except CacheMiss:
+            if not cards:raise
+            if cache_info is not None:cache_info['warning']='The rest of this page is not cached. Click Check new animes to load it.'
+            more=False;break
+        network=network or info.get('source')=='network'
+        if info.get('saved_at'):stamps.append(info['saved_at'])
+        if info.get('warning') and cache_info is not None:cache_info['warning']=info['warning']
+        if not items:
+            more=False;break
+        if skip>=len(items):skip-=len(items)
+        else:
+            take=min(capacity-len(cards),len(items)-skip)
+            cards.extend(items[skip:skip+take]);more=more or skip+take<len(items);skip=0
+        if len(cards)>=capacity:break
+        provider_page+=1
+    if cache_info is not None:
+        cache_info.update(source='network' if network else 'cache')
+        if stamps:cache_info['saved_at']=min(stamps)
+    return cards,more
+
+
 def timeline(media_id,page=1,force=False,cache_info=None):
     query='''query($id:Int,$page:Int){Media(id:$id,type:ANIME){'''+FIELDS+'''
     relations{edges{relationType node{id type isAdult title{english romaji native} status startDate{year month day}}}}}

@@ -1,4 +1,5 @@
 """Compact schedule tile with the existing hover preview and hover lift."""
+from app.ui.manga_style import set_material
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel,QProgressBar
 from app.ui.components.airing_count import AiringDay
@@ -29,7 +30,7 @@ class HomeDay(AiringDay):
         if self._manga_day:
             self.setFixedHeight(156);self.surface.setFixedHeight(128)
             header=self.surface.layout().itemAt(0).layout()
-            self.day_number=QLabel(self.date.strftime('%d'));self.day_number.setStyleSheet('background:transparent;color:#111217;font:700 20px Inter;');header.addWidget(self.day_number)
+            self.day_number=QLabel(self.date.strftime('%d'));set_material(self.day_number,'background:transparent;color:#111217;font:700 20px Inter;');header.addWidget(self.day_number)
             self.today_badge=self.surface.findChild(QLabel,'airing_today_badge')
             if self.today_badge:
                 header.removeWidget(self.today_badge);self.today_badge.setParent(self)

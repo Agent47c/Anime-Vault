@@ -56,12 +56,8 @@ def series_name(raw):
 
 
 def explicit_season(text):
-    match = re.search(r'\b(?:S(\d{1,2})(?:E\d+)?|R(\d{1,2})\b|(\d{1,2})x\d{1,4})', text, re.I)
-    if match:
-        return int(next(v for v in match.groups() if v))
-    if re.search(r'\bseason\s*\d|\d+(?:st|nd|rd|th)\s+season', text, re.I):
-        return extract_season_number(text, None)
-    return None
+    from app.core.parser import explicit_season_number
+    return explicit_season_number(text)
 
 
 def release_folder(relative, release_title=None, absolute=False):

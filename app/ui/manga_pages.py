@@ -1,4 +1,5 @@
 """Page-specific treatments built from the approved Manga light master tokens."""
+from app.ui.manga_style import material
 from app.ui.manga_style import controls_qss, COLORS
 from app.ui.home_style import px
 
@@ -11,7 +12,7 @@ def active():
 
 def page_qss(name):
     r=f'QWidget#{name}'
-    return controls_qss()+f'''
+    return material(controls_qss()+f'''
     {r} {{background:#eef0f5;color:#111217;}}
     QWidget#metadata_rematch {{background:white;border:1px solid #e2e5ed;border-radius:22px;}}
     {r} QScrollArea, {r} QScrollArea>QWidget, {r} QWidget#workflow_body, {r} QWidget#workflow_field,
@@ -33,11 +34,11 @@ def page_qss(name):
     {r} QCheckBox, {r} QRadioButton {{background:transparent;color:#111217;spacing:10px;}}
     {r} QCheckBox::indicator, {r} QRadioButton::indicator {{width:20px;height:20px;border:2px solid #596175;background:white;border-radius:5px;}}
     {r} QCheckBox::indicator:checked, {r} QRadioButton::indicator:checked {{background:#ff2e93;border-color:#c4005f;}}
-    '''
+    ''')
 
 
 def details_qss():
-    return controls_qss()+f'''
+    return material(controls_qss()+f'''
     QDialog#series_details, QWidget#detail_canvas, QWidget#detail_lower {{background:#eef0f5;color:#111217;}}
     QWidget#detail_content, QWidget#detail_personal, QWidget#detail_surface_clear {{background:transparent;border:none;}}
     QFrame#detail_hero {{background:#f6f7fb;border:1px solid white;border-radius:22px;}}
@@ -63,12 +64,12 @@ def details_qss():
     QLabel#detail_season_title {{font-weight:700;}}
     QTextEdit {{background:white;color:#111217;border:1px solid #c4c9d4;border-radius:8px;padding:8px;}}
     QScrollArea,QScrollArea>QWidget {{background:transparent;border:none;}}
-    '''
+    ''')
 
 
 def entry_qss(name):
     r=f'QDialog#{name}'
-    return controls_qss()+f'''
+    return material(controls_qss()+f'''
     {r} {{background:#eef0f5;border:1px solid white;border-radius:20px;}}
     {r} QWidget#twilight_header, {r} QFrame#twilight_footer {{background:#eef0f5;border-bottom:1px solid #c4c9d4;}}
     {r} QWidget#twilight_body, {r} QWidget#twilight_field, {r} QWidget#twilight_field_inner {{background:transparent;border:none;}}
@@ -83,4 +84,4 @@ def entry_qss(name):
     {r} QPushButton[ratingChoice='true']:checked {{background:#ffd336;color:#111217;border:2px solid #111217;}}
     {r} QPushButton[ratingFilled='true'] {{background:#ffd336;color:#111217;border-color:#d6b128;}}
     {r} QLineEdit#entry_native_input {{font-family:'Yu Gothic UI';}}
-    '''
+    ''')

@@ -77,7 +77,7 @@ class ReleaseNewsPage(QDialog):
             widget.setAccessibleName(name);widget.setCursor(Qt.PointingHandCursor);filters.addWidget(widget);widget.currentIndexChanged.connect(self.reset)
         from app.preferences import enabled
         self.adult_filter=QCheckBox('Include adult (18+)');self.adult_filter.setChecked(enabled('allow_mature'));self.adult_filter.setEnabled(enabled('allow_mature'))
-        self.adult_filter.setToolTip('Follows Settings → Metadata and AniList → Allow mature (18+) titles.');self.adult_filter.setCursor(Qt.PointingHandCursor)
+        self.adult_filter.setToolTip('Follows Settings → Metadata & Adult Access → Allow mature (18+) titles.');self.adult_filter.setCursor(Qt.PointingHandCursor)
         filters.addWidget(self.adult_filter);self.adult_filter.toggled.connect(self.reset)
         self.adult_only=QCheckBox('Only adult (18+)');filters.addWidget(self.adult_only);self.adult_only.toggled.connect(self.reset)
         self._adult_allowed=enabled('allow_mature');self.apply_preferences(reload=False)
@@ -87,7 +87,9 @@ class ReleaseNewsPage(QDialog):
         content=QWidget();content.setObjectName('transfer_clear');self.rows=QVBoxLayout(content);self.rows.setAlignment(Qt.AlignTop);scroll.setWidget(content);layout.addWidget(scroll,1)
         footer=QHBoxLayout();self.previous=QPushButton('Previous');self.previous.clicked.connect(lambda:self.change_page(-1));footer.addWidget(self.previous)
         self.next=QPushButton('Next');self.next.clicked.connect(lambda:self.change_page(1));footer.addWidget(self.next);footer.addStretch();close=QPushButton('Back');close.clicked.connect(self.reject);footer.addWidget(close);layout.addLayout(footer)
-        self.period.currentIndexChanged.connect(self.reset);self.finished.connect(self.stop);self.load()
+        self.period.currentIndexChanged.connect(self.reset);self.finished.connect(self.stop)
+        self._initial_load_pending=False;self._constructing=True
+        self.load();self._constructing=False
 
     def stop(self,*_):
         self.generation+=1
@@ -117,6 +119,7 @@ class ReleaseNewsPage(QDialog):
 
     def showEvent(self,event):
         super().showEvent(event);self.apply_preferences()
+        if getattr(self,'_initial_load_pending',False):self.load()
 
     def run(self,operation,ready,on_error=None):
         if self.worker:self.worker.requestInterruption()
@@ -137,16 +140,22 @@ class ReleaseNewsPage(QDialog):
         worker.succeeded.connect(loaded);worker.failed.connect(failed);worker.finished.connect(finished);worker.start()
 
     def load(self,force=False):
+        if getattr(self,'_constructing',False):
+            self._initial_load_pending=True;return
+        self._initial_load_pending=False
         self.status.setText('Checking AniList…' if force else 'Loading release details…' if self.media_id else 'Loading saved results…');page=self.page;upcoming=self.period.currentIndex()==1;mid=self.media_id;announced=self.period.currentIndex()==2;sort=('START_DATE_DESC','START_DATE','TITLE_ENGLISH','POPULARITY_DESC')[self.sort.currentIndex()]
         genre=self.genre_filter.currentData();theme=self.theme_filter.currentData();media_format=self.format_filter.currentData();include_adult=self.adult_filter.isChecked()
         fetch_missing=getattr(self,'_fetch_missing',False);self._fetch_missing=False;adult_only=self.adult_only.isChecked()
+        if not mid and (page==1 or not hasattr(self,'_discovery_capacity')):
+            self._discovery_capacity=self.discovery_columns()*3
+        capacity=getattr(self,'_discovery_capacity',18)
         def operation():
             from app.core import anilist_client
             with anilist_client.cancellable(QThread.currentThread().isInterruptionRequested):
                 info={}
                 try:
                     if not mid:
-                        result=news.discover(upcoming,page,force,announced,sort,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info,fetch_missing=fetch_missing,adult_only=adult_only)
+                        result=news.discover_grid(upcoming,page,force,announced,sort,capacity=capacity,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info,fetch_missing=fetch_missing,adult_only=adult_only)
                         info['library_owners']=news.library_owners()
                         return result,info
                     result=news.timeline(mid,page,force,cache_info=info)
@@ -208,6 +217,7 @@ class ReleaseNewsPage(QDialog):
         worker.image_ready.connect(show_image);worker.banner_ready.connect(lambda mid,image:show_image(mid,image,True));worker.finished.connect(finished);worker.start()
 
     def render(self,result):
+        self._initial_load_pending=False
         if getattr(self,'_artwork',None):self._artwork.requestInterruption()
         self._last_result=result
         self._library_owners=getattr(self,'_cache_info',{}).get('library_owners')
@@ -308,16 +318,25 @@ class ReleaseNewsPage(QDialog):
         stamp=info.get('saved_at')
         checked=datetime.fromtimestamp(stamp).astimezone().strftime('%d %b %Y · %H:%M') if stamp else 'not checked yet'
         message=info.get('warning') or ('Updated and saved' if info.get('source')=='network' else 'Saved results')
-        self.status.setText(f'{message} · Page {self.page} · Last checked: {checked}. Use the check button to refresh online.')
+        count='' if self.media_id else f" · {len(self._discovery_cards)} titles"+(' · End of results' if not self.next.isEnabled() and not info.get('warning') else '')
+        self.status.setText(f'{message} · Page {self.page}{count} · Last checked: {checked}. Use the check button to refresh online.')
         from app.ui.manga_workflows import finish
         finish(self)
+
+    def discovery_columns(self):
+        from app.ui.manga_pages import active
+        width=self.scroll.viewport().width()-self.rows.contentsMargins().left()-self.rows.contentsMargins().right()
+        if not self.isVisible():
+            margins=self.layout().contentsMargins()
+            width=self.width()-margins.left()-margins.right()-self.rows.contentsMargins().left()-self.rows.contentsMargins().right()-self.scroll.verticalScrollBar().sizeHint().width()
+        return max(1,(width+20)//(260 if active() else 280))
 
     def arrange_cards(self):
         if not hasattr(self,'_discovery_grid'):return
         grid=self._discovery_grid
         width=self.scroll.viewport().width()-self.rows.contentsMargins().left()-self.rows.contentsMargins().right()
         from app.ui.manga_pages import active
-        cols=max(1,(width+grid.spacing())//(260 if active() else 280))
+        cols=self.discovery_columns()
         for col in range(max(cols,getattr(self,'_discovery_columns',0))):
             grid.setColumnStretch(col,1 if col<cols else 0);grid.setColumnMinimumWidth(col,0)
         self._discovery_columns=cols

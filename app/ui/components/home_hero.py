@@ -45,7 +45,14 @@ class HomeHero(HeroResumeCard):
         super().refresh()
         episode=getattr(self,'_resume_episode',None);numbers=extract_episode_numbers(Path(episode).name) if episode else []
         if episode:self.resume_btn.setText(('Resume Episode ' if 'Resume' in self.resume_btn.text() else 'Play Episode ')+(str(numbers[0]) if numbers else ''))
-        if getattr(self,'_live_playback',{}).get('path')!=episode:self.update_playback({})
+        state=getattr(self,'_live_playback',{})
+        from app.core.identity import path_key
+        if episode and state.get('path') and path_key(state['path'])==path_key(episode):
+            self.update_playback(state)
+        elif episode:
+            from app.core.playback import saved_progress,episode_ids
+            self.update_playback({**saved_progress(episode_ids(episode)),'path':episode,'fid':self.current_fid,'active':False})
+        else:self.update_playback({})
     def present_session(self,record,path,banner=None,available=True):
         self.current_fid=record['id'];self._resume_episode=path;self.title_label.set_full_text(record.get('display_title') or 'Anime')
         numbers=extract_episode_numbers(Path(path).name);self.sub_label.set_full_text(('Episode '+str(numbers[0])+' · ' if numbers else '')+Path(path).stem)
@@ -69,7 +76,7 @@ class HomeHero(HeroResumeCard):
             self.playback_text.setText(f'{int(remaining//60):02d}:{int(remaining%60):02d} left of {int(duration//60):02d}:{int(duration%60):02d}')
             self.playback_text.setToolTip('Saved playback position'+(' · Player connected' if state.get('active') else ''))
         else:
-            self.playback_text.setText('Playback progress not available yet');self.playback_text.setToolTip('Live progress and Space play/pause work with app-launched VLC or MPV.')
+            self.playback_text.setText('Playback progress not available yet');self.playback_text.setToolTip('Live progress and Space play/pause work with app-launched VLC, MPV or PotPlayer.')
         self.playback_bar.setAccessibleName(f'{round(position)} of {round(duration)} seconds played' if duration else 'Playback progress unavailable')
     def _on_resume(self):
         state=getattr(self,'_live_playback',{})

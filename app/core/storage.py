@@ -13,8 +13,9 @@ def format_bytes(value):
 
 
 def format_rate(value):
-    """Transfer rates in KB/s; file sizes retain their separate formatting."""
-    return f'{max(0,value or 0)/1024:,.2f} KB/s'
+    """Use KB/s below one MiB/s and MB/s from that threshold onward."""
+    rate=max(0,value or 0)
+    return f'{rate/1024**2:,.2f} MB/s' if rate>=1024**2 else f'{rate/1024:,.2f} KB/s'
 
 
 def disk_snapshot():

@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from app import db
 from app.core import downloads
-from app.core.parser import extract_episode_numbers,normalize_for_matching
+from app.core.parser import extract_episode_numbers,normalize_for_matching,season_episode_match
 from app.core.match_evidence import base_title
 from app.core.consolidation import explicit_season
 from app.core.library_health import aired_boundary
@@ -62,7 +62,7 @@ def remember_confirmed_alias(fid,entry):
     offsets={b-a for a,b in zip(source,logical)} if len(source)==len(logical) else set()
     encoder=re.match(r'^\[([^]]+)\]',entry['title'])
     group=(entry.get('group') or (encoder[1] if encoder else '')).casefold()
-    relative=bool(re.search(r'\bS\d+[ ._-]*E\d+',entry['title'],re.I))
+    relative=bool(season_episode_match(entry['title']))
     source_season=explicit_season(entry['title'])
     rule=dict(title=title,key=key,season=season,source_season=source_season,continuous=continuous,group=group,relative=relative,offset=next(iter(offsets)) if len(offsets)==1 else None if len(offsets)>1 else 0)
     rules=[r for r in rules if (r['key'],r['season'],r['continuous'],r.get('group',''),r.get('relative',False),r.get('source_season'))!=(key,season,continuous,group,relative,source_season)]
@@ -223,7 +223,7 @@ def classify(entry,context):
     chosen=context.get('season_selected',context.get('season') is not None)
     candidates=[r for r in context.get('alias_rules',[]) if r['key']==download_title_key(title) and (not chosen or r['season']==context['season']) and (explicit is None or explicit==(r.get('source_season') or r['season']))]
     encoder=re.match(r'^\[([^]]+)\]',title);group=(entry.get('group') or (encoder[1] if encoder else '')).casefold()
-    relative=bool(re.search(r'\bS\d+[ ._-]*E\d+',title,re.I))
+    relative=bool(season_episode_match(title))
     exact=[r for r in candidates if r.get('group','')==group and r.get('relative',False)==relative]
     rules=exact or [r for r in candidates if r.get('offset')==0 and (r.get('source_season') is None or r['source_season']==r['season'])]
     rules=list({(r['season'],r['continuous'],r.get('offset')):r for r in rules}.values())

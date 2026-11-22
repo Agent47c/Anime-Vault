@@ -14,11 +14,17 @@ class NeumorphicTabBar(QTabBar):
         from app.ui.manga_pages import active
         if not active():return super().paintEvent(event)
         from app.ui.components.neumorphic import paint_depth
+        from app.ui.manga_style import manga_colors
+        from app.ui.theme_catalog import is_manga_dark
+        colors=manga_colors()
+        dark=is_manga_dark()
         painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing)
         for index in range(self.count()):
             rect=QRectF(self.tabRect(index)).adjusted(8,8,-8,-8);selected=index==self.currentIndex()
             if not selected:paint_depth(painter,rect)
-            painter.setBrush(QColor('#e2e5ed' if selected else 'white'));painter.setPen(QPen(QColor('#c4c9d4' if selected else 'white'),1));painter.drawRoundedRect(rect,8,8)
+            face=colors['raised'] if selected and not dark else colors['panel']
+            edge=colors['line'] if selected or dark else colors['panel']
+            painter.setBrush(QColor(face));painter.setPen(QPen(QColor(edge),1));painter.drawRoundedRect(rect,8,8)
             if selected:paint_depth(painter,rect,True)
-            painter.setPen(QColor('#111217' if self.isTabEnabled(index) else '#8a91a2'))
+            painter.setPen(QColor(colors['text'] if self.isTabEnabled(index) else colors['muted']))
             painter.drawText(rect,Qt.AlignCenter,self.tabText(index))

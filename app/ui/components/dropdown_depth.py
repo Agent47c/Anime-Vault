@@ -7,13 +7,17 @@ from app.ui.components.neumorphic import PAD, paint_depth
 def option_face(painter,rect,selected=False,enabled=True):
     """The same small raised button material for every popup option."""
     from PyQt5.QtGui import QColor,QPen
+    from app.ui.manga_style import manga_colors
+    from app.ui.theme_catalog import is_manga_dark
+    colors=manga_colors()
     painter.save()
     if not enabled:painter.setOpacity(.55)
     rect=QRectF(rect)
     if not selected:
         painter.save();painter.setOpacity(painter.opacity()*.65);paint_depth(painter,rect,radius=8);painter.restore()
-    painter.setPen(QPen(QColor('#ff2e93') if selected else QColor(17,18,23,75),.75))
-    painter.setBrush(QColor('#eef0f5' if selected else 'white'));painter.drawRoundedRect(rect,8,8)
+    edge=QColor(colors['line']) if is_manga_dark() else QColor(17,18,23,75)
+    painter.setPen(QPen(QColor(colors['coral']) if selected else edge,.75))
+    painter.setBrush(QColor(colors['bg'] if selected else colors['panel']));painter.drawRoundedRect(rect,8,8)
     if selected:paint_depth(painter,rect,True,radius=8)
     painter.restore()
 

@@ -1,6 +1,6 @@
 # Anime Vault — UI Design Guidelines
 
-**Status:** Approved working rules; Manga Brutalism Light main Library reference supplied.
+**Status:** Approved working rules with separate Manga Brutalism Light and Dark main Library references.
 **Applies to:** Light and dark modes, shared components and every application screen.
 
 ## 1. The main screen is the design authority
@@ -99,8 +99,9 @@ When the main screen arrives:
 | New theme main Library screen | Manga Brutalism Light main screen supplied by the user |
 | Exact source folder / files | `Light Theme (Manga Brutalism)/Main Screen (Light Theme )/`: `screen.png`, `code.html`, `DESIGN.md` |
 | New theme light-mode reference | Supplied main-screen image is the light master; see the master contract linked below |
-| New theme dark-mode reference | Not supplied / not approved yet |
+| New theme dark-mode reference | User supplied and designated as the shared master on 22 November 2026. Source: `Dark Theme (Manga Brutalism)/Main Screen (Dark Theme)/`. Archived at [Manga Dark main screen](../../design/references/manga-brutalism-dark/main-v1), 1591 × 1600. |
 | Shared component specification | [Manga light master contract](MANGA_LIGHT_MASTER.md) |
+| Dark screen coverage | [Manga Dark reference inventory](MANGA_DARK_REFERENCE_INVENTORY.md) |
 | Previous family | Sakura Dark / Sakura Light, preserved separately |
 
 Update this register when references are supplied. Do not substitute an old

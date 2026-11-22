@@ -1,4 +1,5 @@
 """Twelve additional references, using the existing Manga master materials."""
+from app.ui.manga_style import material
 from app.ui.manga_workflows import qss as workflow_qss
 from app.ui.home_style import px
 
@@ -6,7 +7,7 @@ from app.ui.home_style import px
 def qss(name):
     r=f'QWidget#{name}'
     modal=name in ('season_numbers','group_review','adult_access','quit_dialog','confirm_selected')
-    return workflow_qss(name)+f'''
+    return material(workflow_qss(name)+f'''
     {r} {{background:{'white' if modal else '#eef0f5'};color:#111217;}}
     {r} QLabel#heading, {r} QLabel#dialog_title, {r} QLabel#duplicate_heading,
     {r} QLabel#settings_heading {{font:800 {px(28)}px 'Noto Serif';color:#111217;}}
@@ -52,4 +53,4 @@ def qss(name):
     {r} QPushButton[settingsSection='true']:checked {{background:#ffe0ef;color:#c4005f;border-color:#ff2e93;}}
     {r} QPushButton#settings_theme_card {{min-height:{px(170)}px;max-height:{px(170)}px;padding:0;}}
     {r} QPushButton[settingsPlayerCard='true'] {{min-height:{px(70)}px;}}
-    '''
+    ''')

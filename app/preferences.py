@@ -26,15 +26,6 @@ def text_scale():
     return float(value) if value in ("1.0", "1.15", "1.3") else 1.0
 
 
-def windows_light_theme():
-    try:
-        import winreg
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as key:
-            return bool(winreg.QueryValueEx(key, "AppsUseLightTheme")[0])
-    except (ImportError, OSError):
-        return False
-
-
 def system_high_contrast():
     try:
         import ctypes

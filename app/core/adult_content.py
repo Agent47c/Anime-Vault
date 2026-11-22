@@ -129,8 +129,11 @@ def set_auto_lock_on_restart(enabled: bool) -> None:
 def is_adult_unlocked() -> bool:
     global _session_unlocked
     if not is_password_configured():
-        # If no password has ever been configured, respect the explicit user toggle state or allow_mature preference
-        return db.get_state("adult_lock.unlocked", "0") == "1" or db.get_state("preference:allow_mature", "0") == "1"
+        visibility = db.get_state("adult_lock.unlocked")
+        if visibility is not None:
+            return visibility == "1"
+        # Preserve the preference fallback for profiles that never chose visibility.
+        return db.get_state("preference:allow_mature", "0") == "1"
     return _session_unlocked
 
 

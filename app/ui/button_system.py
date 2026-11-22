@@ -31,6 +31,9 @@ def unified(root):
             selector=root(*args,**kwargs) if callable(root) else root
             result=function(*args,**kwargs)
             from app.ui.manga_pages import active
-            return result if active() else result+rules(selector,scale=scale)
+            if active():
+                from app.ui.manga_style import material
+                return material(result)
+            return result+rules(selector,scale=scale)
         return styled
     return decorate

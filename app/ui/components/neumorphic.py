@@ -12,7 +12,9 @@ PAD=12
 
 
 def tile(inset=False,radius=12):
-    key=(inset,radius)
+    from app.ui.theme_catalog import is_manga_dark
+    dark=is_manga_dark()
+    key=(inset,radius,dark) if dark else (inset,radius)
     if key in _tiles:return _tiles[key]
     from PIL import Image,ImageDraw,ImageFilter,ImageChops
     size=192;mask=Image.new('L',(size,size));ImageDraw.Draw(mask).rounded_rectangle((24,24,168,168),radius=radius*2,fill=255)
@@ -20,6 +22,8 @@ def tile(inset=False,radius=12):
         result=Image.new('L',(size,size));result.paste(source,(x,y));return result
     image=Image.new('RGBA',(size,size))
     layers=(((0,8),(255,46,147),150),) if inset=='glow' else (((3,3),(103,113,137),100),((-2,-2),(255,255,255),55)) if inset else (((-5,-5),(255,255,255),170),((7,7),(103,113,137),125))
+    if dark and inset!='glow':
+        layers=(((3,3),(0,0,0),205),((-2,-2),(120,122,134),40)) if inset else (((-5,-5),(116,117,127),35),((7,7),(0,0,0),200))
     for offset,color,alpha in layers:
         if inset is True:
             source=shifted(ImageChops.invert(mask),*offset).filter(ImageFilter.GaussianBlur(5))
@@ -92,4 +96,5 @@ class NeumorphicTrack(QFrame):
     def paintEvent(self,event):
         from app.ui.manga_pages import active
         if not active():super().paintEvent(event);return
-        painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen);painter.setBrush(QColor('#dfe3ed'));painter.drawRoundedRect(QRectF(self.rect()),12,12);paint_depth(painter,self.rect(),True);painter.end()
+        from app.ui.manga_style import manga_colors
+        painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen);painter.setBrush(QColor(manga_colors().get('inset','#dfe3ed')));painter.drawRoundedRect(QRectF(self.rect()),12,12);paint_depth(painter,self.rect(),True);painter.end()

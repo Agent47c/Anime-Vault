@@ -110,13 +110,17 @@ class DownloadRecoveryTests(unittest.TestCase):
     def test_row_menu_keeps_original_target_when_selection_changes(self):
         from app.ui.pages.downloads_page import DownloadsPage
         from PyQt5.QtCore import QPoint
+        from PyQt5.QtWidgets import QAction
         with patch.object(DownloadsPage,'refresh'):
             page=DownloadsPage();page.items=[dict(id='one',title='First',destination=self.temp.name,status='Paused'),dict(id='two',title='Second',destination=self.temp.name,status='Paused')];page.render();page.table.selectRow(0)
             callbacks={}
             class Menu:
-                def __init__(self,*args):pass
-                def addAction(self,label,callback):callbacks[label]=callback
+                def __init__(self,*args):self._actions=[]
+                def addAction(self,label,callback):
+                    callbacks[label]=callback;self._actions.append(QAction(label,None))
+                def actions(self):return self._actions
                 def exec_(self,*args):
+                    assert all(not action.icon().isNull() for action in self._actions)
                     page.table.selectRow(1);callbacks['Remove queue entry — keep files']()
             with patch('app.ui.pages.downloads_page.QMenu',Menu),patch.object(page,'action') as action:
                 page.row_menu(QPoint(1,1));action.assert_called_once_with('remove','one')

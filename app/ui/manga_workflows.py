@@ -1,4 +1,5 @@
 """Shared paper surfaces for the second batch of approved Manga light screens."""
+from app.ui.manga_style import material
 from app.ui.manga_pages import page_qss
 from app.ui.home_style import px
 
@@ -15,7 +16,7 @@ def finish(widget):
 
 def qss(name):
     r=f'QWidget#{name}'
-    return page_qss(name)+f'''
+    return material(page_qss(name)+f'''
     {r} QWidget#merge_content, {r} QWidget#organizer_clear, {r} QWidget#organizer_cell,
     {r} QWidget#merge_title_cell, {r} QWidget#merge_pill_cell, {r} QWidget#storage_content {{background:transparent;border:none;}}
     {r} QLabel#download_heading, {r} QLabel#storage_heading, {r} QLabel#merge_heading,
@@ -55,17 +56,17 @@ def qss(name):
     QWidget#downloads_page QLabel#download_guide_eyebrow {{font:600 {px(11)}px 'JetBrains Mono';color:#c4005f;}}
     QWidget#downloads_page QTableView {{background:transparent;border:none;}}
     {r} QFrame#search_actions {{background:#eef0f5;border-top:1px solid #c4c9d4;}}
-    '''
+    ''')
 
 
 def import_qss(name):
     from app.ui.manga_pages import entry_qss
     r=f'QDialog#{name}'
-    return entry_qss(name)+f'''
+    return material(entry_qss(name)+f'''
     {r} QFrame#import_dropzone {{background:#f6f7fb;border:2px dashed #aeb7ca;border-radius:16px;}}
     {r} QFrame#import_config_card, {r} QFrame#import_switch_card, {r} QFrame#kpi_card,
     {r} QFrame#import_row_card {{background:white;border:1px solid white;border-radius:14px;}}
     {r} QLabel#kpi_value {{font:800 {px(28)}px 'Noto Serif';}}
     {r} QLabel#workflow_row_title {{font-weight:700;}}
     {r} QLabel#workflow_hint {{color:#596175;}}
-    '''
+    ''')

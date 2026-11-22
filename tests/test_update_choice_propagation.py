@@ -19,6 +19,48 @@ class UpdateChoicePropagationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):support.Regressions.setUpClass.__func__(cls)
 
+    def test_adult_visibility_keeps_pending_updates_and_syncs_retained_views(self):
+        from app.core import adult_content
+        from app.ui.main_window import MainWindow
+        mature=db.upsert_franchise({'display_title':'Mature fixture','is_adult':True})
+        for fid in (self.fid,mature):
+            db.publish_updates(fid,'Season 2 announced')
+        db.set_state('preference:allow_mature','1')
+        with patch.object(LibraryPage,'_request_home_facts'),patch.object(LibraryPage,'_refresh_airing_week'),patch.object(HomeHero,'refresh'):
+            home=LibraryPage()
+            updates=UpdatesPage()
+            self.addCleanup(home.deleteLater)
+            self.addCleanup(updates.deleteLater)
+            host=SimpleNamespace(library_page=home,updates_page=updates,organizer_page=Mock(),
+                                 _dirty_pages={home,updates},_updater_thread=None,_refresh_metrics=Mock())
+            for visible, expected in ((False,{self.fid}),(True,{self.fid,mature})):
+                db.set_state('adult_lock.unlocked','1' if visible else '0')
+                self.assertEqual(adult_content.is_adult_unlocked(),visible)
+                MainWindow._apply_settings_preferences(host)
+                self.assertEqual({row['id'] for row in updates._updates},expected)
+                self.assertEqual(set(home._release_card_pool),expected)
+                self.assertTrue(db.get_franchise(mature)['has_new_update'])
+                self.assertFalse(host._dirty_pages)
+
+    def test_saved_disposition_with_stale_flag_does_not_count_as_pending(self):
+        db.publish_updates(self.fid,'Season 2 announced')
+        db.set_state(f'update_disposition:{self.fid}','later')
+        updates=UpdatesPage()
+        self.addCleanup(updates.deleteLater)
+        self.assertEqual(updates._updates,[])
+        self.assertFalse(LibraryIndex().by_id[self.fid]['has_new_update'])
+
+    def test_refresh_cannot_publish_snapshot_from_before_adult_lock(self):
+        from app.ui.main_window import MainWindow
+        connection=Mock()
+        host=SimpleNamespace(_finish_refresh=Mock())
+        oversized_visibility_snapshot={'connection':connection,'adult_visible':True}
+        with patch('app.core.adult_content.is_adult_unlocked',return_value=False):
+            MainWindow._apply_refresh_snapshot(host,oversized_visibility_snapshot)
+        connection.close.assert_called_once()
+        host._finish_refresh.assert_called_once()
+        self.assertTrue(host._refresh_pending)
+
     def test_all_choices_remove_single_home_update_and_restore_without_refresh(self):
         db.publish_updates(self.fid,'Season 2 announced')
         with patch.object(LibraryPage,'_request_home_facts'),patch.object(LibraryPage,'_refresh_airing_week'),patch.object(HomeHero,'refresh'):

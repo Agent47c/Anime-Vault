@@ -28,8 +28,14 @@ class FilterPill(QPushButton):
         from app.ui.theme_catalog import is_manga
         manga=is_manga()
         if manga:
-            background=QColor('white' if active else '#eef0f5');painter.setBrush(background)
-            if hovered or self.hasFocus():painter.setPen(QPen(QColor('#ff2e93'),1))
+            from app.ui.manga_style import manga_colors
+            from app.ui.theme_catalog import is_manga_dark
+            c=manga_colors();dark=is_manga_dark()
+            background=QColor('#e5e2e1' if active and dark else 'white' if active else c['panel'] if dark else c['bg'])
+            text=QColor('#111217' if active else c['text'])
+            painter.setBrush(background)
+            if hovered or self.hasFocus():
+                painter.setPen(QPen(QColor(c['coral']),1))
         radius=8 if manga else rect.height()/2
         painter.drawRoundedRect(rect,radius,radius)
         if self.hasFocus() and not manga:
@@ -44,10 +50,10 @@ class FilterPill(QPushButton):
             if match:
                 label,count=match.groups();metrics=painter.fontMetrics();count_width=metrics.horizontalAdvance(count)+14
                 total=metrics.horizontalAdvance(label)+count_width+10;x=(self.width()-total)/2
-                painter.setPen(QColor('#111217' if active else '#596175'));painter.drawText(QRectF(x,0,metrics.horizontalAdvance(label)+2,self.height()),Qt.AlignVCenter,label)
+                painter.setPen(text if active else QColor(c['muted']));painter.drawText(QRectF(x,0,metrics.horizontalAdvance(label)+2,self.height()),Qt.AlignVCenter,label)
                 badge=QRectF(x+metrics.horizontalAdvance(label)+10,(self.height()-22)/2,count_width,22)
                 if active:painter.setPen(Qt.NoPen);painter.setBrush(QColor('#111217'));painter.drawRoundedRect(badge,3,3)
-                painter.setPen(QColor('white' if active else '#7c8599'));painter.drawText(badge,Qt.AlignCenter,count)
+                painter.setPen(QColor('white' if active else c['muted'] if dark else '#7c8599'));painter.drawText(badge,Qt.AlignCenter,count)
                 return
         painter.drawText(self.rect(), Qt.AlignCenter, self.text())
 

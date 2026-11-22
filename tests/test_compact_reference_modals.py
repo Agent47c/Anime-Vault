@@ -1,7 +1,7 @@
 """Requested compact overlays: real blur, clean dismissal and retained actions."""
 import unittest
 from unittest.mock import patch,Mock
-from PyQt5.QtCore import Qt,QCoreApplication,QEvent,QPoint,QTimer
+from PyQt5.QtCore import Qt,QCoreApplication,QEvent,QPoint,QRect,QTimer
 from PyQt5.QtWidgets import QWidget,QVBoxLayout,QLabel,QDialog,QStackedWidget,QLineEdit,QPushButton
 from PyQt5.QtGui import QPixmap,QPainter
 from PyQt5.QtTest import QTest
@@ -73,6 +73,23 @@ class CompactReferenceTests(unittest.TestCase):
                 pixel=image.pixelColor(point)
                 self.assertGreater(max(pixel.red(),pixel.green(),pixel.blue()),30)
             page.reject()
+
+    def test_quit_shadow_margin_blends_into_backdrop_in_both_manga_themes(self):
+        from app.ui.main_window import QuitConfirmDialog
+        for theme in ('manga_dark','manga_light'):
+            with self.subTest(theme=theme):
+                apply_theme(self.app,theme)
+                host=self.host();page=QuitConfirmDialog(host)
+                self.addCleanup(page.deleteLater);page.show();QTest.qWait(30)
+                try:
+                    backdrop=page._compact_modal.backdrop
+                    origin=backdrop.mapFromGlobal(page.mapToGlobal(QPoint()))
+                    behind=backdrop.grab(QRect(origin,page.size())).toImage()
+                    dialog=page.grab().toImage()
+                    for point in (QPoint(),QPoint(dialog.width()-1,0),QPoint(0,dialog.height()-1)):
+                        self.assertEqual(dialog.pixelColor(point),behind.pixelColor(point))
+                finally:
+                    page.reject()
 
     def test_grouping_overlay_preserves_underlying_navigation_and_review_gate(self):
         from app.ui.pages.group_series_page import GroupReview

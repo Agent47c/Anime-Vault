@@ -3,6 +3,7 @@
 Unknown totals stay indeterminate. This observes workers; it never performs IO,
 changes cancellation semantics, or manufactures throughput/integrity figures.
 """
+from app.ui.manga_style import set_material
 import time
 from PyQt5 import sip
 from PyQt5.QtCore import Qt, QRectF, QTimer, QObject, pyqtSlot
@@ -104,7 +105,7 @@ class OperationProgress(QDialog):
         from app.ui.home_style import colors
         from app.ui.manga_pages import active
         c = colors()
-        self.setStyleSheet(f'''
+        set_material(self,f'''
             QDialog#operation_progress {{background:transparent;border:none;}}
             QFrame#operation_card {{background:transparent;border:none;}}
             QLabel {{background:transparent;border:none;color:{c['text']};font-size:13px;}}
@@ -208,13 +209,14 @@ class ProgressPanel(QFrame):
     def paintEvent(self, event):
         from app.ui.home_style import colors
         from app.ui.manga_pages import active
+        from app.ui.theme_catalog import is_manga_dark
         c = colors(); p = QPainter(self); p.setRenderHint(QPainter.Antialiasing)
         face = QRectF(self.rect()).adjusted(12,12,-12,-12)
         if active():
             from app.ui.components.neumorphic import paint_depth
             paint_depth(p, face, radius=24)
-        p.setBrush(QColor('#eef0f5' if active() else c['panel']))
-        p.setPen(QPen(QColor('#ffffff' if active() else c['line']),1))
+        p.setBrush(QColor(c['bg'] if active() else c['panel']))
+        p.setPen(QPen(QColor('#ffffff' if active() and not is_manga_dark() else c['line']),1))
         p.drawRoundedRect(face,24,24)
         if QApplication.instance().property('animevaultDecorations') is not False:
             watermark = QColor(c['muted']); watermark.setAlpha(16)

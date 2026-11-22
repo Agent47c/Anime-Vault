@@ -78,6 +78,8 @@ class DownloadsDrawer(DrawerDialog):
         from app.ui.magnet_capture import enable_browser_capture
         self.capture_status=text('Optional Chrome extension: save your source website below first, then connect the extension. It catches clicks only on that site; your normal magnet handler stays unchanged.')
         body.addWidget(self.capture_status)
+        from app.ui.components.extension_connection import ExtensionConnection
+        self.extension_connection=ExtensionConnection(self);body.addWidget(self.extension_connection)
         self.extension_id=QLineEdit(db.get_state('chrome.capture_extension',''))
         self.extension_id.setPlaceholderText('Extension ID from chrome://extensions')
         field(body,'Chrome extension ID',self.extension_id)
@@ -243,7 +245,8 @@ class DownloadsDrawer(DrawerDialog):
             extra=''
             if job.get('engine')=='builtin':
                 eta=job.get('eta');eta_text=f'{eta//60}m {eta%60}s' if eta is not None else '—'
-                extra=f"\n↓ {job.get('download_rate',0)/1024:.0f} KiB/s · ↑ {job.get('upload_rate',0)/1024:.0f} KiB/s · Remaining {eta_text}"
+                from app.core.storage import format_rate
+                extra=f"\n↓ {format_rate(job.get('download_rate'))} · ↑ {format_rate(job.get('upload_rate'))} · Remaining {eta_text}"
             label=QListWidgetItem(f"{job['title']} · {job['progress']:.0%}\n{job['status']}"+extra)
             label.setData(Qt.UserRole,job['id'])
             label.setToolTip(job['destination']);self.list.addItem(label)

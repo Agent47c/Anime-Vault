@@ -1,3 +1,4 @@
+from app.ui.manga_style import clear_material, set_material
 from app.ui.components.design import MotifHeader, ElidedLabel
 from app.ui.navigation import navigate
 """
@@ -18,7 +19,7 @@ from typing import List, Dict, Any, Optional
 
 from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QFrame,QFileDialog,QTableWidget,QTableWidgetItem,QProgressBar,QHeaderView,QCheckBox,QLineEdit,QDialog,QComboBox,QAbstractItemView,QTabWidget,QSizePolicy
 from app.ui.components.message_boxes import AppMessageBox as QMessageBox
-from PyQt5.QtGui import QFont, QColor, QPainter, QBrush, QPen
+from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
 
 from app import db
@@ -30,34 +31,6 @@ from app.core.organizer import (
     execute_organize_batch,
     DEFAULT_RULES,
 )
-
-
-class ToggleSwitch(QCheckBox):
-    """Modern iOS/Figma style toggle switch matching the mockup."""
-    def __init__(self, checked=True, parent=None):
-        super().__init__(parent)
-        self.setChecked(checked)
-        self.setCursor(Qt.PointingHandCursor)
-        self.setFixedSize(44, 24)
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        rect = self.rect()
-        checked = self.isChecked()
-
-        # Background track
-        from app.ui.home_style import colors
-        c=colors();bg_color = QColor(c['coral'] if checked else c['raised'])
-        painter.setBrush(bg_color)
-        painter.setPen(Qt.NoPen)
-        painter.drawRoundedRect(rect, 12, 12)
-
-        # Thumb
-        painter.setBrush(QColor(c['bg'] if checked else c['muted']))
-        thumb_x = rect.width() - 20 if checked else 4
-        painter.drawEllipse(thumb_x, 4, 16, 16)
-        painter.end()
 
 
 class OrganizerWorker(QThread):
@@ -178,11 +151,11 @@ class OrganizerReviewDialog(QDialog):
         title_box.setSpacing(4)
 
         t_lbl = QLabel(self.anime_item.get("anime_name", "Anime"))
-        t_lbl.setStyleSheet("font-size: 20px; font-weight: 700; color: #f3f4f6;")
+        set_material(t_lbl,"font-size: 20px; font-weight: 700; color: #f3f4f6;")
         title_box.addWidget(t_lbl)
 
         sub_lbl = QLabel(self.anime_item.get("status_reason", ""))
-        sub_lbl.setStyleSheet("font-size: 12px; color: #b0b3c2;")
+        set_material(sub_lbl,"font-size: 12px; color: #b0b3c2;")
         title_box.addWidget(sub_lbl)
         top_row.addLayout(title_box)
 
@@ -191,7 +164,7 @@ class OrganizerReviewDialog(QDialog):
         from app.ui.components.close_button import CloseButton
         close_btn = CloseButton(self)
         close_btn.setFixedSize(44, 44)
-        close_btn.setStyleSheet('QPushButton#close_icon_button { min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px; padding: 0; border: none; }')
+        set_material(close_btn,'QPushButton#close_icon_button { min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px; padding: 0; border: none; }')
         close_btn.setAccessibleName('Close organization review')
         close_btn.setToolTip('Close review')
         close_btn.clicked.connect(self.reject)
@@ -202,7 +175,7 @@ class OrganizerReviewDialog(QDialog):
         path_frame = QFrame()
         path_frame.setObjectName("organizer_path_frame")
 
-        path_frame.setStyleSheet("""
+        set_material(path_frame,"""
             #organizer_path_frame {
                 background-color: #111219;
                 border: 1px solid #303139;
@@ -213,7 +186,7 @@ class OrganizerReviewDialog(QDialog):
         pf_layout = QHBoxLayout(path_frame)
         pf_layout.setContentsMargins(4, 2, 4, 2)
         pf_lbl = QLabel(f"📁 Folder: {self.anime_item.get('folder_path')}")
-        pf_lbl.setStyleSheet("color: #a78bfa; font-size: 12px; font-weight: 600;")
+        set_material(pf_lbl,"color: #a78bfa; font-size: 12px; font-weight: 600;")
         pf_layout.addWidget(pf_lbl)
         layout.addWidget(path_frame)
 
@@ -231,7 +204,7 @@ class OrganizerReviewDialog(QDialog):
         self.table.setShowGrid(False)
         self.table.horizontalHeader().setFixedHeight(36)
         self.table.verticalHeader().setVisible(False)
-        self.table.setStyleSheet("""
+        set_material(self.table,"""
             QTableWidget {
                 background-color: #14151c;
                 border: 1px solid #303139;
@@ -282,7 +255,7 @@ class OrganizerReviewDialog(QDialog):
         bot_layout.setSpacing(12)
 
         summary_lbl = QLabel(f"{len(moves)} files to organize")
-        summary_lbl.setStyleSheet("color: #b0b3c2; font-size: 13px;")
+        set_material(summary_lbl,"color: #b0b3c2; font-size: 13px;")
         bot_layout.addWidget(summary_lbl)
 
         bot_layout.addStretch()
@@ -294,7 +267,7 @@ class OrganizerReviewDialog(QDialog):
         self.organize_this_btn = QPushButton("⚡ Organize This Anime Now")
         self.organize_this_btn.setProperty("accent", True)
         self.organize_this_btn.setFixedHeight(38)
-        self.organize_this_btn.setStyleSheet("""
+        set_material(self.organize_this_btn,"""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #df2545, stop:1 #df2545);
                 color: #ffffff;
@@ -375,6 +348,7 @@ class OrganizerPage(QWidget):
         apply_layout(self);self.refresh_home_style()
         from app.ui.pages.duplicate_page import DuplicatePage
         self._duplicate_page=DuplicatePage(self);self._duplicate_page.setWindowFlags(Qt.Widget)
+        self._duplicate_page.setProperty('animevaultThemeScope',True)
         self.organizer_tabs.addTab(self._duplicate_page,'Review duplicate files')
         self._duplicate_page.data_changed.connect(self.data_changed.emit)
         self._duplicate_page.busy_changed.connect(self._duplicates_busy)
@@ -450,6 +424,7 @@ class OrganizerPage(QWidget):
         self.season_tab = QWidget()
         self.organizer_tabs.addTab(self.season_tab, "Organize seasons and folders")
         self.merge_page = MergePage(self)
+        self.merge_page.setProperty('animevaultThemeScope',True)
         self.organizer_tabs.addTab(self.merge_page, "Merge all anime into one root library")
         self.merge_page.data_changed.connect(self.data_changed.emit)
         self.merge_page.busy_changed.connect(self._merge_busy_changed)
@@ -472,12 +447,12 @@ class OrganizerPage(QWidget):
 
         title = QLabel("Season organizer")
         title.setObjectName("heading")
-        title.setStyleSheet("font-size: 26px; font-weight: 700; color: #f3f4f6;")
+        set_material(title,"font-size: 26px; font-weight: 700; color: #f3f4f6;")
         title_box.addWidget(title)
 
         desc = QLabel("Scan folders, detect seasons, preview changes and organize files safely")
         desc.setObjectName("subheading")
-        desc.setStyleSheet("font-size: 13px; color: #b0b3c2;")
+        set_material(desc,"font-size: 13px; color: #b0b3c2;")
         title_box.addWidget(desc)
         header_layout.addLayout(title_box)
 
@@ -485,19 +460,10 @@ class OrganizerPage(QWidget):
 
         # Ready to scan status pill
         self.top_status_badge = QLabel("Ready to scan")
-        self.top_status_badge.setStyleSheet("""
-            background-color: rgba(34, 197, 94, 0.12);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.25);
-            border-radius: 13px;
-            padding: 0 12px;
-            font-size: 12px;
-            font-weight: 600;
-        """)
+        self.top_status_badge.setObjectName('organizer_status')
         duplicates = QPushButton("Review duplicate files")
         duplicates.clicked.connect(self._review_duplicates)
         self.duplicates_btn = duplicates
-        self.top_status_badge.setFixedHeight(26)
         self.top_status_badge.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         header_layout.addWidget(self.top_status_badge)
 
@@ -570,7 +536,7 @@ class OrganizerPage(QWidget):
         card.setMinimumWidth(270)
         card.setObjectName("organizer_card")
 
-        card.setStyleSheet("""
+        set_material(card,"""
             #organizer_card {
                 background-color: #14151c;
                 border: 1px solid #303139;
@@ -583,11 +549,11 @@ class OrganizerPage(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
 
         title = QLabel("Library roots")
-        title.setStyleSheet("font-size: 15px; font-weight: 700; color: #f3f4f6; background: transparent;")
+        set_material(title,"font-size: 15px; font-weight: 700; color: #f3f4f6; background: transparent;")
         layout.addWidget(title)
 
         sub = QLabel("Folders the organizer will scan.")
-        sub.setStyleSheet("font-size: 12px; color: #b0b3c2; background: transparent;")
+        set_material(sub,"font-size: 12px; color: #b0b3c2; background: transparent;")
         layout.addWidget(sub)
 
         # Container for list of roots
@@ -598,7 +564,7 @@ class OrganizerPage(QWidget):
         # "+ Add library root" button
         add_root_btn = QPushButton("+ Add library root")
         add_root_btn.setCursor(Qt.PointingHandCursor)
-        add_root_btn.setStyleSheet("""
+        set_material(add_root_btn,"""
             QPushButton {
                 background-color: #1d1f29;
                 color: #f3f4f6;
@@ -621,7 +587,7 @@ class OrganizerPage(QWidget):
         drop_box.setFixedHeight(88)
         drop_box.setObjectName("organizer_drop_box")
 
-        drop_box.setStyleSheet("""
+        set_material(drop_box,"""
             #organizer_drop_box {
                 background-color: rgba(26, 31, 44, 0.4);
                 border: 1px dashed #8e94a8;
@@ -631,10 +597,10 @@ class OrganizerPage(QWidget):
         d_layout = QVBoxLayout(drop_box)
         d_layout.setAlignment(Qt.AlignCenter)
         d_lbl1 = QLabel("Drop anime folders here")
-        d_lbl1.setStyleSheet("color: #b0b3c2; font-size: 11px; font-weight: 600; background: transparent;")
+        set_material(d_lbl1,"color: #b0b3c2; font-size: 11px; font-weight: 600; background: transparent;")
         d_lbl1.setAlignment(Qt.AlignCenter)
         d_lbl2 = QLabel("or choose Add library root")
-        d_lbl2.setStyleSheet("color: #898d9f; font-size: 10px; background: transparent;")
+        set_material(d_lbl2,"color: #898d9f; font-size: 10px; background: transparent;")
         d_lbl2.setAlignment(Qt.AlignCenter)
         d_layout.addWidget(d_lbl1)
         d_layout.addWidget(d_lbl2)
@@ -647,7 +613,7 @@ class OrganizerPage(QWidget):
         self.scan_btn = QPushButton("Scan now")
         self.scan_btn.setCursor(Qt.PointingHandCursor)
         self.scan_btn.setFixedHeight(36)
-        self.scan_btn.setStyleSheet("""
+        set_material(self.scan_btn,"""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #df2545, stop:1 #df2545);
                 color: #ffffff;
@@ -667,7 +633,7 @@ class OrganizerPage(QWidget):
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setCursor(Qt.PointingHandCursor)
         self.stop_btn.setFixedHeight(36)
-        self.stop_btn.setStyleSheet("""
+        set_material(self.stop_btn,"""
             QPushButton {
                 background-color: #1d1f29;
                 color: #b0b3c2;
@@ -700,11 +666,14 @@ class OrganizerPage(QWidget):
     # Left Card 2: Detection Rules
     # -----------------------------------------------------------------------
     def _create_rules_card(self) -> QFrame:
+        from app.ui.components.settings_switch import SettingsSwitch
+        from app.ui.settings_style import add_settings_row
+
         card = QFrame()
         card.setMinimumWidth(270)
         card.setObjectName("organizer_card")
 
-        card.setStyleSheet("""
+        set_material(card,"""
             #organizer_card {
                 background-color: #14151c;
                 border: 1px solid #303139;
@@ -713,12 +682,13 @@ class OrganizerPage(QWidget):
             }
         """)
         layout = QVBoxLayout(card)
-        layout.setSpacing(14)
+        layout.setSpacing(0)
         layout.setContentsMargins(20, 20, 20, 20)
 
         title = QLabel("Detection rules")
-        title.setStyleSheet("font-size: 15px; font-weight: 700; color: #f3f4f6; background: transparent;")
+        set_material(title,"font-size: 15px; font-weight: 700; color: #f3f4f6; background: transparent;")
         layout.addWidget(title)
+        layout.addSpacing(6)
 
         rules_defs = [
             ("treat_direct_as_season_1", "Treat direct video files as Season 1", "Files inside the root folder", True),
@@ -730,31 +700,12 @@ class OrganizerPage(QWidget):
 
         self.rule_switches = {}
         for key, name, hint, default in rules_defs:
-            row = QHBoxLayout()
-            row.setSpacing(10)
-
-            t_box = QVBoxLayout()
-            t_box.setSpacing(2)
-            n_lbl = QLabel(name)
-            n_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #f3f4f6; background: transparent;")
-            h_lbl = QLabel(hint)
-            h_lbl.setStyleSheet("font-size: 10px; color: #b0b3c2; background: transparent;")
-            t_box.addWidget(n_lbl)
-            t_box.addWidget(h_lbl)
-            row.addLayout(t_box, 1)
-
-            sw = ToggleSwitch(checked=self._rules.get(key, default))
-            sw.setAccessibleName(name)
-            sw.setAccessibleDescription(hint)
+            sw = SettingsSwitch(checked=self._rules.get(key, default))
+            sw.setProperty('animevaultTwilightSwitch',True)
             sw.stateChanged.connect(lambda state, k=key: self._on_rule_toggled(k))
             self.rule_switches[key] = sw
-            row.addWidget(sw)
-
-            layout.addLayout(row)
-            divider = QFrame()
-            divider.setFrameShape(QFrame.HLine)
-            divider.setStyleSheet("background: #2a2e3a; max-height: 1px; border: none;")
-            layout.addWidget(divider)
+            add_settings_row(layout,name,hint,sw)
+        layout.addStretch()
 
         return card
 
@@ -765,7 +716,7 @@ class OrganizerPage(QWidget):
         card = QFrame()
         card.setObjectName("organizer_card")
 
-        card.setStyleSheet("""
+        set_material(card,"""
             #organizer_card {
                 background-color: #14151c;
                 border: 1px solid #303139;
@@ -781,9 +732,9 @@ class OrganizerPage(QWidget):
         t_box = QVBoxLayout()
         t_box.setSpacing(2)
         p_title = QLabel("Organization preview")
-        p_title.setStyleSheet("font-size: 17px; font-weight: 700; color: #f3f4f6; background: transparent;")
+        set_material(p_title,"font-size: 17px; font-weight: 700; color: #f3f4f6; background: transparent;")
         p_sub = QLabel("Review proposed season assignments. No files move until you confirm.")
-        p_sub.setStyleSheet("font-size: 12px; color: #b0b3c2; background: transparent;")
+        set_material(p_sub,"font-size: 12px; color: #b0b3c2; background: transparent;")
         t_box.addWidget(p_title)
         t_box.addWidget(p_sub)
         top_row.addLayout(t_box)
@@ -795,7 +746,7 @@ class OrganizerPage(QWidget):
         self.search_filter.setPlaceholderText("Filter anime...")
         self.search_filter.setMinimumWidth(120)
         self.search_filter.setMaximumWidth(220)
-        self.search_filter.setStyleSheet("""
+        set_material(self.search_filter,"""
             QLineEdit {
                 background-color: #1d1f29;
                 border: 1px solid #383a44;
@@ -838,7 +789,7 @@ class OrganizerPage(QWidget):
         # Select All checkbox
         self.select_all_cb = QCheckBox("Select all")
         self.select_all_cb.setCursor(Qt.PointingHandCursor)
-        self.select_all_cb.setStyleSheet("color: #b0b3c2; font-size: 12px;")
+        set_material(self.select_all_cb,"color: #b0b3c2; font-size: 12px;")
         self.select_all_cb.stateChanged.connect(self._on_select_all_toggled)
 
 
@@ -864,7 +815,7 @@ class OrganizerPage(QWidget):
         self.table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.verticalHeader().setVisible(False)
-        self.table.setStyleSheet("""
+        set_material(self.table,"""
             QTableWidget {
                 background-color: #14151c;
                 border: 1px solid #303139;
@@ -891,7 +842,7 @@ class OrganizerPage(QWidget):
         self.progress_bar.setFixedHeight(4)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setVisible(False)
-        self.progress_bar.setStyleSheet("""
+        set_material(self.progress_bar,"""
             QProgressBar {
                 background-color: #1d1f29;
                 border: none;
@@ -909,7 +860,7 @@ class OrganizerPage(QWidget):
         bottom_bar.setSpacing(12)
 
         self.summary_label = QLabel("0 files · 0 folders to organize")
-        self.summary_label.setStyleSheet("color: #b0b3c2; font-size: 13px; font-weight: 500;")
+        set_material(self.summary_label,"color: #b0b3c2; font-size: 13px; font-weight: 500;")
         bottom_bar.addWidget(self.summary_label)
 
         bottom_bar.addStretch()
@@ -917,7 +868,7 @@ class OrganizerPage(QWidget):
         self.organize_btn = QPushButton("Organize selected files")
         self.organize_btn.setCursor(Qt.PointingHandCursor)
         self.organize_btn.setFixedHeight(42)
-        self.organize_btn.setStyleSheet("""
+        set_material(self.organize_btn,"""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #df2545, stop:1 #df2545);
                 color: #ffffff;
@@ -963,7 +914,7 @@ class OrganizerPage(QWidget):
             row.setMinimumHeight(64)
             row.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Minimum)
 
-            row.setStyleSheet("""
+            set_material(row,"""
             #organizer_row {
                     background-color: #1d1f29;
                     border: 1px solid #383a44;
@@ -983,33 +934,25 @@ class OrganizerPage(QWidget):
             p_lbl.setToolTip(d.get('scan_error') or d["folder_path"])
             p_lbl.setMinimumWidth(0)
             p_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-            p_lbl.setStyleSheet("color: #f3f4f6; font-size: 12px; background: transparent; border: none; padding: 0;")
+            set_material(p_lbl,"color: #f3f4f6; font-size: 12px; background: transparent; border: none; padding: 0;")
             r_layout.addWidget(p_lbl, 1)
 
-            del_btn = QPushButton("✕")
+            from app.ui.icons import icon
+            del_btn = QPushButton()
             del_btn.setObjectName('remove_library_root')
+            del_btn.setIcon(icon('trash','#df2545'))
+            del_btn.setIconSize(QSize(18,18))
             del_btn.setFixedWidth(40)
             del_btn.setMinimumHeight(40)
             del_btn.setAccessibleName("Remove library root " + d["folder_path"])
+            del_btn.setToolTip('Remove library root')
             del_btn.setCursor(Qt.PointingHandCursor)
-            del_btn.setStyleSheet("""
-                QPushButton {
-                    background: transparent;
-                    color: #b0b3c2;
-                    border: none;
-                    padding: 0;
-                    font-size: 11px;
-                }
-                QPushButton:hover {
-                    color: #ef4444;
-                }
-            """)
             del_btn.clicked.connect(lambda checked, did=d["id"]: self._remove_library_root(did))
             r_layout.addWidget(del_btn)
 
             self.roots_list_layout.addWidget(row)
             if getattr(self,'_reference_organizer',False):
-                for widget in (row,*row.findChildren(QWidget)):widget.setStyleSheet('')
+                for widget in (row,*row.findChildren(QWidget)):clear_material(widget)
 
     def _add_library_root(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Anime Library Root Directory")
@@ -1033,6 +976,15 @@ class OrganizerPage(QWidget):
     # -----------------------------------------------------------------------
     # Scanning & Tabs
     # -----------------------------------------------------------------------
+    def _set_status(self, message, tone='neutral'):
+        badge=self.top_status_badge
+        badge.setText(message)
+        if badge.property('tone')!=tone:
+            badge.setProperty('tone',tone)
+            badge.style().unpolish(badge)
+            badge.style().polish(badge)
+            badge.update()
+
     def _start_scan(self, find_missing=False, repair_ids=None):
         if self.merge_page.busy():
             return
@@ -1043,16 +995,7 @@ class OrganizerPage(QWidget):
 
         self.find_missing_btn.setEnabled(False)
         self.scan_btn.setEnabled(False)
-        self.top_status_badge.setText("Looking for missing files?" if find_missing else "Scanning?")
-        self.top_status_badge.setStyleSheet("""
-            background-color: rgba(225, 43, 122, 0.15);
-            color: #df2545;
-            border: 1px solid rgba(225, 43, 122, 0.3);
-            border-radius: 14px;
-            padding: 4px 14px;
-            font-size: 12px;
-            font-weight: 600;
-        """)
+        self._set_status("Looking for missing files…" if find_missing else "Scanning…",'busy')
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
@@ -1071,13 +1014,13 @@ class OrganizerPage(QWidget):
     def _stop_scan(self):
         if self._worker and self._worker.isRunning():
             self._worker.requestInterruption()
-            self.top_status_badge.setText("Stopping?")
+            self._set_status("Stopping…",'busy')
 
     def _on_scan_stopped(self):
         self.progress_bar.setVisible(False)
         self.scan_btn.setEnabled(True)
         self.find_missing_btn.setEnabled(True)
-        self.top_status_badge.setText("Scan stopped")
+        self._set_status("Scan stopped")
 
     def _on_scan_finished(self, results: dict, cached=False):
         self.find_missing_btn.setEnabled(True)
@@ -1090,7 +1033,7 @@ class OrganizerPage(QWidget):
             result = results["recovery"]
             self.progress_bar.setVisible(False)
             self.scan_btn.setEnabled(True)
-            self.top_status_badge.setText(f"{result['recovered']} relinked ? {result['unresolved']} still missing")
+            self._set_status(f"{result['recovered']} relinked · {result['unresolved']} still missing")
             if result["unavailable"]:
                 self.top_status_badge.setText(self.top_status_badge.text() + f" ? {result['unavailable']} locations unavailable")
             if result["paths_repaired"]:
@@ -1133,16 +1076,7 @@ class OrganizerPage(QWidget):
         self.tab_org_btn.setText(f"Already organized ({org_count})")
         self.tab_all_btn.setText(f"All ({all_count})")
 
-        self.top_status_badge.setText(f"{unorg_count} need organization · {org_count} organized")
-        self.top_status_badge.setStyleSheet("""
-            background-color: rgba(34, 197, 94, 0.12);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.25);
-            border-radius: 14px;
-            padding: 4px 14px;
-            font-size: 12px;
-            font-weight: 600;
-        """)
+        self._set_status(f"{unorg_count} need organization · {org_count} organized",'success')
 
         # A scan proposes moves; selection remains an explicit user action.
         self._selected_items.clear()
@@ -1164,14 +1098,14 @@ class OrganizerPage(QWidget):
         from app.ui.organizer_cache import invalidate_preview
         invalidate_preview()
         self._preview_stale = True
-        self.top_status_badge.setText(message)
+        self._set_status(message,'warning')
         self._render_table()
 
     def _on_scan_error(self, err: str):
         self.progress_bar.setVisible(False)
         self.scan_btn.setEnabled(True)
         self.find_missing_btn.setEnabled(True)
-        self.top_status_badge.setText("Scan error")
+        self._set_status("Scan error",'warning')
         QMessageBox.warning(self, "Scan Error", f"Failed to scan library: {err}")
 
     def apply_settings_preferences(self):
@@ -1214,7 +1148,7 @@ class OrganizerPage(QWidget):
         ]
         for btn, tab_id in buttons:
             if self._current_tab == tab_id:
-                btn.setStyleSheet("""
+                set_material(btn,"""
                     QPushButton {
                         background-color: #ffffff;
                         color: #111827;
@@ -1226,7 +1160,7 @@ class OrganizerPage(QWidget):
                     }
                 """)
             else:
-                btn.setStyleSheet("""
+                set_material(btn,"""
                     QPushButton {
                         background-color: #1d1f29;
                         color: #b0b3c2;
@@ -1279,11 +1213,11 @@ class OrganizerPage(QWidget):
 
             name_lbl = ElidedLabel(item.get("anime_name", "Anime"))
             name_lbl.setToolTip(item.get("folder_path", ""))
-            name_lbl.setStyleSheet("font-size: 13px; font-weight: 700; color: #f3f4f6;")
+            set_material(name_lbl,"font-size: 13px; font-weight: 700; color: #f3f4f6;")
             t_box.addWidget(name_lbl)
 
             sub_lbl = ElidedLabel(item.get("status_reason", ""))
-            sub_lbl.setStyleSheet("font-size: 11px; color: #b0b3c2;")
+            set_material(sub_lbl,"font-size: 11px; color: #b0b3c2;")
             t_box.addWidget(sub_lbl)
 
             c_layout.addLayout(t_box, 1)
@@ -1293,7 +1227,7 @@ class OrganizerPage(QWidget):
             vcount = item.get("video_count", 0)
             f_lbl = QLabel(f"{vcount} files")
             f_lbl.setAlignment(Qt.AlignCenter)
-            f_lbl.setStyleSheet("font-size: 12px; color: #f3f4f6;")
+            set_material(f_lbl,"font-size: 12px; color: #f3f4f6;")
             self.table.setCellWidget(row_idx, 1, f_lbl)
 
             # Column 2: Proposed Badge
@@ -1301,7 +1235,7 @@ class OrganizerPage(QWidget):
             b_lbl = QLabel(badge_text)
             b_lbl.setAlignment(Qt.AlignCenter)
             if badge_text == "Organized":
-                b_lbl.setStyleSheet("""
+                set_material(b_lbl,"""
                     background-color: rgba(34, 197, 94, 0.15);
                     color: #22c55e;
                     border: 1px solid rgba(34, 197, 94, 0.3);
@@ -1311,7 +1245,7 @@ class OrganizerPage(QWidget):
                     font-weight: 600;
                 """)
             elif badge_text.startswith("Season"):
-                b_lbl.setStyleSheet("""
+                set_material(b_lbl,"""
                     background-color: rgba(142, 117, 255, 0.15);
                     color: #a78bfa;
                     border: 1px solid rgba(142, 117, 255, 0.3);
@@ -1321,7 +1255,7 @@ class OrganizerPage(QWidget):
                     font-weight: 600;
                 """)
             elif badge_text == "Matched":
-                b_lbl.setStyleSheet("""
+                set_material(b_lbl,"""
                     background-color: rgba(20, 184, 166, 0.15);
                     color: #14b8a6;
                     border: 1px solid rgba(20, 184, 166, 0.3);
@@ -1331,7 +1265,7 @@ class OrganizerPage(QWidget):
                     font-weight: 600;
                 """)
             else:
-                b_lbl.setStyleSheet("""
+                set_material(b_lbl,"""
                     background-color: rgba(245, 158, 11, 0.15);
                     color: #f59e0b;
                     border: 1px solid rgba(245, 158, 11, 0.3);

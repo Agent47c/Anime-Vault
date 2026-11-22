@@ -34,27 +34,45 @@ def digest(path, cancelled):
 
 
 def find_duplicates(cancelled=lambda: False, progress=lambda text: None):
-    # Reviewing duplicates reads the saved inventories. An uncancellable full
-    # identity sync here delayed Stop before any duplicate checking began.
+    # Drive scans discover current files. Saved reviews have their own path in
+    # load_review; an empty/stale inventory must not turn a drive scan into a no-op.
     buckets = defaultdict(list)
     seen = set()
     errors = []
+    from app.core import downloads,download_queue
+    pending_roots=[Path(job['destination']).resolve() for job in downloads.jobs()
+                   if job.get('destination') and download_queue.status(job) not in ('Completed','Seeding')
+                   and not job.get('library_moved')]
     for record in db.get_all_franchises():
         if cancelled():
             raise InterruptedError("Cancelled")
-        for season in db.get_seasons_for_franchise(record["id"]):
+        seasons=db.get_seasons_for_franchise(record['id'])
+        seasons.sort(key=lambda row:len(Path(row.get('season_folder_path') or '').parts),reverse=True)
+        for season in seasons:
             folder = season.get("season_folder_path")
-            if not folder or season.get("storage_state") != "ON_DISK":
+            if not folder:
                 continue
+            if Path(folder).is_symlink():continue
             root = Path(folder).resolve()
-            for name in json.loads(season.get("video_files_json") or "[]"):
+            progress(f'Scanning directory: {root}')
+            if not root.is_dir():
+                errors.append(f'Missing directory: {root}');continue
+            def files_on_drive():
+                for directory,dirs,names in os.walk(root,onerror=lambda error:errors.append(str(error)),followlinks=False):
+                    if cancelled():raise InterruptedError('Cancelled')
+                    dirs[:]=[name for name in dirs if not (Path(directory)/name).is_symlink()]
+                    for name in names:
+                        if cancelled():raise InterruptedError('Cancelled')
+                        yield Path(directory)/name
+            for path in files_on_drive():
                 if cancelled():
                     raise InterruptedError("Cancelled")
-                path = root / name
                 try:
                     resolved = path.resolve()
                     if root not in resolved.parents or path.is_symlink() or path.suffix.lower() not in VIDEO_EXTENSIONS:
                         continue
+                    if any(resolved==pending or pending in resolved.parents for pending in pending_roots):
+                        continue  # Torrent chunks are not completed duplicate candidates.
                     identity = os.path.normcase(str(resolved))
                     if identity in seen or not path.is_file():
                         continue
@@ -69,6 +87,7 @@ def find_duplicates(cancelled=lambda: False, progress=lambda text: None):
                     release = season.get("anilist_id") or number
                     scope = (record["id"], season.get("relation_type"), release, number, episodes)
                     stat = signature(path)
+                    if stat[0]==0:continue
                     buckets[(scope, stat[0])].append((resolved, record["display_title"], episodes))
                 except OSError as error:
                     errors.append(str(error))
@@ -88,6 +107,7 @@ def find_duplicates(cancelled=lambda: False, progress=lambda text: None):
             if len(files) > 1:
                 files.sort(key=lambda file: file["path"].casefold())
                 groups.append({"hash": checksum, "files": files})
+    progress(f'Finished checking {len(seen)} files: {len(groups)} exact duplicate groups; {len(errors)} location errors.')
     return groups, errors
 
 def save_review(result):

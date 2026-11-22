@@ -170,7 +170,10 @@ class RefreshWorker(QThread):
             snapshot['state']={row['key']:row['value'] for row in memory.execute('SELECT key,value FROM app_state')}
             snapshot['season_rows']=[dict(row) for row in memory.execute('SELECT * FROM seasons')]
             from app.core.library_index import LibraryIndex
-            with db.refresh_view(snapshot):snapshot['library_index']=LibraryIndex()
+            from app.core.adult_content import is_adult_unlocked
+            with db.refresh_view(snapshot):
+                snapshot['adult_visible']=is_adult_unlocked()
+                snapshot['library_index']=LibraryIndex()
             snapshot['series_groups']=snapshot['library_index'].groups
             from app.core.home_facts import build_facts
             with db.refresh_view(snapshot):snapshot['home_facts']=build_facts(snapshot['library_index'])

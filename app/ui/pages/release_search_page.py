@@ -386,6 +386,19 @@ class ReleaseSearchPage(QDialog):
         self._memory_timer.stop()
         source=self.source.currentData() or {}
         try:
+            query=self.query.text().strip()
+            if query and query!=self._generated_query:
+                download_queries.save_custom_query(self.fid,self.season.currentData(),query)
+                self.title_choice.blockSignals(True)
+                try:
+                    index=next((i for i in range(self.title_choice.count()) if self.title_choice.itemData(i,Qt.UserRole+1)), -1)
+                    if index<0:self.title_choice.insertItem(0,'Custom search · '+query,query);index=0
+                    self.title_choice.setItemText(index,'Custom search · '+query)
+                    self.title_choice.setItemData(index,query)
+                    self.title_choice.setItemData(index,True,Qt.UserRole+1)
+                    self.title_choice.setItemData(index,query,Qt.ToolTipRole)
+                    self.title_choice.setCurrentIndex(index)
+                finally:self.title_choice.blockSignals(False)
             download_queries.save_search_memory(self.fid,self.query.text(),self.season.currentData(),source.get('url'),self.title_choice.currentData());self._memory_dirty=False
         except Exception as error:self.status.setText('Could not save this search: '+str(error))
 

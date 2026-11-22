@@ -36,7 +36,9 @@ class BackupProgressRestartTests(unittest.TestCase):
     def test_success_requires_restart_without_refreshing_old_ui(self):
         central=Mock();host=SimpleNamespace(setEnabled=Mock(),centralWidget=lambda:central,_force_exit=Mock())
         page=SimpleNamespace(window=lambda:host,backup_status=Mock(),scan_completed=Mock())
-        with patch.object(QMessageBox,'information') as notice:SettingsPage._database_restored(page,True)
+        with patch('app.ui.pages.settings_page.QMessageBox') as notice:
+            notice.return_value.clickedButton.return_value=None
+            SettingsPage._database_restored(page,True)
         self.assertTrue(page._restore_succeeded);self.assertTrue(host._restore_restart_required)
         central.setEnabled.assert_called_once_with(False);host._force_exit.assert_called_once()
         page.scan_completed.emit.assert_not_called();self.assertIn('restart required',notice.call_args.args[1])
@@ -55,3 +57,23 @@ class BackupProgressRestartTests(unittest.TestCase):
         host=SimpleNamespace(_restore_restart_required=True,_force_exiting=True,_force_exit=Mock());event=Mock()
         MainWindow.closeEvent(host,event)
         event.ignore.assert_called_once();host._force_exit.assert_not_called()
+
+    def test_blocked_restore_explains_why_restart_prompt_does_not_appear(self):
+        host=SimpleNamespace(_running_threads=lambda:[object()])
+        page=SimpleNamespace(window=lambda:host,backup_status=Mock())
+        with (patch('app.ui.pages.settings_page.QFileDialog.getOpenFileName',return_value=('backup.zip','')),
+              patch.object(QMessageBox,'question',return_value=QMessageBox.Yes),
+              patch.object(QMessageBox,'warning') as warning,patch('app.ui.io_task.start') as start,
+              patch('app.ui.io_task.running',return_value=[]),patch('app.ui.user_edits.user_edits',return_value=SimpleNamespace(pending=False))):
+            SettingsPage._restore_db(page)
+        start.assert_not_called();self.assertEqual(warning.call_args.args[1],'Restore not started')
+
+    def test_success_restart_button_invokes_app_restart(self):
+        host=SimpleNamespace(setEnabled=Mock(),_restart_app=Mock(return_value=True),_force_exit=Mock())
+        page=SimpleNamespace(window=lambda:host,backup_status=Mock())
+        button=object()
+        with patch('app.ui.pages.settings_page.QMessageBox') as notice:
+            notice.return_value.addButton.side_effect=[button,object()]
+            notice.return_value.clickedButton.return_value=button
+            SettingsPage._database_restored(page,True)
+        host._restart_app.assert_called_once();host._force_exit.assert_not_called()

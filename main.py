@@ -10,6 +10,11 @@ import sys
 import os
 from pathlib import Path
 
+if __name__=='__main__' and sys.argv[1:2]==['--restart-after']:
+    from app.restart import wait_for_parent
+    wait_for_parent(int(sys.argv[2]))
+    del sys.argv[1:3]
+
 # Run before importing configuration, logging or any user-database consumer.
 if __name__ == '__main__' and sys.argv[1:2] == ['--self-test']:
     from app.packaging_checks import run

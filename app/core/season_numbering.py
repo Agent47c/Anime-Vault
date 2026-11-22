@@ -6,8 +6,9 @@ from app import db
 
 
 def explicit_number(title):
+    title=(title or '').replace('_',' ')
     found=[]
-    for pattern in (r'\bseason\s*(\d{1,3})\b',r'\b(\d{1,3})(?:st|nd|rd|th)\s+season\b',r'\bS(\d{1,3})(?!\d|E\d)',r'第?(\d{1,3})期'):
+    for pattern in (r'\bseason\s*(\d{1,3})\b',r'\b(\d{1,3})(?:st|nd|rd|th)\s+season\b',r'\bS[ ._-]*(\d{1,3})(?!\d|E\d)',r'第?(\d{1,3})期'):
         found.extend(int(m) for m in re.findall(pattern,title or '',re.I))
     return found[0] if found and len(set(found))==1 and 0<found[0]<1000 else None
 

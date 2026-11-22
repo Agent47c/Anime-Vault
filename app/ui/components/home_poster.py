@@ -35,7 +35,12 @@ class HomePosterCard(PosterCard):
         self.selection_box.hide()
         self.selection_box.setAccessibleName('Select '+self.franchise_data.get('display_title','anime'))
         self.selection_box.toggled.connect(lambda checked:self.selection_changed.emit(self.franchise_id,checked))
-        self.coverage_bar=QProgressBar();self.coverage_bar.setRange(0,1000);self.coverage_bar.setTextVisible(False);self.coverage_bar.setFixedHeight(3)
+        self.coverage_bar=QProgressBar()
+        self.coverage_bar.setObjectName('poster_episode_coverage')
+        self.coverage_bar.setRange(0,1000)
+        self.coverage_bar.setTextVisible(False)
+        # Keep the geometry on the control across Qt stylesheet repolishes.
+        self.coverage_bar.setStyleSheet('QProgressBar#poster_episode_coverage { min-height:3px; max-height:3px; padding:0; }')
         self.layout().insertWidget(1,self.coverage_bar)
         self.subline_label.setObjectName('home_meta');self.subline_label.setStyleSheet('font-family:"JetBrains Mono";font-size:11px;')
         self.download_label=QLabel();self.download_label.setStyleSheet(f"color:{c['coral']};font-family:'JetBrains Mono';font-size:11px;")
@@ -58,8 +63,9 @@ class HomePosterCard(PosterCard):
         from app.ui.theme_catalog import is_manga
         manga=is_manga()
         self.title_label.setStyleSheet(f'background:transparent;color:{c["text"]};font-family:{"Inter" if manga else "Plus Jakarta Sans"};font-size:{px(16 if manga else 13)}px;font-weight:700;')
-        if getattr(self,'_manga_frame',False)!=manga:
-            self._manga_frame=manga
+        poster_style=(manga,c['panel'],c['raised'],c['text'],c['amber'])
+        if getattr(self,'_poster_style',None)!=poster_style:
+            self._poster_style=poster_style
             if manga:
                 from app.ui.manga_style import shadow
                 shadow(self.poster_slot,15,6)
@@ -97,7 +103,7 @@ class HomePosterCard(PosterCard):
             # Artwork -> 1px ink keyline -> 3px white outer frame.
             # Paint once into the cached DPR-aware poster; hover reuses it.
             p.setClipping(False);p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor('white'),3));p.drawRoundedRect(QRectF(1.5,1.5,self.CARD_WIDTH-3,self.POSTER_HEIGHT-3),10.5,10.5)
+            p.setPen(QPen(QColor(colors()['panel']),3));p.drawRoundedRect(QRectF(1.5,1.5,self.CARD_WIDTH-3,self.POSTER_HEIGHT-3),10.5,10.5)
             p.setPen(QPen(QColor('#0a0a0a'),1));p.drawRoundedRect(QRectF(3.5,3.5,self.CARD_WIDTH-7,self.POSTER_HEIGHT-7),8.5,8.5)
         p.end();return pix
 

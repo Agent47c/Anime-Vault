@@ -73,6 +73,16 @@ def check_completed_files(item):
     missing=[]
     for file in item['verified_files']:
         path=Path(file['path'])
+        if not path.is_file() and item.get('library_move_intent'):
+            from app.core import identity
+            for r in item['library_move_intent']:
+                if identity.path_key(r.get('source','')) == identity.path_key(path):
+                    target_p = Path(r.get('target',''))
+                    from app.core.file_operations import completed_move
+                    if completed_move(r['source'],target_p):
+                        file['path'] = str(target_p)
+                        path = target_p
+                        break
         try:
             if not path.is_file() or path.stat().st_size!=file['size']: missing.append(str(path))
         except OSError: missing.append(str(path))

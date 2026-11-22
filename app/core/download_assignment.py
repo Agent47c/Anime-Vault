@@ -153,7 +153,11 @@ def register(item, files):
             sig = identity.signature(path)
             file_id = conn.execute("INSERT INTO physical_files(season_id,original_name,size_bytes,mtime_ns,device,inode,availability) VALUES (?,?,?,?,?,?,'AVAILABLE')", (sid, path.name, *sig)).lastrowid
             registered.append(file_id)
-            conn.execute('INSERT INTO file_locations VALUES (?,?,?)', (file_id, str(path), identity.path_key(path)))
+            old_loc = conn.execute('SELECT file_id FROM file_locations WHERE path_key=?', (identity.path_key(path),)).fetchone()
+            if old_loc and old_loc[0] != file_id:
+                conn.execute("UPDATE physical_files SET availability='REPLACED' WHERE id=?", (old_loc[0],))
+                conn.execute('DELETE FROM file_locations WHERE file_id=?', (old_loc[0],))
+            conn.execute('INSERT OR REPLACE INTO file_locations VALUES (?,?,?)', (file_id, str(path), identity.path_key(path)))
             for key in assigned:
                 n = int(key.rsplit(':', 1)[1])
                 original = source_numbers[keys.index(key)] if len(source_numbers) == len(keys) else n
@@ -217,7 +221,8 @@ def next_search(fid, media_id=None):
     original = max(last.get('source_episodes') or [logical - 1]) + 1
     title = last.get('release_title') or last['title']
     import re
-    token = re.search(r'\bS(\d{1,2})[ ._-]*E\d+', title, re.I)
+    from app.core.parser import season_episode_match
+    token = season_episode_match(title)
     query = base_title(title)
     query += f' S{int(token[1]):02}E{original:02}' if token else f' {original:02}'
     encoder=re.match(r'^\[([^]]+)\]',title)

@@ -105,6 +105,13 @@ class ExperienceFollowupTests(unittest.TestCase):
         self.assertFalse(page.adult_filter.isHidden());self.assertIn('Hentai',[v for _,v in page.genre_filter.items])
         preferences.save('allow_mature',False);page.apply_preferences()
         self.assertTrue(page.adult_filter.isHidden());self.assertFalse(page.adult_only.isChecked())
+        # Preference changes start asynchronous cache reloads. Finish them while
+        # this test's temporary database still exists (Windows keeps it locked).
+        from app.ui.io_task import running
+        page.stop()
+        for worker in running():
+            worker.requestInterruption();self.assertTrue(worker.wait(2000))
+        self.app.processEvents()
 
     def test_all_twenty_cards_are_in_scroll_range_and_details_show_romaji_plot(self):
         from app.ui.pages.release_news_page import ReleaseNewsPage,NewsArtwork

@@ -48,7 +48,7 @@ def extend_settings(page):
     box.addWidget(page._button('Save sources / use highlighted',save_sources,True))
     column.insertWidget(column.count()-1,panel)
 
-    panel,box=page._panel('Watchers and automatic imports')
+    panel,box=page._panel('Watchers and automatic imports', heading='Folder monitoring and list imports')
     page._toggle(box,'Watch library folders','Detect changes in configured roots and indexed season folders. Changes trigger a debounced local scan.','folder_watchers')
     page._toggle(box,'Watch TXT import lists','Check enabled lists once a minute. New names become custom entries needing review; no weak API matches are applied.','list_watchers')
     subscriptions=QListWidget();subscriptions.setMinimumHeight(140);box.addWidget(subscriptions)

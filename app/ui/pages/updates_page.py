@@ -458,7 +458,7 @@ class UpdatesPage(QWidget):
             cached = self._update_card_pool.get(record["id"])
             record["_cover_version"] = artwork_version(record.get("cover_filename")) if check_artwork or cached is None else cached[0][-1]
             record["_update_disposition"] = choices.get(record["id"], "new")
-        self._updates = [record for record in franchises if record.get("has_new_update") and record["_update_disposition"] == "new"]
+        self._updates = [record for record in franchises if db.has_pending_update(record, record["_update_disposition"])]
         self._saved_updates = [record for record in franchises if record["_update_disposition"] != "new"]
         self._health_records = franchises
         self._health = None
@@ -552,7 +552,7 @@ class UpdatesPage(QWidget):
             for key in ('_release_schedule','_episode_schedule_version'):
                 if key in previous:record[key]=previous[key]
         self._health_records = [records.get(r['id'], r) for r in self._health_records]
-        self._updates = [r for r in self._health_records if r.get('has_new_update') and r['_update_disposition'] == 'new']
+        self._updates = [r for r in self._health_records if db.has_pending_update(r, r['_update_disposition'])]
         self._saved_updates = [r for r in self._health_records if r['_update_disposition'] != 'new']
         # A saved choice moves out of the current category. Build its destination
         # card lazily when that category is opened, keeping other widgets intact.

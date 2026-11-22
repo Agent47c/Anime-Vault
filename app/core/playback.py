@@ -85,7 +85,7 @@ class Session:
                 row=conn.execute('SELECT ls.franchise_id FROM episodes e JOIN releases r ON r.id=e.release_id JOIN library_series ls ON ls.id=r.series_id WHERE e.id=?',(self.ids[0],)).fetchone()
                 if row:self.fid=row[0]
         self.previous=saved_progress(self.ids);self.last_save=0;self.started=time.monotonic();self.state={};self.error=''
-        self.playlist_id=None
+        self.playlist_id=None;self.last_response=self.started
         saved=self.previous.get('position',0);duration=self.previous.get('duration',0)
         start=saved if resume and duration and saved<duration*.95 else 0
         if player=='vlc':
@@ -110,7 +110,7 @@ class Session:
             response=client.get(f'http://127.0.0.1:{self.port}/requests/status.json',params={'command':command} if command else None,auth=('',self.password),timeout=.6)
             response.raise_for_status();return response.json()
     def poll(self):
-        if self.process is None or self.process.poll() is not None:return {**self.state,'active':False}
+        if self.process is None or self.process.poll() is not None:return {**(self.state or self.previous),'path':self.path,'fid':self.fid,'active':False}
         if self.player=='vlc':
             data=self._vlc();position=float(data.get('time') or 0);duration=float(data.get('length') or 0);paused=data.get('state')=='paused'
             current=data.get('currentplid')
@@ -126,6 +126,8 @@ class Session:
             duration=float(_pipe_command(self.endpoint,['get_property','duration']) or 0)
             paused=bool(_pipe_command(self.endpoint,['get_property','pause']))
         if not all(math.isfinite(v) for v in (position,duration)):raise ValueError('Invalid playback time')
+        if duration<=0:raise TimeoutError('Waiting for player media information')
+        self.last_response=time.monotonic()
         self.state=dict(position=max(0,position),duration=max(0,duration),paused=paused,active=duration>0,path=self.path,fid=self.fid,episode_ids=self.ids,player=self.player)
         if duration>0 and time.monotonic()-self.last_save>=5:
             save_progress(self.ids,position,duration);self.last_save=time.monotonic()
@@ -169,10 +171,12 @@ def poll():
                 if _session is session:_session=None
         return state
     except Exception as error:
-        if isinstance(error,MediaChanged) or time.monotonic()-session.started>15:
+        if isinstance(error,MediaChanged) or time.monotonic()-session.last_response>15:
+            if session.state.get('duration'):save_progress(session.ids,session.state['position'],session.state['duration'])
             with _lock:
                 if _session is session:_session=None
-        return {**last_progress(),'active':False,'notice':'Live playback is unavailable. Open the episode through Anime Vault in VLC, MPV or PotPlayer.'}
+        saved=session.state or session.previous
+        return {**saved,'path':session.path,'fid':session.fid,'active':False,'notice':'Player connection unavailable; showing the last saved position.'}
 
 def toggle():
     session=_session

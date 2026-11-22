@@ -37,11 +37,21 @@ class VirtualPosters(QObject):
     def schedule(self,*_):
         if self.active and self.page.isVisible():self.timer.start()
 
+    def suspend(self):
+        self.active=False
+        self.timer.stop()
+        for card in self.slots:
+            card.hide()
+
     def set_records(self,records):
         if not self.active:
-            while self.page.grid_layout.count():self.page.grid_layout.takeAt(0)
-            self.slots=[card for _,card in self.page._card_pool.values()]
-            for card in self.slots:card.hide()
+            while self.page.grid_layout.count():
+                widget=self.page.grid_layout.takeAt(0).widget()
+                if widget is not None:
+                    widget.hide()
+                    if not isinstance(widget,HomePosterCard):widget.deleteLater()
+            if not self.slots:
+                self.slots=[card for _,card in self.page._card_pool.values()]
         self.active=True;self.records=records;self.page._display_franchises=records;self.revision+=1
         self.reflow()
 
@@ -78,7 +88,8 @@ class VirtualPosters(QObject):
         if getattr(self,'_visible_signature',None)==signature:return
         self._visible_signature=signature
         while len(self.slots)>capacity:
-            self.slots.pop().deleteLater()
+            card=self.slots.pop()
+            card.hide();card.deleteLater()
         current={card.franchise_id:card for card in self.slots}
         needed={self.records[i]['id'] for i in indices}
         available=[card for card in self.slots if card.franchise_id not in needed]
@@ -101,6 +112,7 @@ class VirtualPosters(QObject):
             card.set_selected(record['id'] in page.selected_fids);card.set_selection_mode(page._selection_mode)
             card.update_facts(page._home_facts.get(record['id'],{}),page._download_badges.get(record['id']))
             card.move((index%self.cols)*(self.width+20),10+(index//self.cols)*self.row_height)
+            if card.isHidden():card.restyle()
             card.show();visible.append(card)
             if key[0] and key not in self.images and key not in self.pending:
                 from app.ui.refresh import thumbnail_pool

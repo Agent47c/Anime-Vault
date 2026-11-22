@@ -21,8 +21,8 @@ def colors():
     app=QApplication.instance()
     from app.ui.theme_catalog import is_manga
     if is_manga() and not app.property('animevaultHighContrast'):
-        from app.ui.manga_style import COLORS
-        return dict(COLORS)
+        from app.ui.manga_style import manga_colors
+        return dict(manga_colors())
     if app and app.property('animevaultHighContrast'):
         palette=app.palette()
         return dict(bg=palette.window().color().name(),panel=palette.base().color().name(),raised=palette.alternateBase().color().name(),
@@ -46,6 +46,8 @@ def qss():
     QWidget#home_library, QWidget#home_content, QScrollArea#home_scroll, QScrollArea#home_scroll > QWidget {{ background:{c['bg']}; border:none; }}
     QWidget#home_library {{ color:{c['text']}; font-family:"Plus Jakarta Sans"; font-size:{body}px; }}
     QWidget#home_grid, QWidget#home_filter_strip, QWidget#home_sort_controls, QStackedWidget#home_views {{ background:{c['bg']};border:none; }}
+    QWidget#home_release_heading, QScrollArea#home_release_strip, QScrollArea#home_release_strip > QWidget,
+    QWidget#home_release_content, QWidget#home_release_content QFrame#poster_card {{ background:{c['bg']};border:none; }}
     QWidget#home_library QLabel {{ color:{c['text']}; background:transparent; border:none; }}
     QWidget#home_library QLabel#home_meta {{ color:{c['muted']}; font-family:"JetBrains Mono"; font-size:{small}px; }}
     QWidget#home_library QLabel#library_connectivity {{color:{c['muted']};background:transparent;border:none;padding:0;font-size:{small}px;}}

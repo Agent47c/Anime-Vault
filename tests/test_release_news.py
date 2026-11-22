@@ -129,7 +129,7 @@ class ReleaseNewsTests(unittest.TestCase):
             try:
                 self.assertEqual(page.adult_filter.isChecked(),allowed)
                 self.assertEqual(page.adult_filter.isEnabled(),allowed)
-                with patch.object(page,'run',side_effect=lambda operation,ready:operation()),patch.object(news,'discover') as discover:
+                with patch.object(page,'run',side_effect=lambda operation,ready:operation()),patch.object(news,'discover',return_value=([],False)) as discover:
                     page.theme_filter.setCurrentText('Isekai');page.sort.setCurrentText('Most popular')
                     self.assertEqual(discover.call_args.args[4],'POPULARITY_DESC')
                     self.assertEqual(discover.call_args.kwargs['theme'],'Isekai')

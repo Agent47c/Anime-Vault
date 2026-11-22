@@ -1,4 +1,5 @@
 """Keep combo popups consistent across Windows and Qt styles."""
+from app.ui.manga_style import set_material
 from PyQt5.QtCore import QObject, QEvent,Qt,QSize,QRectF,QRect,QPoint,QTimer
 from PyQt5.QtGui import QPainter,QColor,QPen,QFont,QFontMetrics
 from PyQt5.QtWidgets import QComboBox, QStyledItemDelegate,QMenu,QStyle,QApplication,QAbstractItemView
@@ -38,7 +39,7 @@ class ContainedMenu(QMenu):
                 from app.ui.manga_pages import active
                 row_height=max(QFontMetrics(dropdown_font()).height(),(bounds.height()-20-(24 if active() else 0)-separators*13)//max(1,len(actions)))
                 padding=max(0,(row_height-QFontMetrics(dropdown_font()).height())//2)
-                self.setStyleSheet(self.styleSheet()+f'\nQMenu::item {{min-height:0px;padding:{padding}px 28px {padding}px 16px;}}')
+                set_material(self,self.styleSheet()+f'\nQMenu::item {{min-height:0px;padding:{padding}px 28px {padding}px 16px;}}')
                 self.setProperty('unifiedMenuStyle',self.styleSheet())
         self.setMaximumSize(max(1,bounds.width()),max(1,bounds.height()))
 
@@ -212,14 +213,14 @@ class DropdownStyler(QObject):
         if isinstance(obj,QMenu):
             tint=QColor(c['coral']);tint.setAlpha(32)
             hover=c['raised'] if QApplication.instance().property('animevaultHighContrast') else f'rgba({tint.red()},{tint.green()},{tint.blue()},32)'
-            obj.setStyleSheet(f'''QMenu {{background:{c['panel']};color:{c['text']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;padding:8px;font-family:'Plus Jakarta Sans';font-size:{px(14)}px;menu-scrollable:1;}}
+            set_material(obj,f'''QMenu {{background:{c['panel']};color:{c['text']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;padding:8px;font-family:'Plus Jakarta Sans';font-size:{px(14)}px;menu-scrollable:1;}}
                 QMenu::item {{padding:10px 28px 10px 16px;min-height:{px(22)}px;border-radius:8px;color:{c['text']};}}
                 QMenu::item:selected {{background:{'transparent' if manga else hover};color:{c['text']};border-left:{'none' if manga else '3px solid '+c['coral']};}}
                 QMenu::item:disabled {{color:{c['muted']};}}
                 QMenu::separator {{height:1px;background:{c['line']};margin:6px 8px;}}
                 QMenu::section {{color:{c['muted']};padding:8px 14px;font-family:'JetBrains Mono';font-size:{px(11)}px;}}''')
             if manga:
-                obj.setStyleSheet(obj.styleSheet()+'''QMenu::item {background:transparent;border:0px solid transparent;outline:none;}
+                set_material(obj,obj.styleSheet()+'''QMenu::item {background:transparent;border:0px solid transparent;outline:none;}
                     QMenu::item:selected, QMenu::item:focus {background:transparent;border:0px solid transparent;outline:none;}''')
         else:
             obj.setObjectName('unified_dropdown_popup')
@@ -228,7 +229,7 @@ class DropdownStyler(QObject):
                     margins=obj.layout().contentsMargins();obj.setProperty('mangaDepthLayoutMargins',[margins.left(),margins.top(),margins.right(),margins.bottom()])
                 if manga:obj.layout().setContentsMargins(18,18,18,18)
                 else:obj.layout().setContentsMargins(*obj.property('mangaDepthLayoutMargins'))
-            obj.setStyleSheet(f'''QWidget#unified_dropdown_popup {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;padding:6px;}}
+            set_material(obj,f'''QWidget#unified_dropdown_popup {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;padding:6px;}}
                 QAbstractItemView {{background:{c['panel']};color:{c['text']};border:none;outline:none;padding:4px;}}
                 QAbstractItemView::item {{padding:0;border:none;}}''')
         obj.setProperty('unifiedMenuStyle',obj.styleSheet())

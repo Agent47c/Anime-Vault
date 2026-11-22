@@ -116,7 +116,7 @@ def jobs():
     return json.loads(db.get_state('downloads.jobs','[]'))
 
 
-def _save_jobs(items):
+def _save_jobs(items,completed_moves=()):
     from contextlib import closing
     from app.core.download_inventory import signature
     from app.core.file_operations import _operation_lock
@@ -126,6 +126,14 @@ def _save_jobs(items):
             conn.execute("INSERT INTO app_state VALUES ('downloads.inventory_revision','1') ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INTEGER)+1")
             conn.execute("INSERT OR REPLACE INTO app_state VALUES ('organizer_preview_stale','1')")
         conn.execute("INSERT OR REPLACE INTO app_state VALUES ('downloads.jobs',?)",(json.dumps(items),))
+        # Queue acknowledgement and temporary-proof cleanup commit together.
+        # Unfinished moves keep their records, including after process interruption.
+        if completed_moves:
+            active={(r.get('source'),r.get('target')) for job in items for r in (job.get('library_move_intent') or [])}
+            settled={job['id'] for job in items if job.get('library_moved') and not job.get('library_move_intent')}
+            for row in completed_moves:
+                if row.get('job_id') in settled and (row['source'],row['target']) not in active:
+                    conn.execute("DELETE FROM file_operations WHERE source=? AND target=? AND kind IN ('MOVE','COPY_MOVE') AND status='COMPLETED'",(row['source'],row['target']))
 
 
 def add_download(fid,source,season=0,origin=None,context=None):
@@ -243,7 +251,7 @@ def poll(cancelled=lambda:False):
                     if not any(r['job_id']==job['id'] for r in plan['rows']):job['library_move_error']='Automatic move needs review. '+('; '.join(plan['notes']) or 'No ready files found.')
                 _save_jobs(items)
                 if plan['rows']:download_library.move(plan,cancelled);changed=True
-            except (OSError,ValueError) as error:
+            except Exception as error:
                 for job in automatic:job['library_move_error']=str(error)
                 _save_jobs(items)
             items=jobs()

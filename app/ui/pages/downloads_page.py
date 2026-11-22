@@ -11,6 +11,22 @@ from app.ui.io_task import IOTask,track,start
 from app.ui.downloads import monitor,TorrentFilesDrawer,open_downloads
 from app.ui.download_setup import open_setup
 from app.ui.navigation import navigate
+from app.ui.icons import icon
+
+
+def transfer_icon(label):
+    """Shared download actions use the application's SVG icon set."""
+    from app.ui.home_style import colors
+    name={'pause':'pause','resume':'play','stop':'stop','retry':'retry','choose files':'files',
+          'more':'more','refresh':'refresh','move completed to library':'move',
+          'setup guide':'settings','pause all':'pause','clear completed':'check',
+          'all transfers':'downloads','active':'play','paused / stopped':'pause',
+          'completed':'check','incomplete or missing':'info','browse…':'organizer',
+          'save preferences':'check','continue setup guide':'chevron-right',
+          'all download settings':'settings'}.get(label.casefold())
+    if name is None:
+        name='trash' if 'Recycle Bin' in label else 'organizer' if 'folder' in label else 'plus' if 'Add' in label else 'settings'
+    return icon(name,colors()['text'])
 
 
 class QueueModel(QAbstractTableModel):
@@ -95,7 +111,7 @@ class DownloadsPage(QWidget):
         for label,action in [('Pause','pause'),('Resume','resume'),('Stop','stop'),('Retry','retry'),('Choose files','files')]:
             button=QPushButton(label);button.setMinimumHeight(44);button.setCursor(Qt.PointingHandCursor)
             button.clicked.connect(lambda checked=False,command=action:self.action(command));controls.addWidget(button)
-        more=QPushButton('More');more.setMinimumHeight(44);menu=QMenu(more)
+        more=QPushButton('More');more.setMinimumHeight(44);more.setMinimumWidth(110);menu=QMenu(more)
         menu.addAction('Open downloads folder',lambda checked=False:self.open_folder(global_folder=True))
         menu.addAction('Open selected download folder',lambda checked=False:self.open_folder())
         menu.addAction('Remove queue entry — keep files',lambda:self.action('remove'))
@@ -106,6 +122,7 @@ class DownloadsPage(QWidget):
         self.status=QLabel('');self.status.setWordWrap(True);box.addWidget(self.status)
         for control in self.findChildren(QPushButton):
             control.setCursor(Qt.PointingHandCursor)
+            if control.text():control.setIcon(transfer_icon(control.text()))
             if not control.accessibleName():control.setAccessibleName(control.text())
         self.table.viewport().setCursor(Qt.PointingHandCursor)
         self.guide_scroll.setAccessibleName('Download setup preferences')
@@ -122,6 +139,11 @@ class DownloadsPage(QWidget):
         self.table.verticalHeader().setDefaultSectionSize(px(124 if active() else 100))
         from app.ui.manga_workflows import finish
         finish(self)
+        for control in self.findChildren(QPushButton):
+            if control.text():control.setIcon(transfer_icon(control.text()))
+        for menu in self.findChildren(QMenu):
+            for action in menu.actions():
+                if not action.isSeparator():action.setIcon(transfer_icon(action.text()))
     def choose_destination(self):
         path=QFileDialog.getExistingDirectory(self,'Default download folder',self.destination.text())
         if path:self.destination.setText(path)
@@ -156,7 +178,9 @@ class DownloadsPage(QWidget):
         identifier=item['id']
         menu=QMenu(self)
         for label,command in [('Pause','pause'),('Resume','resume'),('Stop','stop'),('Retry','retry'),('Choose files','files'),('Remove queue entry — keep files','remove')]:menu.addAction(label,lambda checked=False,c=command:self.action(c,identifier))
-        menu.addAction('Open download folder',lambda:self.open_folder(identifier));menu.addAction('Move files to Recycle Bin…',lambda:self.delete_files(identifier));menu.exec_(self.table.viewport().mapToGlobal(point))
+        menu.addAction('Open download folder',lambda:self.open_folder(identifier));menu.addAction('Move files to Recycle Bin…',lambda:self.delete_files(identifier))
+        for action in menu.actions():action.setIcon(transfer_icon(action.text()))
+        menu.exec_(self.table.viewport().mapToGlobal(point))
     def move_completed(self):
         from app.core import download_library
         from app.ui.dialogs.download_library_move import DownloadLibraryMove

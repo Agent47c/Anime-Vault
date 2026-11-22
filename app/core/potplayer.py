@@ -39,16 +39,19 @@ def window_for(process, path):
 def send(hwnd, message, query, value=0):
     import ctypes
     from ctypes import wintypes
-    user32 = ctypes.windll.user32
-    result = wintypes.DWORD(0)
+    user32 = ctypes.WinDLL('user32',use_last_error=True)
+    # HWND, WPARAM, LPARAM and DWORD_PTR are pointer-sized on 64-bit Windows.
+    # Default ctypes int conversion can truncate the handle or overwrite result.
+    send_message=user32.SendMessageTimeoutW
+    send_message.argtypes=[wintypes.HWND,wintypes.UINT,ctypes.c_size_t,ctypes.c_ssize_t,
+                          wintypes.UINT,wintypes.UINT,ctypes.POINTER(ctypes.c_size_t)]
+    send_message.restype=ctypes.c_ssize_t
+    result = ctypes.c_size_t(0)
     # SMTO_ABORTIFHUNG = 0x0002
-    ok = user32.SendMessageTimeoutW(hwnd, message, query, value, 0x0002, 200, ctypes.byref(result))
+    ok = send_message(hwnd, message, query, value, 0x0002, 200, ctypes.byref(result))
     if not ok:
-        return 0
-    val = result.value
-    if val >= 0x80000000:
-        val -= 0x100000000
-    return val
+        raise TimeoutError('PotPlayer did not respond to its playback query.')
+    return ctypes.c_ssize_t(result.value).value
 
 
 def poll(process, path):

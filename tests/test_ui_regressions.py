@@ -54,6 +54,15 @@ class Regressions(unittest.TestCase):
     def tearDown(self):
         self.app.processEvents()
         QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        # Visible status controls can finish a background read during teardown.
+        # Drain those workers before unpatching/removing their temporary database.
+        from app.ui.io_task import running
+        for _ in range(2):
+            for worker in running():
+                worker.requestInterruption()
+                self.assertTrue(worker.wait(2000),'Background IO did not release the test database')
+            self.app.processEvents()
+            QCoreApplication.sendPostedEvents(None,QEvent.DeferredDelete)
         for item in reversed(self.patches):
             item.stop()
         gc.collect()

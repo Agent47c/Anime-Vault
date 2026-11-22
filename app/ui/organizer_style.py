@@ -5,15 +5,31 @@ from app.ui.home_style import colors,px,load_fonts
 from app.ui.transfer_style import qss as base_qss
 from app.ui.components.flow_layout import FlowLayout
 from app.ui.button_system import unified
+from app.ui.manga_style import clear_material
+from app.ui.settings_style import settings_row_qss
+
+
+def organizer_controls_qss():
+    c=colors()
+    badge='QWidget#organizer_screen QLabel#organizer_status'
+    return f'''
+    {badge} {{background:{c['raised']};color:{c['muted']};border:1px solid {c['line']};
+              border-radius:10px;padding:4px 10px;font-size:{px(12)}px;font-weight:600;}}
+    {badge}[tone='busy'] {{color:{c['coral']};}}
+    {badge}[tone='success'] {{color:{c['ok']};}}
+    {badge}[tone='warning'] {{color:{c['amber']};}}
+    QWidget#organizer_screen QPushButton#remove_library_root {{padding:0;}}
+    '''
 
 
 @unified('QWidget#organizer_screen')
 def qss():
     from app.ui.manga_pages import active
+    r='QWidget#organizer_screen'
     if active():
         from app.ui.manga_workflows import qss as manga_qss
-        return manga_qss('organizer_screen')
-    c=colors();r='QWidget#organizer_screen'
+        return manga_qss('organizer_screen')+organizer_controls_qss()+settings_row_qss(r)
+    c=colors()
     return base_qss('organizer_screen')+f'''
     {r} QFrame#organizer_card {{background:{c['panel']};border:1px solid {c['line']};border-radius:14px;}}
     {r} QWidget#organizer_clear, {r} QWidget#organizer_cell {{background:transparent;border:none;}}
@@ -34,7 +50,7 @@ def qss():
     {r} QScrollBar:vertical {{width:8px;background:transparent;}}
     {r} QScrollBar::handle:vertical {{background:{c['line']};border-radius:4px;min-height:24px;}}
     {r} QScrollBar::add-line:vertical, {r} QScrollBar::sub-line:vertical {{height:0;}}
-    '''
+    '''+organizer_controls_qss()+settings_row_qss(r)
 
 
 def style_cells(page):
@@ -44,7 +60,7 @@ def style_cells(page):
             cell=page.table.cellWidget(row,col)
             if not cell:continue
             for widget in [cell,*cell.findChildren(QWidget)]:
-                widget.setStyleSheet('')
+                clear_material(widget)
                 if isinstance(widget,QLabel) and col==2:widget.setObjectName('organizer_badge')
     from PyQt5.QtWidgets import QHeaderView
     widths={1:px(90),2:px(164),3:px(156)}
@@ -84,13 +100,13 @@ def apply_layout(page):
     preview.setMinimumHeight(510);preview.setMaximumHeight(16777215);preview.show();layout.addWidget(preview,1)
     page.controls_scroll.hide()
     for widget in page.season_tab.findChildren(QWidget):
-        if widget is not page.season_tab:widget.setStyleSheet('')
+        clear_material(widget)
         if isinstance(widget,QLabel):widget.setWordWrap(True)
         if isinstance(widget,QFrame) and widget.frameShape()==QFrame.HLine:widget.setObjectName('organizer_divider')
     for child in roots.findChildren(QFrame,options=Qt.FindDirectChildrenOnly):
         if child.layout():child.setObjectName('organizer_drop')
     roots.layout().addStretch()
-    page.top_status_badge.setWordWrap(False);page.top_status_badge.setObjectName('organizer_meta')
+    page.top_status_badge.setWordWrap(False)
     page.preview_card.layout().itemAt(0).layout().setStretch(0,1)
     page.search_filter.setMaximumWidth(420)
     title.setObjectName('organizer_title');hint.setObjectName('organizer_meta')

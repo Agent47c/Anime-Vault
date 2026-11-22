@@ -51,6 +51,36 @@ class MangaLightTests(unittest.TestCase):
         apply_theme(self.app,'dark');page.refresh_home_style();page.refresh_display()
         self.assertIs(page.hero_card,hero);self.assertIs(page._card_pool,original);self.assertTrue(page.pagination.isHidden());self.assertEqual(len(page._cards),13)
 
+    def test_return_from_manga_detaches_paged_cards_before_showing_virtual_cards(self):
+        from app.ui.components.home_poster import HomePosterCard
+
+        for i in range(72):db.upsert_franchise({'display_title':f'Series {i:03}'})
+        apply_theme(self.app,'dark');page=self.library();page.resize(1440,900);page.show()
+        page.refresh_display();self.app.processEvents()
+        self.assertTrue(page._virtual_posters.active)
+        original_slots=set(page._virtual_posters.slots)
+        for theme in ('manga_light','manga_dark'):
+            apply_theme(self.app,theme);page.refresh_home_style();page.refresh_display();self.app.processEvents()
+            apply_theme(self.app,'dark');page.refresh_home_style();page.refresh_display();self.app.processEvents()
+            visible={card for card in page.grid_container.findChildren(HomePosterCard, options=Qt.FindDirectChildrenOnly) if not card.isHidden()}
+            self.assertTrue(page._virtual_posters.active)
+            self.assertEqual(len(visible),len(page._cards))
+            self.assertEqual(visible,set(page._cards))
+            self.assertTrue(original_slots.intersection(visible))
+        page.hide()
+
+    def test_release_strip_and_heading_match_the_library_canvas_across_themes(self):
+        from app.ui.home_style import colors
+
+        apply_theme(self.app,'manga_dark');page=self.library();page.resize(1440,1250);page.show()
+        page.release_heading_widget.show();page.release_scroll.show()
+        for theme in ('manga_dark','dark','manga_light','light'):
+            with self.subTest(theme=theme):
+                apply_theme(self.app,theme);page.refresh_home_style();self.app.processEvents()
+                for widget in (page.release_heading_widget,page.release_scroll.viewport(),page.release_scroll.widget()):
+                    self.assertEqual(widget.grab().toImage().pixelColor(2,2).name(),colors()['bg'])
+        page.hide()
+
     def test_shell_routes_search_and_keeps_old_family_shell(self):
         from app.ui.main_window import MainWindow
         from app.ui.pages.downloads_page import DownloadsPage

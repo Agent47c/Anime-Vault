@@ -144,12 +144,14 @@ def set_quit_preference(pref: str):
 
 
 def get_theme() -> str:
-    """Returns 'dark' or 'light'."""
-    return db.get_state("theme", "system")
+    """Return the saved appearance, defaulting legacy system profiles to Sakura Dark."""
+    from app.ui.theme_catalog import DEFAULT_THEME, normalize_theme
+    return normalize_theme(db.get_state("theme", DEFAULT_THEME))
 
 
 def set_theme(theme: str):
-    db.set_state("theme", theme)
+    from app.ui.theme_catalog import normalize_theme
+    db.set_state("theme", normalize_theme(theme))
 
 
 # ---------------------------------------------------------------------------

@@ -9,13 +9,14 @@ from PyQt5.QtWidgets import QPushButton,QToolButton,QComboBox,QLineEdit,QMessage
 
 
 def control_rules(widget):
+    from app.ui.manga_style import material
     if widget.objectName()=='airing_release':
-        return 'QPushButton,QPushButton:hover,QPushButton:pressed,QPushButton:focus{background:transparent;color:#111217;border:none;border-radius:0;padding:0;outline:none;}'
+        return material('QPushButton,QPushButton:hover,QPushButton:pressed,QPushButton:focus{background:transparent;color:#111217;border:none;border-radius:0;padding:0;outline:none;}')
     if isinstance(widget,QLineEdit):
-        if isinstance(widget.parentWidget(),QComboBox):return 'QLineEdit{background:transparent;color:#111217;border:none;padding:0;}'
-        return 'QLineEdit{background:#e2e5ed;color:#111217;border:1px solid #bac1ce;border-radius:8px;}QLineEdit:focus{border-color:#ff2e93;}'
+        if isinstance(widget.parentWidget(),QComboBox):return material('QLineEdit{background:transparent;color:#111217;border:none;padding:0;}')
+        return material('QLineEdit{background:#e2e5ed;color:#111217;border:1px solid #bac1ce;border-radius:8px;}QLineEdit:focus{border-color:#ff2e93;}')
     if isinstance(widget,QComboBox):
-        return 'QComboBox{background:white;color:#111217;border:1px solid #d6dae2;border-radius:8px;}QComboBox:hover{background:#eef0f5;border-color:#c4c9d4;color:#111217;}QComboBox:focus{border-color:#ff2e93;}QComboBox:disabled{background:#e4e7ed;color:#8a91a2;}QComboBox::drop-down{background:transparent;border:none;}'
+        return material('QComboBox{background:white;color:#111217;border:1px solid #d6dae2;border-radius:8px;}QComboBox:hover{background:#eef0f5;border-color:#c4c9d4;color:#111217;}QComboBox:focus{border-color:#ff2e93;}QComboBox:disabled{background:#e4e7ed;color:#8a91a2;}QComboBox::drop-down{background:transparent;border:none;}')
     primary=bool(widget.property('accent') or widget.property('role')=='primary' or widget.objectName() in ('detail_play_main','detail_play_arrow'))
     status=widget.objectName()=='watch_status_option' or widget.property('entryChoice')
     # Icon-only transparent surfaces and painted controls keep their anatomy.
@@ -39,6 +40,13 @@ def control_rules(widget):
         rules='QPushButton{background:transparent;color:#596175;border:none;}QPushButton:hover{background:#eef0f5;color:#111217;}'
     if widget.objectName()=='watch_status_option':
         rules='QPushButton{background:transparent;color:#596175;border:none;border-radius:6px;padding:0 10px;min-height:30px;font-size:11px;}QPushButton:hover{background:#eef0f5;color:#111217;}QPushButton:checked{background:#ff2e93;color:#0a0a0a;}'
+    rules=material(rules)
+    from app.ui.theme_catalog import is_manga_dark
+    parent=widget.parentWidget()
+    if is_manga_dark() and parent and parent.objectName()=='pagination':
+        rules+='QPushButton:checked{background:#e5e2e1;color:#121315;border-color:#e5e2e1;}'
+    if is_manga_dark() and widget.property('ratingFilled'):
+        rules+='QPushButton{color:#17120b;}'
     return rules.replace('QPushButton','QToolButton')+'QToolButton::menu-button{background:transparent;border:none;}' if isinstance(widget,QToolButton) else rules
 
 
@@ -50,12 +58,27 @@ class MangaControls(QObject):
         from app.ui.manga_pages import active
         from app.ui.components.neumorphic import install,NeumorphicEffect
         parent=widget.parentWidget()
-        enabled=active() and not(parent and parent.objectName()=='app_title_bar') and widget.objectName()!='qt_spinbox_lineedit'
+        enabled=active() and not(parent and parent.objectName()=='app_title_bar') and widget.objectName() not in ('qt_spinbox_lineedit','settings_theme_card')
         if isinstance(widget.window(),QMessageBox) or widget.window().property('stableAlert'):
             install(widget,enabled=False);return
         local=widget.styleSheet();applied=widget.property('mangaControlApplied')
         self.busy=True
         try:
+            if isinstance(widget,QLineEdit) and not widget.property('mangaOwnPlaceholder'):
+                from PyQt5.QtGui import QColor,QPalette
+                from app.ui.theme_catalog import is_manga_dark
+                saved=widget.property('mangaPlaceholderBase')
+                palette=widget.palette()
+                if enabled and is_manga_dark():
+                    if saved is None:
+                        widget.setProperty('mangaPlaceholderBase',palette.color(QPalette.PlaceholderText))
+                    from app.ui.manga_style import manga_colors
+                    palette.setColor(QPalette.PlaceholderText,QColor(manga_colors()['muted']))
+                    widget.setPalette(palette)
+                elif saved is not None:
+                    palette.setColor(QPalette.PlaceholderText,saved)
+                    widget.setPalette(palette)
+                    widget.setProperty('mangaPlaceholderBase',None)
             if not enabled:
                 if applied and local==applied:widget.setStyleSheet(widget.property('mangaControlBase') or '')
                 if isinstance(widget,QComboBox):
@@ -90,7 +113,16 @@ class MangaControls(QObject):
                 if ancestor.graphicsEffect():return
                 ancestor=ancestor.parentWidget()
             if widget.height()<=130:install(widget,inset=isinstance(widget,QLineEdit))
-        finally:self.busy=False
+        finally:
+            if enabled and widget.property('mangaOwnPlaceholder'):
+                from PyQt5.QtGui import QColor,QPalette
+                from app.ui.manga_style import manga_colors
+                palette=widget.palette()
+                color=QColor(manga_colors()['muted'])
+                if palette.color(QPalette.PlaceholderText)!=color:
+                    palette.setColor(QPalette.PlaceholderText,color)
+                    widget.setPalette(palette)
+            self.busy=False
 
     def eventFilter(self,widget,event):
         if event.type() in (QEvent.Show,QEvent.StyleChange):self.apply(widget)

@@ -1,5 +1,5 @@
 """
-Automatic Windows Dark/Light mode QSS theme engine.
+QSS theme engine for Sakura and Manga Brutalism.
 Faithfully recreates the visual design from the Anime Manager UI Reference mockups.
 """
 
@@ -724,20 +724,41 @@ def get_stylesheet(theme: str = "dark") -> str:
 
 def apply_theme(app: QApplication, theme: str = "dark"):
     """Apply saved appearance preferences without changing library data."""
+    from PyQt5 import sip
+    from app.ui.home_style import load_fonts as load_sakura_fonts
+    from app.ui.manga_style import load_fonts as load_manga_fonts
+
+    # Register both font families before the initial UI is drawn. Registering
+    # fonts for the first time during a live switch resets Qt's font caches
+    # while widgets and native controls are still using them.
+    load_sakura_fonts()
+    load_manga_fonts()
+    windows = [window for window in app.topLevelWidgets()
+               if window.isVisible() and window.updatesEnabled()]
+    for window in windows:
+        window.setUpdatesEnabled(False)
+    try:
+        _apply_theme(app, theme)
+    finally:
+        for window in windows:
+            if not sip.isdeleted(window):
+                # Qt schedules a repaint for the whole window and its children.
+                window.setUpdatesEnabled(True)
+
+
+def _apply_theme(app: QApplication, theme: str):
     from app import preferences as prefs
     from PyQt5.QtGui import QPalette
     from PyQt5.QtCore import QTimer
     from app.ui.components.dropdowns import install_dropdown_style
     from app.ui.components.wheel_routing import install_wheel_routing
     install_wheel_routing(app)
-    requested = theme
-    from app.ui.theme_catalog import SAKURA_FAMILY
-    app.setProperty('animevaultThemeFamily','manga' if theme=='manga_light' else SAKURA_FAMILY)
-    if theme=='manga_light':
-        from app.ui.manga_style import load_fonts
-        load_fonts();theme='light'
-    if theme == "system":
-        theme = "light" if prefs.windows_light_theme() else "dark"
+    from app.ui.theme_catalog import SAKURA_FAMILY, normalize_theme
+    requested = theme = normalize_theme(theme)
+    manga=requested in ('manga_light','manga_dark')
+    app.setProperty('animevaultThemeFamily','manga' if manga else SAKURA_FAMILY)
+    if manga:
+        theme='dark' if requested=='manga_dark' else 'light'
     scale = prefs.text_scale()
     contrast = prefs.enabled("high_contrast") or prefs.system_high_contrast()
     app.setProperty("animevaultTheme", theme)
@@ -750,6 +771,15 @@ def apply_theme(app: QApplication, theme: str = "dark"):
     # palette, scale and contrast rather than the previous theme's values.
     install_dropdown_style(app)
     stylesheet = build_qss(theme, scale)
+    if manga and not contrast:
+        from app.ui.manga_style import manga_colors
+        canvas = manga_colors()['bg']
+        stylesheet += f"QWidget, QMainWindow {{ background-color: {canvas}; }}"
+        stylesheet += "QLabel { background: transparent; }"
+    from app.ui.theme_catalog import is_manga_dark
+    if is_manga_dark():
+        from app.ui.manga_style import controls_qss,material
+        stylesheet += material(controls_qss())
     if contrast:
         palette = app.style().standardPalette()
         bg = palette.color(QPalette.Window).name()
@@ -767,14 +797,10 @@ def apply_theme(app: QApplication, theme: str = "dark"):
         app._appearance_timer.setInterval(3000)
         def follow_windows():
             app.setProperty('animevaultReducedMotion',prefs.reduced_motion())
-            requested_theme = app.property("animevaultRequestedTheme")
-            expected = "light" if prefs.windows_light_theme() else "dark"
             system_contrast = prefs.enabled("high_contrast") or prefs.system_high_contrast()
-            if (requested_theme == "system" and expected != app.property("animevaultTheme")) or system_contrast != app.property("animevaultHighContrast"):
-                apply_theme(app, requested_theme)
+            if system_contrast != app.property("animevaultHighContrast"):
+                apply_theme(app, app.property("animevaultRequestedTheme"))
         app._appearance_timer.timeout.connect(follow_windows)
         app._appearance_timer.start()
     from app.ui.window_chrome import install_title_bar_style
     install_title_bar_style(app)
-    for widget in app.topLevelWidgets():
-        widget.update()

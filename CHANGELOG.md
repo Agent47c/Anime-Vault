@@ -1,5 +1,142 @@
 # Changelog
 
+## 1.2.0 — 22 November 2026
+
+- Offer four fixed themes, with Sakura Dark as the default and navigation previews in Settings. Preserve explicitly saved themes.
+- Repaint the application in place during theme changes and load bundled fonts before the first window is drawn. Fix overlapping Library cards, stretched episode bars, stale Organizer surfaces, and mismatched release-strip backgrounds.
+- Align Organizer rule rows with Appearance & Behavior, theme the saved-preview badge, and use a red trash icon for removing configured roots.
+- Keep the Updates counter, Library cards, and Updates workspace in sync with the active adult-visibility preference.
+- Show the current version and link to the project on GitHub from Settings → About.
+
+## Manga Brutalism Dark — 22 November 2026
+
+- Add Manga Brutalism Dark as a separate appearance choice alongside Manga
+  Light and the existing Sakura modes.
+- Apply the dark Library reference to shared navigation, controls, surfaces,
+  dropdowns, cards, progress and compact dialogs using the current Manga layouts.
+- Register the dark master and record the supplied and missing screen mockups
+  in the Manga Dark reference inventory.
+
+## Live extension status and complete release rows — 21 November 2026
+
+- Show a live rounded-square red/green Chrome extension indicator in Downloads
+  settings. Green requires a recent native-bridge heartbeat, independently of
+  saved registration; show website capture being off as a separate condition.
+- Mark native-host disconnection immediately and expire stale heartbeats. Check
+  status asynchronously while the settings control is visible and stop its timer
+  when hidden.
+- Paginate release discovery by visible card capacity while retaining AniList's
+  existing 20-result pages and cache keys. Carry unused results forward instead
+  of leaving a partial row on every provider-page boundary or dropping titles.
+- Calculate initial capacity after the page is shown at its actual width. Reuse
+  cached provider pages, preserve filtering, and identify a genuine end of results.
+- Validation: all 776 regression tests passed, followed by six focused status and
+  pagination checks. Publication checks passed; inspected the six-column,
+  18-card layout and connected-state indicator with temporary data.
+- No personal library data was altered and no EXE was rebuilt for these changes.
+
+## Lightweight move recovery and shared episode notation — 21 November 2026
+
+- Reuse the existing timestamped move-operation records as temporary recovery
+  proof. Queue recovery and move previews now require completed-operation evidence
+  plus the destination's file identity, rather than accepting a same-size file.
+- Save the completed destination signature for verified copy/move operations, so
+  routine recovery checks use metadata without rereading video contents. Existing
+  interrupted-copy verification remains in place.
+- Remove completed download move records in the same transaction that saves the
+  final queue acknowledgement. Interrupted operations and records still referenced
+  by another pending move remain available for recovery.
+- Share season/episode token recognition between remembered title matching and
+  next-episode search. Accept common spaced, padded and separator spellings while
+  preserving original filenames and confirmed logical episode assignments.
+- Validation: 768 tests passed in the full check, followed by 10 focused recovery
+  and parser checks after the final adjustment. Publication checks passed.
+- No new database table, new installer build or episode-number migration.
+
+## Duplicate drive scans, remembered searches and playback progress — 21 November 2026
+
+- Make duplicate drive checks discover current video files inside recorded anime
+  folders instead of relying on stale saved filename inventories or storage flags.
+  Report directory/checking progress and missing locations, skip incomplete torrent
+  destinations, and preserve the existing exact-copy verification and protected keeper.
+- Automatically retain edited release searches as the selected Custom search for
+  that anime/season, while keeping the separate English, Romaji and Japanese choices.
+- Normalize full-word episode labels and spaced season/episode tokens consistently
+  when matching remembered encoder titles and checking local episode availability.
+- Correct PotPlayer IPC to use pointer-sized Windows handles and result buffers.
+  Treat unanswered/empty media queries as unavailable responses rather than zero
+  playback progress, preserve the last valid position, and restore saved progress
+  when the Home hero refreshes.
+- Show transfer speeds in KB/s below 1 MB/s and MB/s above that threshold, including
+  the transfer details drawer. Add consistent SVG icons to download controls/menus.
+- Use a three-line navigator button and a rounded-square red/green API status mark.
+  Remove the shortcut hint from library search fields, retain their clear control,
+  and label active library searches with their query and matching title count.
+- Reduce the white overlays on Manga Light's hero artwork so more of the banner
+  remains visible while preserving the established layout.
+- Validation: all 760 regression tests and compilation checks passed; publication
+  checks passed. Reviewed offscreen captures of the download controls and active
+  library search. Live PotPlayer playback still needs verification on the user's PC.
+- No personal media was moved or deleted during validation; no EXE was rebuilt.
+
+## Theme transitions and application restart after restore — 21 November 2026
+
+- Refresh theme scopes when switching between Sakura and Manga Light even when
+  both themes share the same base light stylesheet. Keep the existing three
+  registered themes: Sakura Dark, Sakura Light and Manga Light.
+- Show a required-restart dialog after successful SQLite or full-profile ZIP
+  restoration, with Restart Anime Vault and Close app actions. Disable the old
+  library UI until shutdown so it cannot write stale state into the restored data.
+- Restart only Anime Vault, waiting for the previous process to release its files
+  and instance lock before starting normal initialization.
+- Show a visible Restore not started warning when running transfers or background
+  work prevent restoration, instead of reporting the reason only in a status label.
+- Document the search, aliases, episode confirmation, download state and completed
+  file movement flows in `docs/DOWNLOAD_ORGANIZER_FLOW.md`, including current
+  limitations and proposed follow-up safeguards.
+- Validation: 747 tests passed in the full check; 13 focused tests passed after
+  the final restore-message changes. Unicode text survived tested theme transitions;
+  the reported wrong-character symptom has not been reproduced directly.
+- Source changes only; no new installer or executable was built for this change.
+
+## 1.1.2 — Fix UNIQUE constraint collision on file_locations.path_key — 17 November 2026
+
+- Fix `UNIQUE constraint failed: file_locations.path_key` error on the Downloads page
+  during automatic or manual library moves and download indexing.
+- Prevent path key collisions in `identity.relocate()` by safely replacing any existing
+  obsolete or replaced records in `file_locations` when moving a downloaded file into
+  its library destination.
+- Delete recycled files from `file_locations` in `file_operations.recycle_file()` so
+  sent-to-trash files do not retain conflicting unique path keys in the database.
+- Broaden error handling in `downloads.poll()` and `download_library.move()` to capture
+  and surface unexpected operational errors without aborting background queue checks.
+- Enhance `download_queue.check_completed_files()` to automatically reconcile verified
+  file paths when a transfer has already been moved to its intended library target,
+  preventing false "Incomplete or missing files" status on completed downloads.
+- Add regression test suite `tests/test_file_locations_unique.py` validating path key
+  uniqueness, file recycling cleanup, move recovery, and intent reconciliation.
+
+## 1.1.1 — Database restore path synchronization and WAL persistence — 17 November 2026
+
+- Automatically synchronize internal database and storage paths (`database_path`,
+  `database_local_path`, and `data_directory` in `app_state`) to the active local user
+  application directory whenever a database is restored or initialized.
+- Ensure that databases restored from external drives, previous machine setups, or
+  development environments cleanly rewrite their internal location records to the
+  active `%LOCALAPPDATA%\AnimeVault` user path without altering personal media paths,
+  custom titles, episode mappings, ratings, or watch progress.
+- Validate the restored `backup_directory` and normalize it to the local backups folder
+  if the stored path points to a non-existent or foreign drive, preventing subsequent
+  backup write errors.
+- Force immediate SQLite WAL checkpointing (`PRAGMA wal_checkpoint(TRUNCATE)`) during
+  restoration and rollback so that all incoming pages are written directly into the
+  physical database file before application shutdown or restart.
+- Invoke `sync_database_path()` on application launch within `init_db()` and upon
+  extracting full-profile ZIP backups in `restore_backup()`.
+- Add comprehensive regression tests in `tests/test_database_path_sync.py` covering
+  startup synchronization, external path rewrites, and ZIP archive restoration.
+- Windows EXE and Inno Setup installer package updated to version 1.1.1.
+
 ## Backup progress, required restore restart and CI reliability — 17 November 2026
 
 - Show the themed major-operation progress screen for SQLite and full-profile ZIP

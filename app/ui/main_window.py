@@ -157,7 +157,8 @@ class QuitConfirmDialog(QDialog):
             color = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])["red_text"]
             if active():
                 color='#ff2e93' if glyph=='tray' else '#b3261e'
-                image.setStyleSheet('QLabel#quit_icon{background:#eef0f5;border:1px solid #dce1eb;border-radius:12px;}')
+                from app.ui.manga_style import set_material
+                set_material(image,'QLabel#quit_icon{background:#eef0f5;border:1px solid #dce1eb;border-radius:12px;}')
             image.setPixmap(icon(glyph, color).pixmap(22, 22))
             image.setAttribute(Qt.WA_TransparentForMouseEvents)
             line.addWidget(image)
@@ -915,6 +916,13 @@ class MainWindow(QMainWindow):
         self._update_nav_selection(self._active_nav_index)
 
     def _apply_settings_preferences(self):
+        from app.core.adult_content import is_adult_unlocked
+        adult_visible = is_adult_unlocked()
+        if adult_visible != getattr(self, '_updates_adult_visible', None):
+            self._updates_adult_visible = adult_visible
+            self.updates_page.refresh(check_artwork=False)
+            # The live visibility change takes precedence over old tab contents.
+            self._dirty_pages.difference_update((self.library_page, self.updates_page))
         for page in getattr(self,'_navigation_pages',[]):
             workflow=getattr(page,'workflow',page)
             apply=getattr(workflow,'apply_preferences',None)
@@ -958,9 +966,13 @@ class MainWindow(QMainWindow):
     def _refresh_dirty_page(self, index):
         page = self.stacked_widget.widget(index)
         if page in getattr(self, "_dirty_pages", set()):
-            snapshot=getattr(self,'_cached_refresh_snapshot',None)
+            snapshot=getattr(self,'_refresh_snapshot',None) or getattr(self,'_cached_refresh_snapshot',None)
             if snapshot is None:return  # Initial load owns the first snapshot.
-            with db.refresh_view(snapshot):page.refresh()
+            from app.core.adult_content import is_adult_unlocked
+            if 'adult_visible' in snapshot and snapshot['adult_visible'] != is_adult_unlocked():
+                page.refresh()
+            else:
+                with db.refresh_view(snapshot):page.refresh()
             self._dirty_pages.discard(page)
 
     def _on_update_choices_changed(self, records):
@@ -1094,6 +1106,12 @@ class MainWindow(QMainWindow):
         if getattr(self, "_shutdown_pending", False):
             snapshot["connection"].close()
             return
+        from app.core.adult_content import is_adult_unlocked
+        if 'adult_visible' in snapshot and snapshot['adult_visible'] != is_adult_unlocked():
+            snapshot['connection'].close()
+            self._refresh_pending=True
+            self._finish_refresh()
+            return
         from app.ui.refresh import patch_update_choices
         recent={fid:record for fid,(revision,record) in getattr(self,'_recent_update_choices',{}).items() if revision>getattr(self,'_refresh_choice_revision',0)}
         if recent:patch_update_choices(snapshot,recent)
@@ -1114,6 +1132,8 @@ class MainWindow(QMainWindow):
             self.refresh_button.setToolTip("")
         pages = [self.library_page, self.storage_page, self.updates_page]
         current = self.stacked_widget.currentWidget()
+        # Every new snapshot can contain metadata changes, even without a scan.
+        self._dirty_pages.update(page for page in (self.library_page, self.updates_page) if page is not current)
         if self._refresh_invalidates_others:
             self._dirty_pages.update(page for page in pages if page is not current)
         if current in pages:
@@ -1191,7 +1211,9 @@ class MainWindow(QMainWindow):
         if "WATCHED_REMOVED" in self.coll_counts:
             self.coll_counts["WATCHED_REMOVED"].setText(str(stats.get("watched_removed", 0)))
         if hasattr(self,'manga_rail'):self._sync_manga_collection_counts()
-        self._unread_updates = sum(bool(f.get("has_new_update")) for f in all_franchises)
+        choices = db.update_dispositions()
+        self._unread_updates = sum(db.has_pending_update(record, choices.get(record['id'], 'new'))
+                                   for record in all_franchises)
         if hasattr(self,'manga_rail'):self.manga_rail.set_count(2,self._unread_updates)
         badge = self.findChild(QLabel, "nav_badge_2")
         if badge:
@@ -1421,6 +1443,16 @@ class MainWindow(QMainWindow):
                 event.ignore()
         else:
             event.ignore()
+
+    def _restart_app(self):
+        try:
+            from app.restart import schedule_restart
+            schedule_restart()
+        except (OSError,RuntimeError) as error:
+            QMessageBox.warning(self,'Could not restart Anime Vault',str(error))
+            return False
+        self._force_exit()
+        return True
 
     def _force_exit(self):
         self._force_exiting = True

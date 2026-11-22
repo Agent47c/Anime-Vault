@@ -392,14 +392,17 @@ class LibraryPage(QWidget):
 
         release_heading, self.release_title = section_heading("\u65b0\u7740", "New seasons and episodes")
         self.release_heading_widget = QWidget()
+        self.release_heading_widget.setObjectName('home_release_heading')
         self.release_heading_widget.setLayout(release_heading)
         layout.addWidget(self.release_heading_widget)
         self.release_scroll = HorizontalStrip()
+        self.release_scroll.setObjectName('home_release_strip')
         self.release_scroll.setWidgetResizable(True)
         self.release_scroll.setFrameShape(QFrame.NoFrame)
         self.release_scroll.setFixedHeight(410)
         self.release_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         release_content = QWidget()
+        release_content.setObjectName('home_release_content')
         self.release_layout = QHBoxLayout(release_content)
         self.release_layout.setContentsMargins(0, 0, 0, 8)
         self.release_layout.setSpacing(20)
@@ -422,6 +425,11 @@ class LibraryPage(QWidget):
         self.stats_subtitle = QLabel("0 anime")
         self.stats_subtitle.setObjectName('home_meta')
         title_box.addWidget(self.stats_subtitle)
+        self.search_results_label=QLabel()
+        self.search_results_label.setObjectName('home_meta')
+        self.search_results_label.setWordWrap(True)
+        self.search_results_label.hide()
+        title_box.addWidget(self.search_results_label)
         self.service_status_row=QHBoxLayout()
         self.service_status_row.setSpacing(12)
         title_box.addLayout(self.service_status_row)
@@ -923,6 +931,8 @@ class LibraryPage(QWidget):
         elif self._current_filter == 'REVIEW':
             franchises = [f for f in franchises if any(self._library_index.by_id[mid].get('needs_review') for mid in f['series_member_ids'])]
 
+        self.search_results_label.setText(f'Search results for “{self._search_query}” · {len(franchises)} titles' if self._search_query else '')
+        self.search_results_label.setVisible(bool(self._search_query))
         from app.ui.theme_catalog import is_manga
         if is_manga():
             from app.ui.home_style import px
@@ -937,7 +947,7 @@ class LibraryPage(QWidget):
     def _render_grid(self, franchises: List[Dict]):
         self.views_stack.setCurrentWidget(self.grid_container)
         from app.ui.theme_catalog import is_manga
-        if not is_manga() and hasattr(self,'_virtual_posters') and (len(franchises)>64 or self._virtual_posters.active):
+        if not is_manga() and hasattr(self,'_virtual_posters') and (len(franchises)>64 or self._virtual_posters.active or self._virtual_posters.slots):
             self._virtual_posters.set_records(franchises)
             return
         self.grid_container.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Preferred)

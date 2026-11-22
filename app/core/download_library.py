@@ -17,13 +17,8 @@ def _safe(path):
 
 
 def _finished(source,target):
-    with closing(db.get_connection()) as conn:
-        record=conn.execute("SELECT kind,signature FROM file_operations WHERE source=? AND target=? AND status='COMPLETED'",(str(source),str(target))).fetchone()
-    if not record:return False
-    try:
-        proof=json.loads(record['signature']);signature=identity.signature(target)
-        return signature[:2]==tuple(proof['original'][:2]) if record['kind']=='COPY_MOVE' else signature==tuple(proof)
-    except (OSError,ValueError,TypeError):return False
+    from app.core.file_operations import completed_move
+    return completed_move(source,target)
 
 
 def preview(root=None,folder_overrides=None):
@@ -187,9 +182,9 @@ def move(plan,cancelled=lambda:False):
                     # Keep the durable intent until replacement cleanup succeeds,
                     # so a locked old file remains visible and retryable in Organizer.
                     job.update(library_moved=True,library_destination=rows[0]['library_folder'],desired='cancelled',status='Indexed',integrity_missing=False)
-                    job.pop('library_move_intent',None);job.pop('library_move_error',None);downloads._save_jobs(items)
+                    job.pop('library_move_intent',None);job.pop('library_move_error',None);downloads._save_jobs(items,completed_moves=rows)
                 elif cancelled():
                     job['library_move_error']='Move stopped before the next file. Review the remaining files to continue.';downloads._save_jobs(items)
-            except (OSError,ValueError) as error:
+            except Exception as error:
                 errors.append(f"{job['title']}: {error}");job['library_move_error']=str(error);downloads._save_jobs(items)
     return f'{moved} files moved.'+(f' {reconciled} previously moved files reconciled.' if reconciled else '')+(' Stopped before the next file.' if cancelled() else '')+(' Review and retry: '+'; '.join(errors) if errors else '')

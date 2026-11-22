@@ -45,7 +45,11 @@ class SegmentedCapacityBar(QWidget):
     def paintEvent(self, event):
         colors = COLORS.get(QApplication.instance().property("animevaultTheme"), COLORS["dark"])
         from app.ui.manga_pages import active
-        if active():colors=dict(colors,bg_card_alt='#e2e5ed',accent_secondary='#ff2e93',text_muted='#8e94a8')
+        if active():
+            from app.ui.manga_style import manga_colors
+            material=manga_colors()
+            colors=dict(colors,bg_card_alt=material['raised'],accent_secondary=material['coral'],
+                        text_muted=material['muted'] if 'inset' in material else '#8e94a8')
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 

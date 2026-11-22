@@ -139,6 +139,8 @@ class DuplicatePage(QDialog):
 
     def _failed(self, message):
         self.status.setText(message)
+        if not message.startswith('Stopped.'):
+            QMessageBox.warning(self,'Duplicate check could not finish',message)
         if self._batch_worker is not None and self._batch_worker.selected is not None:
             self.tree.clear()
             self.data_changed.emit()

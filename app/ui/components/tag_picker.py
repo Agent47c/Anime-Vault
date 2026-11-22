@@ -1,4 +1,5 @@
 """Readable boxed choices in a reusable, keyboard-accessible filter popover."""
+from app.ui.manga_style import set_material
 from PyQt5.QtCore import Qt,QPoint,QPointF,pyqtSignal
 from PyQt5.QtGui import QPainter,QPen,QPainterPath,QColor
 from PyQt5.QtWidgets import QPushButton,QFrame,QVBoxLayout,QHBoxLayout,QLabel,QWidget,QScrollArea
@@ -80,7 +81,7 @@ class TagPicker(QPushButton):
         manga=active() and not QApplication.instance().property('animevaultHighContrast')
         popup_depth(popup,manga)
         if popup.layout():popup.layout().setContentsMargins(*((28,28,28,28) if manga else (16,16,16,16)))
-        popup.setStyleSheet(f'''QFrame#tag_picker_popup {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;}}
+        set_material(popup,f'''QFrame#tag_picker_popup {{background:{c['panel']};border:1px solid {c['line']};border-radius:12px;margin:{12 if manga else 0}px;}}
             QLabel {{color:{c['text']};background:transparent;border:none;font-size:{px(14)}px;}}
             QWidget#tag_choices, QScrollArea, QScrollArea>QWidget {{background:transparent;border:none;}}
             QPushButton {{background:{c['raised']};color:{c['text']};border:1px solid {c['line']};border-radius:9px;padding:6px 12px;min-height:{px(32)}px;font-size:{px(14)}px;}}

@@ -23,9 +23,23 @@ class SettingsReferenceTests(unittest.TestCase):
             page.section_buttons[index].click();self.app.processEvents()
             self.assertEqual([i for i,target in enumerate(page.section_targets) if target.isVisible()],[index])
         page.close();page.deleteLater()
+    def test_about_displays_application_version_and_opens_repository(self):
+        from unittest.mock import patch
+        from PyQt5.QtWidgets import QLabel
+        from app import __version__
+
+        page=SettingsPage();self.addCleanup(page.deleteLater)
+        about=next(panel for panel in page.findChildren(QFrame) if panel.property('settings_section')=='About')
+        self.assertIn(f'Version {__version__}',[label.text() for label in about.findChildren(QLabel)])
+        button=about.findChild(QPushButton,'settings_project_github')
+        with patch('app.ui.pages.settings_page.QDesktopServices.openUrl') as open_url:
+            button.click()
+            self.assertEqual(open_url.call_args.args[0].toString(),'https://github.com/Agent47c/Anime-Vault')
+
     def test_choice_cards_mirror_real_controls(self):
-        page=SettingsPage();page.theme_cards[2].click();self.assertEqual(page.theme_combo.currentData(),'light');self.assertTrue(page.theme_cards[2].isChecked())
-        page.theme_cards[2].click();self.assertTrue(page.theme_cards[2].isChecked())
+        page=SettingsPage();light=next(card for card in page.theme_cards if card.value=='light')
+        light.click();self.assertEqual(page.theme_combo.currentData(),'light');self.assertTrue(light.isChecked())
+        light.click();self.assertTrue(light.isChecked())
         value,button=next((v,b) for v,b in page.player_cards if v=='mpc-hc');button.click();self.assertEqual(page.player_combo.currentData(),'mpc-hc');self.assertTrue(button.isChecked())
         page.deleteLater()
     def test_library_selection_control_is_local_and_synchronized(self):

@@ -62,10 +62,29 @@ def prepare_move(source, target, expected=None):
 
 def _complete(operation_id, source, target):
     with closing(_connection()) as conn, conn:
+        target_signature=identity.signature(target)
         conn.execute("UPDATE repair_candidates SET status='RESOLVED_BY_MOVE' WHERE file_id=(SELECT file_id FROM file_locations WHERE path_key=?) AND status='REVIEW'", (identity.path_key(source),))
         identity.relocate(conn, source, target)
-        conn.execute('UPDATE physical_files SET size_bytes=?,mtime_ns=?,device=?,inode=? WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)',(*identity.signature(target),identity.path_key(target)))
+        conn.execute('UPDATE physical_files SET size_bytes=?,mtime_ns=?,device=?,inode=? WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)',(*target_signature,identity.path_key(target)))
+        record=conn.execute('SELECT kind,signature FROM file_operations WHERE id=?',(operation_id,)).fetchone()
+        if record and record['kind']=='COPY_MOVE':
+            proof=json.loads(record['signature']);proof['target']=target_signature
+            conn.execute('UPDATE file_operations SET signature=? WHERE id=?',(json.dumps(proof),operation_id))
         conn.execute("UPDATE file_operations SET status='COMPLETED',error=NULL,updated_at=? WHERE id=?", (int(time.time()), operation_id))
+
+
+def completed_move(source,target):
+    """Cheap journal + file-identity proof; never hash video contents on polling."""
+    source,target=Path(source).absolute(),Path(target).absolute()
+    with closing(db.get_connection()) as conn:
+        record=conn.execute("SELECT kind,signature FROM file_operations WHERE source=? AND target=? AND status='COMPLETED' ORDER BY updated_at DESC LIMIT 1",(str(source),str(target))).fetchone()
+    if not record:return False
+    try:
+        if source.exists() or target.is_symlink() or not target.is_file():return False
+        proof=json.loads(record['signature'])
+        expected=proof.get('target') if record['kind']=='COPY_MOVE' else proof if record['kind']=='MOVE' else None
+        return bool(expected and str(expected[-1])!='0' and identity.signature(target)==tuple(expected))
+    except (OSError,ValueError,TypeError,IndexError):return False
 
 
 @serialized
@@ -118,7 +137,7 @@ def recover_operations():
             message = (row['error'] or 'Move did not finish; preview and retry') if source.exists() and not target.exists() else 'Move needs review: source/destination unavailable or conflicting'
             _status(row['id'], 'FAILED' if source.exists() and not target.exists() else 'REVIEW', message)
             errors.append(f"{row['source']}: {message}")
-        except (OSError, ValueError) as error:
+        except Exception as error:
             _status(row['id'], 'REVIEW', str(error))
             errors.append(f"{row['source']}: {error}")
     return {'recovered': recovered, 'errors': errors}
@@ -183,6 +202,7 @@ def recycle_file(path, expected=None, recycle=None):
         with closing(_connection()) as conn, conn:
             target_key=identity.path_key(path)
             conn.execute("UPDATE physical_files SET availability='RECYCLED' WHERE id=(SELECT file_id FROM file_locations WHERE path_key=?)", (target_key,))
+            conn.execute("DELETE FROM file_locations WHERE path_key=?", (target_key,))
             touched = set()
             for season in conn.execute('SELECT * FROM seasons WHERE season_folder_path IS NOT NULL').fetchall():
                 root_key=identity.path_key(season['season_folder_path'])

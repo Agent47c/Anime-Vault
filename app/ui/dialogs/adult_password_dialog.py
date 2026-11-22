@@ -1,4 +1,5 @@
 """Password prompt, setup, and recovery dialog for adult anime content."""
+from app.ui.manga_style import set_material
 from typing import List, Optional
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -422,7 +423,7 @@ class AdultPasswordDialog(QDialog):
         muted = c.get("muted", "#9b97b0")
         accent = c.get("accent", "#ff6584")
 
-        self.setStyleSheet(f"""
+        set_material(self,f"""
             QDialog {{
                 background-color: {panel};
                 color: {text_color};

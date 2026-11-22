@@ -1,4 +1,5 @@
 """Scoped presentation for the approved list, grouping and duplicate references."""
+from app.ui.manga_style import material
 from app.ui.home_style import colors,px
 from PyQt5.QtWidgets import QApplication
 
@@ -11,7 +12,7 @@ def reference_colors():
 
 def list_style():
     c=reference_colors();r='QTableWidget#library_list'
-    return f'''
+    return material(f'''
     {r} {{background:{c['panel']};color:{c['text']};border:1px solid {c['line']};border-radius:12px;gridline-color:transparent;}}
     {r}::item {{padding:0;border:none;border-bottom:1px solid {c['line']};}}
     {r} QWidget {{background:transparent;}}
@@ -23,7 +24,7 @@ def list_style():
     {r} QPushButton {{background:{c['raised']};color:{c['text']};border:1px solid {c['line']};border-radius:7px;min-height:32px;padding:0 12px;font-size:{px(12)}px;}}
     {r} QPushButton:hover {{border-color:{c['coral']};}}
     {r} QHeaderView::section {{background:{c['panel']};color:{c['muted']};padding:10px 8px;border:none;border-bottom:1px solid {c['line']};font-size:{px(11)}px;font-weight:700;}}
-    '''
+    ''')
 
 def grouping_style():
     from app.ui.manga_pages import active

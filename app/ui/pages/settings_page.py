@@ -9,10 +9,10 @@ from pathlib import Path
 
 from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QFrame,QGroupBox,QGridLayout,QFormLayout,QComboBox,QCheckBox,QFileDialog,QListWidget,QListWidgetItem,QProgressBar,QApplication,QLineEdit,QButtonGroup,QTabWidget
 from app.ui.components.message_boxes import AppMessageBox as QMessageBox
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, pyqtSignal, QThread
+from PyQt5.QtGui import QDesktopServices, QFont
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QThread
 
-from app import db
+from app import __version__, db
 from app import preferences as prefs
 from app.ui.components.settings_switch import SettingsSwitch
 from app.config import (
@@ -118,7 +118,7 @@ class SettingsPage(QWidget):
         from app.ui.settings_sections import extend_settings
         extend_settings(self)
 
-    def _panel(self, title):
+    def _panel(self, title, heading=None):
         from app.ui.components.paper_card import PaperCard
         panel = PaperCard()
         panel.setObjectName("settings_panel")
@@ -126,43 +126,19 @@ class SettingsPage(QWidget):
         box = QVBoxLayout(panel)
         box.setContentsMargins(20, 20, 20, 20)
         box.setSpacing(0)
-        code=QLabel('/// '+title.upper().replace(' AND ','_').replace(' ','_'))
+        label=heading or title
+        code=QLabel('/// '+label.upper().replace(' AND ','_').replace(' ','_'))
         code.setObjectName('settings_panel_code');box.addWidget(code)
         box.addSpacing(8)
-        heading = QLabel(title)
+        heading = QLabel(label)
         heading.setObjectName("settings_panel_title")
         box.addWidget(heading)
         box.addSpacing(6)
         return panel, box
 
     def _row(self, box, title, hint="", control=None):
-        widget = QWidget()
-        widget.setObjectName("settings_row")
-        row = QHBoxLayout(widget)
-        row.setContentsMargins(0, 10, 0, 10)
-        row.setSpacing(16)
-        labels = QVBoxLayout()
-        labels.setSpacing(2)
-        label = QLabel(title)
-        label.setObjectName("settings_label")
-        label.setWordWrap(True)
-        labels.addWidget(label)
-        if hint:
-            detail = QLabel(hint)
-            detail.setObjectName("settings_hint")
-            detail.setWordWrap(True)
-            labels.addWidget(detail)
-        row.addLayout(labels, 1)
-        if control:
-            row.addWidget(control, 0, Qt.AlignVCenter)
-            control.setAccessibleName(title)
-            control.setAccessibleDescription(hint)
-        box.addWidget(widget)
-        line = QFrame()
-        line.setObjectName("settings_divider")
-        line.setFixedHeight(1)
-        box.addWidget(line)
-        return widget
+        from app.ui.settings_style import add_settings_row
+        return add_settings_row(box,title,hint,control)
 
     def _toggle(self, box, title, hint, key):
         switch = SettingsSwitch(prefs.enabled(key))
@@ -208,7 +184,8 @@ class SettingsPage(QWidget):
         self.tabs.setElideMode(Qt.ElideNone)
         self.tabs.setAccessibleName("Settings categories")
         self._tab_layouts = {}
-        for name in ("Appearance & Accessibility", "Scanning & Organization", "Watchers & Import Lists", "Media Player", "Downloads & Sources", "Database & Backup", "Naming & Organization", "Metadata & AniList"):
+        from app.ui.settings_style import SECTION_NAMES
+        for name, caption in SECTION_NAMES.items():
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             scroll.setFrameShape(QFrame.NoFrame)
@@ -221,9 +198,8 @@ class SettingsPage(QWidget):
             column.addStretch()
             self._tab_layouts[name] = column
             scroll.setWidget(content)
-            caption={'Appearance & Accessibility':'Appearance','Scanning & Organization':'Scanning','Watchers & Import Lists':'Watchers & Lists','Media Player':'Media Player','Downloads & Sources':'Downloads & Sources','Database & Backup':'Database & Backup','Naming & Organization':'Naming & Organization','Metadata & AniList':'Metadata & AniList'}[name]
             index = self.tabs.addTab(scroll, caption.replace('&','&&'))
-            self.tabs.setTabToolTip(index, name)
+            self.tabs.setTabToolTip(index, caption)
         layout.addWidget(self.tabs, 1)
 
         panel, box = self._panel("Appearance and accessibility")
@@ -233,7 +209,7 @@ class SettingsPage(QWidget):
             self.theme_combo.addItem(label, value)
         self.theme_combo.setCurrentIndex(max(0, self.theme_combo.findData(get_theme())))
         self.theme_combo.currentIndexChanged.connect(self._on_theme_changed)
-        self._row(box, "Theme", "Follow Windows or choose a fixed appearance", self.theme_combo)
+        self._row(box, "Theme", "Choose an appearance for Anime Vault", self.theme_combo)
         self._toggle(box, "Compact library", "Show the compact list instead of the poster grid", "compact_library")
         self.search_results_focus_switch=self._toggle(box, 'Focus search results automatically',
             'Move focus and scroll to results after Search or Enter. Typing keeps focus in the search field.', 'search_results_focus')
@@ -291,7 +267,7 @@ class SettingsPage(QWidget):
         box.addWidget(self.player_status)
         self._add_panel(panel)
 
-        panel, box = self._panel("Metadata and AniList")
+        panel, box = self._panel("Metadata and AniList", heading="Metadata and adult access")
         self._toggle(box, "Automatic metadata updates", "Check for new seasons and episodes", "metadata_auto")
         self._toggle(box, "Prefer official English titles", "Fall back to Romaji and Japanese; applies to new matches", "prefer_english")
         self._toggle(box, "Allow mature (18+) titles", "Include adult titles in search results", "allow_mature")
@@ -326,7 +302,10 @@ class SettingsPage(QWidget):
         self._row(box, "Always run as administrator", "Applies on next launch. Windows approval is still required.", self.always_admin_cb)
         self._add_panel(panel)
         panel, box = self._panel("About")
-        self._row(box, "Anime Vault", "Anime Library & Storage Manager v1.0.0")
+        github = self._button("About us on GitHub", self._open_project_repository)
+        github.setObjectName("settings_project_github")
+        self._row(box, "Anime Vault", f"Version {__version__}", github)
+        github.setAccessibleName(github.text())
         self._add_panel(panel)
 
         panel, box = self._panel("Scanning and organization")
@@ -574,7 +553,7 @@ class SettingsPage(QWidget):
             self, "Confirm Restore",
             "Restoring a database will replace your current library.\n"
             "An automatic safety copy of your current database will be preserved.\n\n"
-            "After a successful restore, the app will close. Reopen it to load the restored database and settings.\n\n"
+            "After a successful restore, restart Anime Vault to load the restored database and settings. Only the app restarts, not Windows.\n\n"
             "Do you wish to proceed?",
             QMessageBox.Yes | QMessageBox.No,
         )
@@ -586,7 +565,9 @@ class SettingsPage(QWidget):
             active=getattr(self.window(),'_running_threads',lambda:[])()
             from app.ui.user_edits import user_edits
             if running() or active or user_edits().pending or builtin_torrents.active() or any(status(item) in ('Queued','Downloading') for item in jobs()):
-                self.backup_status.setText('Stop transfers and wait for background tasks before restoring. Disabled downloads can be resumed afterward.')
+                message='Restore has not started. Stop transfers and wait for background tasks before restoring. If the built-in downloader is still running, disable downloads and reopen Anime Vault before restoring.'
+                self.backup_status.setText(message)
+                QMessageBox.warning(self,'Restore not started',message)
                 return
             if path.lower().endswith('.zip'):
                 from app.core.profile_backup import restore_backup
@@ -615,13 +596,20 @@ class SettingsPage(QWidget):
         host.setEnabled(True)
         central=getattr(host,'centralWidget',lambda:None)()
         if central is not None:central.setEnabled(False)
-        QMessageBox.information(host,'Restore complete — restart required',
-            'Your backup was restored successfully. A safety copy was kept.\n\n'
-            'Anime Vault must restart to load the restored library, settings and caches. '
-            'The app will now close. Open Anime Vault again to continue.')
-        force_exit=getattr(host,'_force_exit',None)
-        if force_exit is not None:force_exit()
-        else:host.close()
+        while True:
+            notice=QMessageBox(QMessageBox.Information,'Restore complete — restart required',
+                'Your backup was restored successfully. A safety copy was kept.\n\n'
+                'Restart Anime Vault to load the restored library, settings and caches. Windows will not restart.',parent=host)
+            restart=notice.addButton('Restart Anime Vault',QMessageBox.AcceptRole)
+            notice.addButton('Close app',QMessageBox.RejectRole);notice.setDefaultButton(restart);notice.exec_()
+            if notice.clickedButton() is restart:
+                action=getattr(host,'_restart_app',None)
+                if action is not None and action() is False:continue
+                if action is not None:return
+            force_exit=getattr(host,'_force_exit',None)
+            if force_exit is not None:force_exit()
+            else:host.close()
+            return
 
     def _export_json(self):
         from app.ui.io_task import start
@@ -635,6 +623,9 @@ class SettingsPage(QWidget):
         theme = self.theme_combo.currentData()
         set_theme(theme)
         self.theme_changed.emit(theme)
+
+    def _open_project_repository(self):
+        QDesktopServices.openUrl(QUrl("https://github.com/Agent47c/Anime-Vault"))
 
     def _on_quit_pref_changed(self):
         pref = self.quit_combo.currentData()

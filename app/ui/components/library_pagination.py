@@ -24,8 +24,9 @@ class LibraryPagination(QFrame):
         if not active():super().paintEvent(event);return
         from app.ui.components.neumorphic import paint_depth
         from PyQt5.QtGui import QPainter,QColor
+        from app.ui.home_style import colors
         from PyQt5.QtCore import QRectF
-        painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing);face=QRectF(self.rect()).adjusted(8,8,-8,-8);paint_depth(painter,face);painter.setPen(Qt.NoPen);painter.setBrush(QColor('white'));painter.drawRoundedRect(face,18,18);painter.end()
+        painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing);face=QRectF(self.rect()).adjusted(8,8,-8,-8);paint_depth(painter,face);painter.setPen(Qt.NoPen);painter.setBrush(QColor(colors()['panel']));painter.drawRoundedRect(face,18,18);painter.end()
     def fit_width(self,width,scale=1):
         """Seven readable cards on wide viewports, six on narrower ones."""
         size=7 if width>=7*200*scale+6*20 else 6

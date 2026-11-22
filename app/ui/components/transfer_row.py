@@ -50,9 +50,9 @@ class TransferDelegate(QStyledItemDelegate):
         else:
             detail=f"{state} · {coverage} · {format_bytes(downloaded or 0)} / {format_bytes(total or 0)} · {format_rate(item.get('download_rate'))} · ETA {eta}"
         painter.drawText(x,rect.top()+px(49),painter.fontMetrics().elidedText(detail,Qt.ElideRight,width))
-        for button,name in zip(actions,('organizer' if state in ('Completed','Seeding') else 'play' if state in ('Paused','Stopped','Failed') else 'pause','list','more')):
+        for button,name in zip(actions,('organizer' if state in ('Completed','Seeding') else 'retry' if state=='Failed' else 'play' if state in ('Paused','Stopped') else 'pause','files','more')):
             if manga:paint_depth(painter,button)
-            painter.setBrush(QColor('white' if manga else c['raised']));painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor(c['panel'] if manga else c['raised']));painter.setPen(Qt.NoPen)
             if manga:painter.drawRoundedRect(button,8,8)
             else:painter.drawEllipse(button)
             icon(name,c['muted']).paint(painter,button.adjusted(px(9),px(9),-px(9),-px(9)))

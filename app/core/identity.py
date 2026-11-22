@@ -164,7 +164,11 @@ def sync_season(conn, season, stat_files=True, changed_paths=None):
                         conn.execute("INSERT OR IGNORE INTO repair_candidates(file_id,target,evidence) VALUES (?,?,'SAME_FILE_SIGNATURE')", (candidate['id'], str(path)))
                     continue
             file_id = conn.execute('INSERT INTO physical_files(season_id, original_name) VALUES (?,?)', (season['id'], path.name)).lastrowid
-            conn.execute('INSERT INTO file_locations VALUES (?,?,?)', (file_id, str(path.absolute()), path_key(path)))
+            old_loc = conn.execute('SELECT file_id FROM file_locations WHERE path_key=?', (path_key(path),)).fetchone()
+            if old_loc and old_loc[0] != file_id:
+                conn.execute("UPDATE physical_files SET availability='REPLACED' WHERE id=?", (old_loc[0],))
+                conn.execute('DELETE FROM file_locations WHERE file_id=?', (old_loc[0],))
+            conn.execute('INSERT OR REPLACE INTO file_locations VALUES (?,?,?)', (file_id, str(path.absolute()), path_key(path)))
             numbers = extract_episode_numbers(path.name)
             season_token = re.search(r'\bS(\d{1,2})[ ._-]*E\d+', path.stem, re.I)
             scheme = 'SEASON' if season_token else 'ABSOLUTE' if continuous else 'SEASON' if season.get('season_number') else 'UNVERIFIED'
@@ -320,11 +324,17 @@ def resolve_path(path):
 
 def relocate(conn, source, target):
     """Update location and all compatibility references in the SAME transaction."""
+    if path_key(source) == path_key(target):
+        return
     conn.execute("UPDATE scan_scopes SET fingerprint='changed-by-move' WHERE (root_id,scope) IN (SELECT root_id,scope FROM scan_files WHERE path_key IN (?,?))",(path_key(source),path_key(target)))
     conn.execute('UPDATE scan_files SET present=0 WHERE path_key=?',(path_key(source),))
     conn.execute("INSERT INTO app_state VALUES ('files.move_revision','1') ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INTEGER)+1")
     row = conn.execute('SELECT file_id FROM file_locations WHERE path_key=?', (path_key(source),)).fetchone()
     if row:
+        target_row = conn.execute('SELECT file_id FROM file_locations WHERE path_key=?', (path_key(target),)).fetchone()
+        if target_row and target_row[0] != row[0]:
+            conn.execute("UPDATE physical_files SET availability='REPLACED' WHERE id=?", (target_row[0],))
+            conn.execute('DELETE FROM file_locations WHERE file_id=?', (target_row[0],))
         conn.execute('UPDATE file_locations SET path=?,path_key=? WHERE file_id=?', (str(target), path_key(target), row[0]))
         conn.execute("UPDATE physical_files SET availability='AVAILABLE' WHERE id=?", (row[0],))
     old = conn.execute("SELECT value FROM app_state WHERE key='last_episode_path'").fetchone()

@@ -1,4 +1,5 @@
 """Family-specific layout adapters for the master Library; no data ownership."""
+from app.ui.manga_style import set_material
 from PyQt5.QtCore import Qt
 from app.ui.theme_catalog import is_manga
 
@@ -7,6 +8,8 @@ def configure(page):
     manga=is_manga()
     if getattr(page,'_manga_active',None)==manga:return
     page._manga_active=manga
+    if manga and hasattr(page,'_virtual_posters'):
+        page._virtual_posters.suspend()
     from app.ui.components.neumorphic import install
     # Containers paint their own depth: nesting graphics effects suppresses
     # child button shadows on some Qt raster backends.
@@ -15,7 +18,7 @@ def configure(page):
     page.filter_strip.layout().setContentsMargins(12 if manga else 0,10 if manga else 0,12 if manga else 0,10 if manga else 0)
     toggle=page.grid_btn.parentWidget()
     if not hasattr(page,'_sakura_toggle_style'):page._sakura_toggle_style=toggle.styleSheet()
-    toggle.setStyleSheet('QFrame{background:white;border:1px solid #c4c9d4;border-radius:10px;}' if manga else page._sakura_toggle_style)
+    set_material(toggle,'QFrame{background:white;border:1px solid #c4c9d4;border-radius:10px;}' if manga else page._sakura_toggle_style)
     if manga:
         page._sakura_card_pool=page._card_pool;page._card_pool=getattr(page,'_manga_card_pool',{})
     elif hasattr(page,'_sakura_card_pool'):
@@ -32,7 +35,7 @@ def configure(page):
     page.pagination.setVisible(manga)
     page.full_calendar_button.setVisible(manga)
     page.heading_label.setText('Vault Archive' if manga else 'All anime')
-    page.heading_label.setStyleSheet('font:800 28px "Noto Serif";color:#111217;' if manga else '')
+    set_material(page.heading_label,'font:800 28px "Noto Serif";color:#111217;' if manga else '')
     if manga:
         page.filter_strip.layout().removeWidget(page.sort_controls);page.archive_header_row.addWidget(page.sort_controls)
     else:
@@ -44,9 +47,6 @@ def configure(page):
     page.calendar_panel.layout().setContentsMargins(0 if manga else 16,16,0 if manga else 16,16)
     page._airing_week_signature=None;page._grid_signature=None;page._grid_columns=0
     fit_calendar_controls(page)
-    if manga and hasattr(page,'_virtual_posters'):
-        page._virtual_posters.active=False;page._virtual_posters.timer.stop()
-        for card in page._virtual_posters.slots:card.hide()
 
 
 def fit_calendar_controls(page):
