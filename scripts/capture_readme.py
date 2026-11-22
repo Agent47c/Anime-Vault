@@ -49,7 +49,7 @@ def main():
         config.OFFLINE_MODE=True
         db.init_db()
         db.set_state('downloads.settings',json.dumps({'destination':'D:/Anime Vault/Downloads','enabled':False}))
-        for key,value in {'scan_schedule':'manual','preference:metadata_auto':'0','theme':'dark','preference:reduce_motion':'1'}.items():db.set_state(key,value)
+        for key,value in {'scan_schedule':'manual','preference:metadata_auto':'0','theme':'manga_dark','preference:reduce_motion':'1'}.items():db.set_state(key,value)
         titles=['Starlight Academy','Moonlit Voyage','The Last Sky Courier','Beyond the Azure Gate','Echoes of Tomorrow','Crimson Orbit','Silverwind Chronicles','Clockwork Garden']
         calendar=[];identifiers=[];catalog=[]
         demo_library=root/'Demo Library';demo_library.mkdir()
@@ -91,7 +91,7 @@ def main():
         from app.ui.main_window import MainWindow
         from app.ui.pages.downloads_page import DownloadsPage
         from app.ui.io_task import running
-        apply_theme(app,'dark')
+        apply_theme(app,'manga_dark')
         stack.enter_context(patch.object(DownloadsPage,'refresh'))
         window=MainWindow.__new__(MainWindow);QMainWindow.__init__(window)
         window._updater_thread=None;window._unread_updates=3;window._dirty_pages=set();window._shutdown_pending=False;window._navigation_pages=[]
@@ -123,19 +123,22 @@ def main():
                    'video_count':8,'status_badge':'Season 01','status_reason':'8 files ready for review'}
         organizer._on_scan_finished(dict(unorganized=[candidate],organized=[],all=[candidate]),cached=True)
         capture('organizer',window.organizer_page)
+        theme_choice=window.settings_page.theme_combo
+        theme_choice.setCurrentIndex(theme_choice.findData('manga_light'))
+        apply_theme(app,'manga_light')
         capture('settings',window.settings_page)
         window.settings_page.tabs.setCurrentIndex(5)
         capture('backup-and-restore',window.settings_page)
         window.settings_page.tabs.setCurrentIndex(0)
+        capture('storage',window.storage_page)
+        apply_theme(app,'manga_dark')
         window.downloads_page.loaded([{'id':'demo-completed','fid':identifiers[0],'title':'Starlight Academy · Episode 8','release_title':'Starlight Academy - S01E08','episode_keys':['EPISODE:S1:8'],'destination':str(root/'Downloads'),'engine':'builtin','indexed':True,'desired':'running','status':'Completed','progress':1,'downloaded':450*1024**2,'total':450*1024**2,'download_rate':0}])
         capture('downloads',window.downloads_page)
-        capture('storage',window.storage_page)
 
         from app.ui.pages.episode_page import EpisodePage
         episodes=EpisodePage(identifiers[0],window);window.stacked_widget.addWidget(episodes)
         capture('episodes',episodes)
 
-        apply_theme(app,'manga_dark')
         capture('library-manga-dark',window.library_page)
         organizer.organizer_tabs.setCurrentIndex(2)
         duplicates=organizer._duplicate_page

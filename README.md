@@ -44,7 +44,7 @@ py -3.13 -m venv .venv
 
 ## Feature walkthrough
 
-The screenshots show the running desktop app with fictional titles, original abstract artwork, example paths, and illustrative transfer statistics. Click an image to view it at full size.
+The screenshots show the running desktop app in **Manga Brutalism Light and Dark**, with fictional titles, original abstract artwork, example paths, and illustrative transfer statistics. Click an image to view it at full size.
 
 ### Library and playback
 
@@ -57,11 +57,9 @@ The screenshots show the running desktop app with fictional titles, original abs
 | [![Vault Archive with filters, sorting, and a poster grid](docs/screenshots/library-grid.png)](docs/screenshots/library-grid.png) | [![Series Details with local episode coverage, watch status, rating, and notes](docs/screenshots/series-details.png)](docs/screenshots/series-details.png) |
 
 <details>
-<summary>See the episode picker and Sakura Library</summary>
+<summary>See the episode picker</summary>
 
-| Choose an episode | Sakura Dark home screen |
-| --- | --- |
-| [![Episode picker with local episodes and a playback footer](docs/screenshots/episodes.png)](docs/screenshots/episodes.png) | [![Sakura Dark Library with centered navigation, weekly schedule, and recent updates](docs/screenshots/library.png)](docs/screenshots/library.png) |
+[![Episode picker with local episodes and a playback footer in Manga Brutalism Dark](docs/screenshots/episodes.png)](docs/screenshots/episodes.png)
 
 </details>
 
