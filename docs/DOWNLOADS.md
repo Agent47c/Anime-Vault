@@ -21,7 +21,7 @@ Use Pause, Resume, Stop and Retry on the existing queue entry. **Clear completed
 
 **Downloads → Move completed to library** generates a reviewed move preview. It attempts to reuse the anime's existing Library/season folder. Review every destination, especially custom arcs and absolute-numbered series. Existing targets are not silently overwritten.
 
-Two related issues are still open: completion indexing can ignore a manually confirmed assignment (**A02**), and one release split across staging/Library locations can appear as duplicate seasons (**A11**). See the [current audit](history/WHOLE_APP_AUDIT_2026-11-12.md). The presence of a move button is not evidence that these issues are already fixed.
+Completed downloads use the season and episode assignment confirmed in the app. The original filename can keep an absolute episode number while the library uses a season-relative number. Review staged files and their destinations in the move preview before combining files from different folders. See the [confirmed-download guide](CONFIRMED_DOWNLOAD_FLOW.md) for the assignment rules and the [Downloads and Organizer flow](DOWNLOAD_ORGANIZER_FLOW.md) for how completed files are tracked.
 
 ## Troubleshooting
 

@@ -49,9 +49,11 @@ def main():
         config.OFFLINE_MODE=True
         db.init_db()
         db.set_state('downloads.settings',json.dumps({'destination':'D:/Anime Vault/Downloads','enabled':False}))
-        for key,value in {'scan_schedule':'manual','metadata_auto':'0','theme':'dark','reduce_motion':'1','decorations':'1'}.items():db.set_state(key,value)
+        for key,value in {'scan_schedule':'manual','preference:metadata_auto':'0','theme':'dark','preference:reduce_motion':'1'}.items():db.set_state(key,value)
         titles=['Starlight Academy','Moonlit Voyage','The Last Sky Courier','Beyond the Azure Gate','Echoes of Tomorrow','Crimson Orbit','Silverwind Chronicles','Clockwork Garden']
-        calendar=[];identifiers=[]
+        calendar=[];identifiers=[];catalog=[]
+        demo_library=root/'Demo Library';demo_library.mkdir()
+        db.add_watched_directory(str(demo_library))
         monday=datetime.now().replace(hour=20,minute=30,second=0,microsecond=0)-timedelta(days=datetime.now().weekday())
         for i,title in enumerate(titles):
             cover=f'demo-{i}.png';banner=f'banner-{i}.png'
@@ -62,6 +64,11 @@ def main():
                 filename=f'{title} - S01E{ep:02}.mkv';(folder/filename).write_bytes(b'fictional screenshot fixture');files.append(filename)
             stamp=int((monday+timedelta(days=i%7)).timestamp())
             metadata={'id':900000+i,'title':{'english':title,'romaji':title},'format':'TV','status':'RELEASING','episodes':12,'genres':['Adventure','Fantasy'],'nextAiringEpisode':{'episode':9,'airingAt':stamp}}
+            discovery_title=title if i<3 else ['River of Lanterns','The Glass Observatory','Midnight Transit',
+                                               'Winter Signal','The Orchard Above the Clouds'][i-3]
+            catalog.append(dict(metadata,id=900000+i if i<3 else 910000+i,title={'english':discovery_title},
+                                startDate={'year':monday.year,'month':monday.month,'day':monday.day},
+                                description='An unexpected journey brings unlikely friends together beyond the familiar horizon.'))
             fid=db.upsert_franchise({'anilist_id':900000+i,'display_title':title,'title_en':title,'title_romaji':title,'genres':json.dumps(['Adventure','Fantasy']),'synopsis':'A new journey begins beyond the familiar horizon. Follow a small group of friends as they discover a changing world, unexpected allies and the courage to choose their own path.','cover_filename':cover,'banner_filename':banner,'metadata_json':json.dumps(metadata),'storage_state':'ON_DISK','watch_status':'WATCHING' if i%3==0 else 'WATCHED','total_size_bytes':(i+2)*1024**3,'root_folder_path':str(folder.parent)})
             db.upsert_season({'franchise_id':fid,'season_number':1,'title_display':title+' · Season 1','season_folder_path':str(folder),'video_files_json':json.dumps(files),'size_bytes':(i+2)*1024**3,'storage_state':'ON_DISK','episodes_total':12,'airing_status':'RELEASING','next_airing_at':stamp,'next_airing_ep':9})
             calendar.append({'mediaId':900000+i,'episode':9,'airingAt':stamp});identifiers.append(fid)
@@ -69,7 +76,7 @@ def main():
         db.set_state('release_calendar.v1',json.dumps(calendar));db.set_state('last_franchise_id',str(identifiers[0]))
         from PyQt5.QtWidgets import QApplication,QMainWindow,QLabel,QLineEdit
         from PyQt5.QtGui import QFontDatabase,QFont
-        from PyQt5.QtCore import QCoreApplication,QEvent
+        from PyQt5.QtCore import QCoreApplication,QEvent,QPoint
         from PyQt5.QtTest import QTest
         app=QApplication.instance() or QApplication([])
         for filename in ('segoeui.ttf','segoeuib.ttf'):
@@ -96,6 +103,7 @@ def main():
         window.library_page.refresh_display()
         def capture(name,widget):
             index=window.stacked_widget.indexOf(widget)
+            window._update_nav_selection(index if index<6 else 0)
             for number,button in window.home_header.tabs.items():button.setProperty('active',number==(index if index<6 else 0));button.update()
             window.stacked_widget.setCurrentWidget(widget);QTest.qWait(250)
             for label in window.findChildren(QLabel):
@@ -110,10 +118,46 @@ def main():
         details=DetailModal(identifiers[0],window);window.stacked_widget.addWidget(details)
         capture('series-details',details)
         window.updates_page.refresh();capture('updates',window.updates_page)
+        organizer=window.organizer_page
+        candidate={'anime_name':'Starlight Academy','folder_path':str(root/'Demo Library'/'Starlight Academy'),
+                   'video_count':8,'status_badge':'Season 01','status_reason':'8 files ready for review'}
+        organizer._on_scan_finished(dict(unorganized=[candidate],organized=[],all=[candidate]),cached=True)
         capture('organizer',window.organizer_page)
         capture('settings',window.settings_page)
+        window.settings_page.tabs.setCurrentIndex(5)
+        capture('backup-and-restore',window.settings_page)
+        window.settings_page.tabs.setCurrentIndex(0)
         window.downloads_page.loaded([{'id':'demo-completed','fid':identifiers[0],'title':'Starlight Academy · Episode 8','release_title':'Starlight Academy - S01E08','episode_keys':['EPISODE:S1:8'],'destination':str(root/'Downloads'),'engine':'builtin','indexed':True,'desired':'running','status':'Completed','progress':1,'downloaded':450*1024**2,'total':450*1024**2,'download_rate':0}])
         capture('downloads',window.downloads_page)
+        capture('storage',window.storage_page)
+
+        from app.ui.pages.episode_page import EpisodePage
+        episodes=EpisodePage(identifiers[0],window);window.stacked_widget.addWidget(episodes)
+        capture('episodes',episodes)
+
+        apply_theme(app,'manga_dark')
+        capture('library-manga-dark',window.library_page)
+        organizer.organizer_tabs.setCurrentIndex(2)
+        duplicates=organizer._duplicate_page
+        duplicates._results(([{'files':[dict(title=titles[0],episodes=[4],signature=[450*1024**2],path=path)
+                                       for path in ('D:/Anime Vault Demo/Library/Starlight Academy/Season 01/Episode 04.mkv',
+                                                    'D:/Anime Vault Demo/Downloads/Starlight Academy/Episode 04.mkv')]}],[]))
+        duplicates.tree.expandAll();capture('duplicate-review',organizer)
+
+        from app.ui.pages.full_calendar_page import FullCalendarPage
+        full_calendar=FullCalendarPage(window);window.stacked_widget.addWidget(full_calendar)
+        capture('calendar',full_calendar)
+
+        from app.ui.pages.release_news_page import ReleaseNewsPage
+        with patch.object(ReleaseNewsPage,'load'),patch('app.core.anilist_client.download_cover',side_effect=lambda media,mid,**_:f'demo-{mid%10000}.png'):
+            releases=ReleaseNewsPage(window);window.stacked_widget.addWidget(releases)
+            releases.render((catalog,False));capture('discovery',releases)
+
+        apply_theme(app,'manga_light');capture('library-manga-light',window.library_page)
+        scroll=window.library_page.page_scroll
+        grid=window.library_page.grid_container
+        scroll.verticalScrollBar().setValue(grid.mapTo(scroll.widget(),QPoint()).y()-100)
+        capture('library-grid',window.library_page)
         window.hide();end=time.monotonic()+10
         while running() and time.monotonic()<end:QTest.qWait(10)
         if running():raise RuntimeError('Fixture workers did not stop')

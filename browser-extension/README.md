@@ -14,7 +14,7 @@ Anime Vault, it reads results from a temporary tab on your enabled source site.
    extension folder** button shows its location.
 3. Copy this extension's 32-character **ID** from its Chrome extension card.
 4. In Anime Vault's Downloads drawer, paste the ID into **Chrome extension ID**
-   and click **Connect selected-site Chrome extension**. This registers only a
+   and click **Connect Chrome extension**. This registers only a
    private Chrome Native Messaging host for your Windows account.
 5. Open the extension popup. Enter `https://nyaa.si` (or the same website saved
    in Anime Vault), click **Enable on this website**, and approve that site's
@@ -22,9 +22,9 @@ Anime Vault, it reads results from a temporary tab on your enabled source site.
 
 Click a magnet on that site. Anime Vault opens a compact confirmation containing
 the received torrent name, library anime selector and season selector. An exact,
-unique title can be suggested; review it and click **Send to qBittorrent**.
-No magnet copying/pasting is needed. Existing paused-download/file-selection
-and completed-file indexing behavior still applies.
+unique title can be suggested. Review the anime and season, then click **Add
+download** to submit it to Anime Vault's built-in download queue. The queue
+provides file selection and completed-file indexing.
 
 For Chrome to receive native messages, keep the Python installation and this
 project in their registered locations. Reconnect the extension in the app after
@@ -42,7 +42,7 @@ this change.
   previous content script and removes the old site's permission. Save the same
   website in Anime Vault as well; the app independently rejects other origins.
 - Chrome's extension settings also let you remove its site access or disable/
-  remove the extension. Your existing qBittorrent MAGNET association is unchanged.
+  remove the extension. Your Windows magnet association stays in place.
 
 ## Permissions and limits
 
