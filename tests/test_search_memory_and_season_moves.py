@@ -103,7 +103,9 @@ class SearchMemoryAndMoves(unittest.TestCase):
     def test_completed_stop_is_idempotent_and_never_restarts_engine(self):
         job=dict(id='done',fid=self.fid,engine='builtin',indexed=True,desired='cancelled',status='Completed',progress=1)
         downloads._save_jobs([job])
-        with patch('app.core.builtin_torrents.engine') as engine:
+        # This case models a stopped queue with no running native helper.
+        # The active-helper case is covered separately below.
+        with patch('app.core.builtin_torrents.active',return_value=False),patch('app.core.builtin_torrents.engine') as engine:
             download_queue.action('done','stop');download_queue.action('done','stop')
         engine.assert_not_called();self.assertEqual(download_queue.status(downloads.jobs()[0]),'Completed')
 
