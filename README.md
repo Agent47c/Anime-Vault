@@ -23,7 +23,7 @@ Browse your library, track episode releases, and review exactly where your files
 
 ### Windows installer
 
-Check [GitHub Releases](https://github.com/Agent47c/Anime-Vault/releases) for published Windows installers. The setup installs the program in `C:\Program Files\Anime Vault` and keeps the installed profile in `%LOCALAPPDATA%\AnimeVault`. See the [installer guide](docs/INSTALLER_GUIDE.md) for upgrades, data locations, and restoring a backup from a source checkout.
+Check [GitHub Releases](https://github.com/Agent47c/Anime-Vault/releases) for published Windows installers. Choose the program folder during setup. It defaults to `C:\Program Files\Anime Vault`. The installed profile defaults to `%LOCALAPPDATA%\AnimeVault`. See the [installer guide](docs/INSTALLER_GUIDE.md) for upgrades, custom profile locations, and restoring a backup from a source checkout.
 
 ### Run from source
 

@@ -77,3 +77,11 @@ class InstallerPathTests(unittest.TestCase):
         self.assertIn('AnimeVault.Installed.Desktop', setup)
         self.assertIn('DefaultDirName=C:\\Program Files\\Anime Vault', setup)
         self.assertNotIn('library.db', setup)
+
+    def test_setup_allows_a_destination_and_avoids_reboot_replacements(self):
+        setup = (Path(__file__).resolve().parents[1] / 'installer' / 'AnimeVault.iss').read_text(encoding='utf-8')
+        self.assertIn('DisableDirPage=no', setup)
+        self.assertIn('UsePreviousAppDir=yes', setup)
+        self.assertIn('AlwaysRestart=no', setup)
+        self.assertNotIn('restartreplace', setup.lower())
+        self.assertNotIn('taskkill', setup.lower())

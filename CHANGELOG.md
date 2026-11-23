@@ -2,6 +2,7 @@
 
 ## 1.2.0 — 22 November 2026
 
+- Let users choose the Windows installation folder and reuse it for upgrades. Remove deferred file replacement during setup so an upgrade can finish without rebooting Windows once Anime Vault is closed.
 - Offer four fixed themes, with Sakura Dark as the default and navigation previews in Settings. Preserve explicitly saved themes.
 - Repaint the application in place during theme changes and load bundled fonts before the first window is drawn. Fix overlapping Library cards, stretched episode bars, stale Organizer surfaces, and mismatched release-strip backgrounds.
 - Align Organizer rule rows with Appearance & Behavior, theme the saved-preview badge, and use a red trash icon for removing configured roots.

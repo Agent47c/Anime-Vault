@@ -2,10 +2,9 @@
 
 ## Installation and data locations
 
-- Program: `C:\Program Files\Anime Vault\AnimeVault.exe`.
-- Installed app's own database: `%LOCALAPPDATA%\AnimeVault\library.db`.
-- Installed caches, settings, backups and logs: `%LOCALAPPDATA%\AnimeVault\`.
-- Development copy: its existing `E:\Anime Details\data\` stays separate.
+- Choose the program folder during setup. The default is `C:\Program Files\Anime Vault`, and upgrades suggest the previous location.
+- The installed database defaults to `%LOCALAPPDATA%\AnimeVault\library.db`. The same profile folder contains the app's caches, settings, backups, and logs.
+- To use a custom profile folder, set the Windows user environment variable `ANIMEVAULT_DATA_DIR` to an absolute, writable path before launching. This directs the app to the selected folder. To bring existing data over, restore a backup from inside the app.
 
 Setup installs bundled Python/Qt/native dependencies; you do not need to install
 Python separately. Setup needs Windows administrator permission to write Program
@@ -16,11 +15,9 @@ media or artwork cache. It does not copy a database from the development checkou
 and does not scan/import your drives during installation. The installed app starts
 with an empty profile unless you have already used this installed version.
 
-Uninstall removes the program and shortcuts, **not your per-user database/cache
-or anime files**. Updating the program also preserves this profile. If an older
-version of Anime Vault is running during an upgrade, Setup automatically signals
-and shuts down running instances (`AnimeVault.exe` and `AnimeVaultTorrentHost.exe`)
-so existing files can be replaced without access-denied errors.
+Uninstall removes the program and shortcuts. Upgrades keep your profile. Close
+Anime Vault completely before upgrading so Setup can replace the program files
+without a Windows restart. If Setup reports files in use, close Anime Vault and retry.
 
 ## Your backup/restore test
 
