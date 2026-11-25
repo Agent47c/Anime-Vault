@@ -1,5 +1,8 @@
 """Phase 2 acceptance: temporary inventories and mocked provider traffic only."""
 import json
+import os
+import subprocess
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -269,6 +272,18 @@ class TrustworthyScanningTests(unittest.TestCase):
         page.close();page.deleteLater()
 
     def test_scan_worker_keeps_event_loop_within_100ms_budget(self):
+        # Earlier UI tests can leave queued Qt work behind. Measure the
+        # scanner against a fresh event loop while retaining the same budget.
+        isolated = 'ANIMEVAULT_ISOLATED_SCAN_HEARTBEAT'
+        if os.environ.get(isolated) != '1':
+            env = {**os.environ, isolated: '1', 'PYTHONPATH': str(Path(__file__).parent)}
+            result = subprocess.run(
+                [sys.executable, '-m', 'unittest', self.id()],
+                cwd=Path(__file__).resolve().parents[1],
+                env=env, capture_output=True, text=True, timeout=45,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            return
         from PyQt5.QtCore import QThread,QTimer,QEventLoop
         self.library(500)
         gui_thread = threading.get_ident()
