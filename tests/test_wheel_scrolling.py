@@ -44,11 +44,15 @@ class WheelScrollingTests(unittest.TestCase):
         # Hosted Windows can disable system animations. Exercise the animated
         # branch explicitly; the next test independently covers reduced motion.
         with patch('app.ui.components.smooth_scroll.motion_duration',return_value=160):
-            self.wheel(scroll.viewport());self.wheel(scroll.viewport());QTest.qWait(25)
+            self.wheel(scroll.viewport());self.wheel(scroll.viewport())
+            # Drive the animation clock directly so a busy runner cannot skip
+            # the intermediate frame that this reversal test needs.
+            scroll._animation.setCurrentTime(25)
             before=bar.value();self.assertGreater(before,500)
             self.wheel(scroll.viewport(),120)
             self.assertLess(scroll._animation.endValue(),before)
-            QTest.qWait(200);self.assertLess(bar.value(),before)
+            scroll._animation.setCurrentTime(scroll._animation.duration())
+            self.assertLess(bar.value(),before)
 
     def test_reduced_motion_and_touchpad_remain_responsive(self):
         scroll,_,_,_=self.area();bar=scroll.verticalScrollBar()
