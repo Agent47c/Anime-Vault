@@ -35,7 +35,12 @@ class MangaWorkflowTests(unittest.TestCase):
         from app.ui.pages.release_news_page import ReleaseNewsPage
         from app.ui.release_view_tools import save_preset,presets,apply_preset
         apply_theme(self.app,'manga_light')
-        with patch.object(ReleaseNewsPage,'load'):page=ReleaseNewsPage()
+        # Filter changes can trigger another load after construction. This
+        # test covers synchronous filter state, so keep that worker mocked.
+        loader = patch.object(ReleaseNewsPage, 'load')
+        loader.start()
+        self.addCleanup(loader.stop)
+        page = ReleaseNewsPage()
         self.addCleanup(page.deleteLater);self.addCleanup(page.stop)
         save_preset('Fantasy',dict(genres=['Fantasy','Hentai'],themes=['Isekai'],formats=['TV'],period=1,sort=3,adult=True,adult_only=True))
         self.assertIn('Fantasy',presets())
