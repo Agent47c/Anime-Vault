@@ -46,10 +46,11 @@ prepare_windowed_logging()
 
 from PyQt5.QtWidgets import QApplication
 from app.ui.components.message_boxes import AppMessageBox as QMessageBox
-from PyQt5.QtCore import Qt, QLockFile
+from PyQt5.QtCore import Qt
 
 from app import db
 from app import __version__
+from app.instance_lock import profile_instance_lock
 from app.config import get_theme
 from app.ui.theme import apply_theme
 from app.ui.main_window import MainWindow
@@ -91,8 +92,7 @@ def main():
         app.setWindowIcon(QIcon(str(icon_path)))
 
     db.DATA_DIR.mkdir(parents=True, exist_ok=True)
-    instance_lock = QLockFile(str(db.DATA_DIR / "animevault.lock"))
-    instance_lock.setStaleLockTime(0)
+    instance_lock = profile_instance_lock(db.DATA_DIR)
     if not instance_lock.tryLock():
         if not incoming:
             QMessageBox.information(None, "Anime Vault", "Anime Vault is already open. Check the Windows system tray.")

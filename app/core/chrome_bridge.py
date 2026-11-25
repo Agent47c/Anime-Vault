@@ -97,9 +97,10 @@ def write_message(stream,value):
 
 
 def launch_desktop():
-    from PyQt5.QtCore import QCoreApplication,QLockFile
+    from PyQt5.QtCore import QCoreApplication
+    from app.instance_lock import profile_instance_lock
     app=QCoreApplication.instance() or QCoreApplication([])
-    lock=QLockFile(str(db.DATA_DIR/'animevault.lock'));lock.setStaleLockTime(0)
+    lock=profile_instance_lock(db.DATA_DIR)
     if not lock.tryLock(): return
     lock.unlock()
     if getattr(sys,'frozen',False): args=[sys.executable,'--from-browser']

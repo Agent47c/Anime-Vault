@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import struct
 import subprocess
+import sys
 import unittest
 from unittest.mock import Mock,patch
 import test_ui_regressions as support
@@ -110,17 +111,40 @@ class MagnetCaptureTests(unittest.TestCase):
         with self.assertRaises(ValueError): bridge.register('not-an-extension-id')
 
     def test_existing_desktop_is_not_launched_twice(self):
-        with patch('PyQt5.QtCore.QLockFile') as lock,patch.object(bridge.subprocess,'Popen') as launch:
+        with patch('app.instance_lock.profile_instance_lock') as lock,patch.object(bridge.subprocess,'Popen') as launch:
             lock.return_value.tryLock.return_value=False
             bridge.launch_desktop();launch.assert_not_called()
 
     def test_closed_desktop_launches_with_fixed_arguments_only(self):
-        with patch('PyQt5.QtCore.QLockFile') as lock,patch.object(bridge.subprocess,'Popen') as launch:
+        with patch('app.instance_lock.profile_instance_lock') as lock,patch.object(bridge.subprocess,'Popen') as launch:
             lock.return_value.tryLock.return_value=True
             bridge.launch_desktop()
         arguments=launch.call_args.args[0]
         self.assertEqual(arguments[-1],'--from-browser')
         self.assertFalse(any('magnet:' in arg for arg in arguments))
+
+    @unittest.skipUnless(sys.platform == 'win32', 'Windows profile lock')
+    def test_copied_lock_files_and_process_exit_do_not_block_startup(self):
+        from app.instance_lock import profile_instance_lock
+
+        legacy = db.DATA_DIR / 'animevault.lock'
+        legacy.write_text('4321\nAnimeVault.exe\nold-computer\n', encoding='utf-8')
+        (db.DATA_DIR / 'animevault.instance').write_bytes(b'copied file')
+        command = [sys.executable, '-c',
+                   'import os, sys; from pathlib import Path; '
+                   'from app.instance_lock import profile_instance_lock; '
+                   'lock=profile_instance_lock(Path(sys.argv[1])); '
+                   'os._exit(0 if lock.tryLock() else 1)', str(db.DATA_DIR)]
+        parent = profile_instance_lock(db.DATA_DIR)
+        self.assertTrue(parent.tryLock())
+        try:
+            self.assertEqual(subprocess.run(command, timeout=10).returncode, 1)
+        finally:
+            parent.unlock()
+        self.assertEqual(subprocess.run(command, timeout=10).returncode, 0)
+        self.assertTrue(parent.tryLock())
+        parent.unlock()
+        self.assertTrue(legacy.is_file())
 
     def test_suggestion_requires_unique_exact_title(self):
         self.assertEqual(inbox.suggestion('[ASW] One Piece - 1170 [1080p].mkv',[{'id':1,'display_title':'One Piece'}]),1)

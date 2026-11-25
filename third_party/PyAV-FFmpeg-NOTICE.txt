@@ -1,0 +1,12 @@
+Anime Vault uses PyAV 16.1.0 (BSD 3-Clause) and dynamically linked
+FFmpeg 8.0.1 libraries (GNU Lesser General Public License v3 or later)
+from the PyAV Windows x64 wheel.
+
+PyAV source and wheel build configuration:
+https://github.com/PyAV-Org/PyAV/tree/v16.1.0
+https://github.com/PyAV-Org/pyav-ffmpeg
+
+FFmpeg source is available with the Anime Vault 1.2.1 release:
+https://github.com/Agent47c/Anime-Vault/releases/tag/v1.2.1
+Upstream source: https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz
+License: https://www.gnu.org/licenses/lgpl-3.0.html

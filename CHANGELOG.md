@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 — 25 November 2026
+
+- Bundle the video decoder so episode thumbnails work in the installed app without a separate FFmpeg installation. Short clips can also produce previews.
+- Use a Windows file lock that expires when its owning process exits. A lock file copied with a library profile no longer causes the false “Anime Vault is already open” message.
+
 ## 1.2.0 — 22 November 2026
 
 - Let users choose the Windows installation folder and reuse it for upgrades. Remove deferred file replacement during setup so an upgrade can finish without rebooting Windows once Anime Vault is closed.

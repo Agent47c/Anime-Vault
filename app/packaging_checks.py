@@ -59,6 +59,24 @@ def run(arguments):
             from app.ui.pages.detail_modal import DetailModal
             from app.ui.io_task import running
             app = QApplication.instance() or QApplication([])
+            import av
+            from PIL import Image
+            from app.core.episode_preview import load_preview
+            sample = root / 'Short episode.mkv'
+            with av.open(str(sample), 'w') as media:
+                stream = media.add_stream('mpeg4', rate=24)
+                stream.width, stream.height, stream.pix_fmt = 64, 36, 'yuv420p'
+                frame = av.VideoFrame.from_image(Image.new('RGB', (64, 36), '#ff6584'))
+                for packet in stream.encode(frame) + stream.encode():
+                    media.mux(packet)
+            previous_path = os.environ.pop('PATH', None)
+            try:
+                image = load_preview({'path': str(sample)})['image']
+                assert not image.isNull()
+            finally:
+                if previous_path is not None:
+                    os.environ['PATH'] = previous_path
+            report['checks'].append('Local episode thumbnail on a short clip with no FFmpeg on PATH')
             db.set_state('scan_schedule', 'manual')
             db.set_state('metadata_auto', '0')
             apply_theme(app, 'dark')
@@ -72,6 +90,8 @@ def run(arguments):
             details.deleteLater()
             end = time.monotonic() + 15
             while not window._cleanup_and_exit() and time.monotonic() < end:
+                # The harness waits here and writes the report itself.
+                window._shutdown_timer.stop()
                 QTest.qWait(100)
             if running():
                 raise RuntimeError('Package fixture workers did not stop')

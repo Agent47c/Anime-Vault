@@ -4,8 +4,6 @@ import html
 import json
 import os
 import re
-import shutil
-import subprocess
 import time
 import threading
 import uuid
@@ -16,6 +14,43 @@ from app.core.identity import path_key
 
 _api_lock=threading.Lock()
 _last_request=0.0
+
+
+def _extract_frame(path, target, cancelled):
+    import av
+
+    def decode(seek):
+        with av.open(str(path)) as container:
+            stream = next((video for video in container.streams.video
+                           if not video.disposition & av.stream.Disposition.attached_pic), None)
+            if stream is None:
+                return False
+            if seek:
+                time_base = stream.time_base
+                if not time_base:
+                    return False
+                duration = stream.duration * time_base if stream.duration else (
+                    container.duration / av.time_base if container.duration else None)
+                seconds = min(30, float(duration) / 4) if duration else 30
+                container.seek((stream.start_time or 0) + int(seconds / time_base), stream=stream)
+            for frame in container.decode(stream):
+                if cancelled():
+                    return False
+                image = frame.to_image()
+                image.thumbnail((320, 180))
+                image.save(target, format='JPEG')
+                return True
+            return False
+
+    for seek in (True, False):
+        if cancelled():
+            return False
+        try:
+            if decode(seek):
+                return True
+        except av.FFmpegError:
+            continue
+    return False
 
 
 def _metadata(key,mal,number,cancelled):
@@ -77,19 +112,19 @@ def load_preview(row,cancelled=lambda:False):
         fingerprint=f"{row.get('file_id',path_key(path))}:{stat.st_size}:{stat.st_mtime_ns}"
         key=hashlib.sha256(fingerprint.encode()).hexdigest()
         folder=db.DATA_DIR/'episode-thumbnails';target=folder/(key+'.jpg')
-        retry_key='episode-frame-retry:'+key
+        retry_key='episode-frame-decoder-retry:'+key
         if not target.is_file() and not cancelled() and time.time()>float(db.get_state(retry_key,'0')):
-            executable=shutil.which('ffmpeg')
-            if executable:
-                folder.mkdir(parents=True,exist_ok=True)
-                temporary=target.with_name(key+'.'+uuid.uuid4().hex+'.tmp.jpg')
-                try:
-                    process=subprocess.run([executable,'-nostdin','-v','error','-y','-ss','30','-i',str(path),'-frames:v','1','-vf','scale=320:180:force_original_aspect_ratio=decrease',str(temporary)],
-                        capture_output=True,timeout=6,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-                    if not process.returncode and temporary.is_file() and not QImage(str(temporary)).isNull():os.replace(temporary,target)
-                except (OSError,subprocess.TimeoutExpired):pass
-                finally:temporary.unlink(missing_ok=True)
-            if not target.is_file():db.set_state(retry_key,str(time.time()+6*3600))
+            folder.mkdir(parents=True,exist_ok=True)
+            temporary=target.with_name(key+'.'+uuid.uuid4().hex+'.tmp.jpg')
+            try:
+                if _extract_frame(path, temporary, cancelled) and not QImage(str(temporary)).isNull():
+                    os.replace(temporary,target)
+            except OSError:
+                pass
+            finally:
+                temporary.unlink(missing_ok=True)
+            if not target.is_file() and not cancelled():
+                db.set_state(retry_key,str(time.time()+6*3600))
         if target.is_file():result['image']=QImage(str(target))
     except (OSError,ValueError):pass
     if cancelled():return result

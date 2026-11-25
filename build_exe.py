@@ -92,7 +92,7 @@ def build():
     options = [str(ROOT/'main.py'), '--name=AnimeVault', '--onedir', '--windowed', '--clean', '--noconfirm',
                '--distpath='+str(ROOT/'dist'), '--workpath='+str(work), '--specpath='+str(work),
                '--icon='+str(app_icon), '--version-file='+str(version_file),
-               '--collect-submodules=app', '--exclude-module=libtorrent']
+               '--collect-submodules=app', '--collect-all=av', '--exclude-module=libtorrent']
     hidden = ['builtin_torrent_host', 'run_as_admin', 'uvicorn.logging', 'uvicorn.loops.auto',
               'uvicorn.protocols.http.auto', 'uvicorn.protocols.websockets.auto', 'uvicorn.lifespan.on',
               'PyQt5.QtSvg', 'PyQt5.QtNetwork', 'win32crypt', 'win32api', 'pythoncom', 'pywintypes']

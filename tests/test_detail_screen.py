@@ -41,23 +41,24 @@ class DetailScreenTests(unittest.TestCase):
         with patch('app.config.is_offline',return_value=False),patch('requests.get',side_effect=requests.ConnectionError('offline')) as request:
             episode_preview.load_preview({**row,'provider_number':3});episode_preview.load_preview({**row,'provider_number':3})
         self.assertEqual(request.call_count,1)
-    def test_no_ffmpeg_retry_loop_and_cancellation_stops_new_work(self):
+    def test_frame_failure_backs_off_and_cancellation_stops_new_work(self):
         path=Path(self.temp.name)/'Episode 1.mkv';path.write_bytes(b'video')
         row=dict(path=str(path))
-        with patch('shutil.which',return_value=None) as executable:
+        with patch.object(episode_preview,'_extract_frame',return_value=False) as extract:
             episode_preview.load_preview(row);episode_preview.load_preview(row)
-        self.assertEqual(executable.call_count,1)
-        with patch('subprocess.run') as process,patch('requests.get') as request:
+        self.assertEqual(extract.call_count,1)
+        with patch.object(episode_preview,'_extract_frame') as extract,patch('requests.get') as request:
             episode_preview.load_preview({**row,'mal_id':21,'provider_number':4},cancelled=lambda:True)
-        process.assert_not_called();request.assert_not_called()
+        extract.assert_not_called();request.assert_not_called()
     def test_local_frame_is_generated_once_and_loaded_from_cache(self):
         from PyQt5.QtGui import QImage,QColor
         path=Path(self.temp.name)/'Episode 1.mkv';path.write_bytes(b'video')
-        def frame(command,**kwargs):
-            image=QImage(320,180,QImage.Format_RGB32);image.fill(QColor('#ff6584'));image.save(command[-1]);return Mock(returncode=0)
-        with patch('shutil.which',return_value='ffmpeg'),patch('subprocess.run',side_effect=frame) as process:
+        def frame(source,target,cancelled):
+            image=QImage(320,180,QImage.Format_RGB32);image.fill(QColor('#ff6584'))
+            return image.save(str(target))
+        with patch.object(episode_preview,'_extract_frame',side_effect=frame) as extract:
             first=episode_preview.load_preview(dict(path=str(path),file_id=42));second=episode_preview.load_preview(dict(path=str(path),file_id=42))
-        self.assertEqual(process.call_count,1);self.assertFalse(first['image'].isNull());self.assertFalse(second['image'].isNull())
+        self.assertEqual(extract.call_count,1);self.assertFalse(first['image'].isNull());self.assertFalse(second['image'].isNull())
     def test_episode_list_is_virtualized_and_reopens_from_child_navigation(self):
         from app.ui.components.detail_episodes import DetailEpisodes
         panel=DetailEpisodes(self.fid,[]);panel._indexed=True

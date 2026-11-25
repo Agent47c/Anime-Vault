@@ -8,7 +8,7 @@ Browse your library, track episode releases, and review exactly where your files
 
 [![Checks](https://github.com/Agent47c/Anime-Vault/actions/workflows/checks.yml/badge.svg)](https://github.com/Agent47c/Anime-Vault/actions/workflows/checks.yml)
 ![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)
-![Version 1.2.0](https://img.shields.io/badge/version-1.2.0-ff2e93)
+![Version 1.2.1](https://img.shields.io/badge/version-1.2.1-ff2e93)
 ![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB)
 
 [Get started](#get-started) · [Feature walkthrough](#feature-walkthrough) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Report a bug](https://github.com/Agent47c/Anime-Vault/issues/new?template=bug_report.md)
@@ -17,7 +17,7 @@ Browse your library, track episode releases, and review exactly where your files
 
 ![Anime Vault in Manga Brutalism Dark, with the Continue Watching banner, navigation, and weekly broadcast schedule](docs/screenshots/library-manga-dark.png)
 
-**Version 1.2.0** adds Manga Brutalism Dark, live switching between four themes, improved Organizer controls, and an About link in Settings. The changelog covers the download, discovery, backup, and theme fixes included on `main`. [View the changelog](CHANGELOG.md)
+**Version 1.2.1** fixes episode thumbnails on clean Windows installations and the false “already open” message after copying an Anime Vault profile. [View the changelog](CHANGELOG.md)
 
 ## Get started
 

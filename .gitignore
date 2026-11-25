@@ -48,6 +48,7 @@ venv/
 .venv/
 env/
 ENV/
+/anime vault env/
 
 # Logs and temp files
 *.log
