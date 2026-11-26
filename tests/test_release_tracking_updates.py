@@ -74,7 +74,7 @@ class ReleaseTrackingTests(unittest.TestCase):
         self.addCleanup(page.deleteLater);self.addCleanup(page.stop)
         page._cache_info={'library_owners':news.library_owners()}
         page.render({'Media':self.media()['relations']['edges'][0]['node'],'Page':{}})
-        buttons=[b for b in page.findChildren(QPushButton) if b.text()=='Already in library']
+        buttons=[b for b in page.findChildren(QPushButton) if b.text()=='Added']
         self.assertEqual(len(buttons),1);self.assertFalse(buttons[0].isEnabled())
         self.assertFalse(page.import_button({'id':21}).isEnabled())
         self.assertTrue(page.import_button({'id':999999}).isEnabled())

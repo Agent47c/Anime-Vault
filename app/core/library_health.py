@@ -6,6 +6,26 @@ from difflib import SequenceMatcher
 from app.core.parser import analyze_season_health, extract_episode_numbers, extract_episode_range
 
 
+def known_season_numbers(seasons):
+    """Count distinct seasons with a release match or indexed episode files."""
+    numbers = set()
+    for season in seasons:
+        number = season.get('season_number')
+        if (season.get('relation_type') != 'SEASON' or not number or number < 1
+                or season.get('airing_status') in ('NOT_YET_RELEASED', 'CANCELLED')):
+            continue
+        if season.get('anilist_id'):
+            numbers.add(number)
+            continue
+        try:
+            files = json.loads(season.get('video_files_json') or '[]')
+        except (TypeError, ValueError):
+            continue
+        if isinstance(files, list) and files:
+            numbers.add(number)
+    return numbers
+
+
 def season_health(season):
     from app.core.identity import mapped_inventory_files
     files = mapped_inventory_files(season)

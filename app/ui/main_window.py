@@ -12,7 +12,6 @@ Faithfully recreates the Anime Manager UI Reference mockups:
 import os
 import shutil
 import webbrowser
-from pathlib import Path
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -20,8 +19,8 @@ from PyQt5.QtWidgets import (
     QMenu, QAction, QDialog, QCheckBox, QLineEdit, QShortcut,
     QProgressBar, QApplication, QSizePolicy, QRadioButton, QButtonGroup,
 )
-from PyQt5.QtGui import QIcon, QFont, QPixmap, QPainter, QColor, QPen, QKeySequence
-from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QRectF
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 
 from app import db
 from app.core.storage import disk_snapshot, format_bytes
@@ -31,7 +30,7 @@ from app.config import (
     get_window_geometry, set_window_geometry,
 )
 from app.ui.theme import COLORS, apply_theme
-from app.ui.icons import icon
+from app.ui.icons import app_icon, icon
 from app.ui.pages.library_page import LibraryPage
 from app.ui.pages.organizer_page import OrganizerPage
 from app.ui.pages.updates_page import UpdatesPage
@@ -441,12 +440,13 @@ class MainWindow(QMainWindow):
         left_space.setMinimumWidth(238)
         left_brand_layout = QHBoxLayout(left_space)
         left_brand_layout.setContentsMargins(0, 0, 0, 0)
-        # Brand Badge: Japanese "ア" in squircle + AnimeVault
+        # App identity matches the desktop shortcuts and the tray.
         brand_row = QHBoxLayout()
         brand_row.setSpacing(10)
         brand_row.setContentsMargins(0, 0, 0, 0)
 
-        badge = QLabel("\u30a2")
+        badge = QLabel()
+        badge.setPixmap(app_icon().pixmap(34, 34))
         badge.setFixedSize(36, 36)
         badge.setAlignment(Qt.AlignCenter)
         badge.setObjectName("brand_mark")
@@ -671,7 +671,7 @@ class MainWindow(QMainWindow):
     # -----------------------------------------------------------------------
     def _setup_tray(self):
         self.tray_icon = QSystemTrayIcon(self)
-        icon = self._generate_app_icon()
+        icon = app_icon()
         self.setWindowIcon(icon)
         self.tray_icon.setIcon(icon)
         self.tray_icon.setToolTip("Anime Vault")
@@ -721,35 +721,26 @@ class MainWindow(QMainWindow):
         def finished():self._reminder_busy=False;worker.deleteLater()
         worker.succeeded.connect(ready);worker.finished.connect(finished);worker.start()
 
-    def _generate_app_icon(self) -> QIcon:
-        icon_path = Path(__file__).resolve().parents[2] / 'assets' / 'app.ico'
-        if icon_path.is_file():
-            return QIcon(str(icon_path))
-        pixmap = QPixmap(64, 64)
-        pixmap.fill(Qt.transparent)
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
-
-        painter.setBrush(QColor("#15161d"))
-        painter.setPen(QPen(QColor("#df2545"), 3))
-        painter.drawRoundedRect(4, 4, 56, 56, 14, 14)
-
-        painter.setPen(QColor("#df2545"))
-        font = QFont("Segoe UI", 28, QFont.Bold)
-        painter.setFont(font)
-        painter.drawText(QRectF(0, 0, 64, 64), Qt.AlignCenter, "✦")
-        painter.end()
-        return QIcon(pixmap)
-
     def _on_tray_activated(self, reason):
-        if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
-            if self.isVisible():
-                self.hide()
+        if reason == QSystemTrayIcon.DoubleClick:
+            self._restore_from_tray()
+        elif reason == QSystemTrayIcon.Trigger:
+            if self.isVisible() and not self.isMinimized():
+                self._hide_to_tray()
             else:
                 self._restore_from_tray()
 
+    def _hide_to_tray(self):
+        self._tray_geometry = self.saveGeometry()
+        self.hide()
+
     def _restore_from_tray(self):
-        self.showNormal()
+        if not self.isVisible() and getattr(self, '_tray_geometry', None):
+            self.restoreGeometry(self._tray_geometry)
+        if self.isMinimized():
+            self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
+        self.show()
+        self.raise_()
         self.activateWindow()
 
     # -----------------------------------------------------------------------
@@ -1400,7 +1391,7 @@ class MainWindow(QMainWindow):
         if pref == "tray":
             self._save_geometry()
             event.ignore()
-            self.hide()
+            self._hide_to_tray()
             return
 
         if pref == "exit":
@@ -1424,7 +1415,7 @@ class MainWindow(QMainWindow):
             if dialog.choice == "tray":
                 self._save_geometry()
                 event.ignore()
-                self.hide()
+                self._hide_to_tray()
             elif dialog.choice == "exit":
                 self._save_geometry()
                 if hasattr(self, "tray_icon") and self.tray_icon:

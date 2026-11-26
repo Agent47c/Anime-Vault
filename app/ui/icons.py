@@ -4,6 +4,13 @@ from functools import lru_cache
 from PyQt5.QtCore import QByteArray, Qt
 from PyQt5.QtGui import QIcon, QPainter, QPixmap
 from PyQt5.QtSvg import QSvgRenderer
+from app.paths import RESOURCE_DIR
+
+
+@lru_cache(maxsize=1)
+def app_icon():
+    """The same multi-size brand artwork used by Windows shortcuts and Setup."""
+    return QIcon(str(RESOURCE_DIR / 'assets' / 'app.ico'))
 
 
 _PATHS = {

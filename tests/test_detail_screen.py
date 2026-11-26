@@ -15,6 +15,25 @@ class DetailScreenTests(unittest.TestCase):
     tearDown=support.Regressions.tearDown
     @classmethod
     def setUpClass(cls):support.Regressions.setUpClass.__func__(cls)
+
+    def test_season_badge_excludes_empty_and_upcoming_records(self):
+        from PyQt5.QtWidgets import QLabel
+        from app.ui.pages.detail_modal import DetailModal
+
+        db.set_continuous_episodes(self.fid, False)
+        for row in (
+            dict(anilist_id=21, season_number=1, airing_status='RELEASING'),
+            dict(season_number=1, video_files_json='["episode 1.mkv"]'),
+            dict(season_number=10, title_display='Season 01', video_files_json='[]'),
+            dict(anilist_id=22, season_number=2, airing_status='NOT_YET_RELEASED'),
+        ):
+            db.upsert_season(dict(franchise_id=self.fid, relation_type='SEASON', **row))
+        dialog = DetailModal(self.fid)
+        self.addCleanup(dialog.deleteLater)
+        badges = [label.text() for label in dialog.findChildren(QLabel)
+                  if label.objectName() == 'detail_badge']
+        self.assertIn('1 season', badges)
+        self.assertIn('Season 1 airing', badges)
     def test_episode_dates_use_stable_history_and_seasons_stay_separate(self):
         rows=[]
         for number in (1,2):

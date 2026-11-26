@@ -32,39 +32,6 @@ def verify_payload(bundle):
         raise RuntimeError('Private/runtime files unexpectedly entered the payload: '+repr(prohibited))
 
 
-def make_icon():
-    os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
-    from io import BytesIO
-    from PIL import Image
-    target = ROOT / 'assets' / 'app.ico'
-    master_png = ROOT / 'design' / 'references' / 'Anime Valt Installer Pkg' / 'Master App Icon.png'
-    if master_png.is_file():
-        im = Image.open(master_png)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        im.save(target, sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
-        return target
-    from PyQt5.QtCore import Qt, QBuffer, QIODevice
-    from PyQt5.QtGui import QPixmap, QPainter, QColor
-    from PyQt5.QtWidgets import QApplication
-    from app.ui.icons import icon
-    app = QApplication.instance() or QApplication([])
-    pixmap = QPixmap(256, 256)
-    pixmap.fill(Qt.transparent)
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.Antialiasing)
-    painter.setPen(Qt.NoPen)
-    painter.setBrush(QColor('#14121d'))
-    painter.drawRoundedRect(0, 0, 256, 256, 52, 52)
-    painter.drawPixmap(32, 32, icon('flower', '#ff6584').pixmap(192, 192))
-    painter.end()
-    buffer = QBuffer()
-    buffer.open(QIODevice.WriteOnly)
-    pixmap.save(buffer, 'PNG')
-    target = ROOT / 'assets' / 'app.ico'
-    Image.open(BytesIO(bytes(buffer.data()))).save(target, sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
-    return target
-
-
 def build():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--installer', action='store_true')
@@ -77,7 +44,9 @@ def build():
     except ImportError:
         parser.error('Install requirements-build.txt in an isolated build environment first.')
     from app import __version__
-    app_icon = make_icon()
+    app_icon = ROOT / 'assets' / 'app.ico'
+    if not app_icon.is_file():
+        raise FileNotFoundError(app_icon)
     work = ROOT / 'build' / 'pyinstaller'
     work.mkdir(parents=True, exist_ok=True)
     version_file = work / 'version.txt'
@@ -97,7 +66,7 @@ def build():
               'uvicorn.protocols.http.auto', 'uvicorn.protocols.websockets.auto', 'uvicorn.lifespan.on',
               'PyQt5.QtSvg', 'PyQt5.QtNetwork', 'win32crypt', 'win32api', 'pythoncom', 'pywintypes']
     options.extend('--hidden-import='+name for name in hidden)
-    resources = [('assets/fonts', 'assets/fonts'), ('app/ui/assets', 'app/ui/assets'),
+    resources = [('assets/app.ico', 'assets'), ('assets/fonts', 'assets/fonts'), ('app/ui/assets', 'app/ui/assets'),
                  ('third_party', 'third_party'), ('browser-extension', 'browser-extension'),
                  ('scripts/cache_player_icon.ps1', 'scripts'), ('docs/INSTALLER_GUIDE.md', 'docs')]
     for source, destination in resources:

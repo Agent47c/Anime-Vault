@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2 — 26 November 2026
+
+- Restore the window to its previous position, size, and maximized state when opening Anime Vault from the system tray.
+- Count distinct seasons supported by release metadata or indexed episodes. Empty folder records no longer inflate the count on Series Details.
+- Fit long discovery titles on two lines, show a disabled **Added** button for owned titles, start **Next** at the first row, and preserve scroll position on **Previous**.
+- Use the same centered Anime Vault logo in Windows shortcuts, the taskbar, the tray, app headers, Setup, and the uninstall entry.
+
 ## 1.2.1 — 25 November 2026
 
 - Bundle the video decoder so episode thumbnails work in the installed app without a separate FFmpeg installation. Short clips can also produce previews.

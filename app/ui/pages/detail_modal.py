@@ -30,7 +30,7 @@ from app.config import (
     launch_video_file, VIDEO_EXTENSIONS, get_last_episode_path, get_media_player_type,
 )
 from app.core.parser import analyze_season_health, extract_episode_numbers
-from app.core.library_health import season_health, episode_inventory, movie_inventory, release_availability_notice
+from app.core.library_health import season_health, episode_inventory, movie_inventory, release_availability_notice, known_season_numbers
 from app.ui.dialogs.delete_confirm import DeleteConfirmDialog
 from app.ui.dialogs.custom_entry import CustomEntryDialog
 from app.ui.dialogs.rematch_dialog import RematchDialog
@@ -332,12 +332,14 @@ class DetailModal(QDialog):
         if metadata.get("season") and metadata.get("seasonYear"):
             badges.append((f"{metadata['season'].title()} {metadata['seasonYear']}", False))
         numbered = [season for season in self.seasons if season.get("relation_type") == "SEASON"]
-        if numbered and not self.continuous_episodes:
-            badges.append((f"{len(numbered)} seasons", False))
+        known = known_season_numbers(numbered)
+        if known and not self.continuous_episodes:
+            count = len(known)
+            badges.append((f"{count} season" if count == 1 else f"{count} seasons", False))
         elif self.continuous_episodes:
             badges.append(("Continuing series", False))
         for season in numbered:
-            if season.get("airing_status") == "RELEASING":
+            if season.get("airing_status") == "RELEASING" and (self.continuous_episodes or season.get('season_number') in known):
                 text = "Currently airing" if self.continuous_episodes else f"Season {season['season_number']} airing"
                 badges.append((text, True))
                 break

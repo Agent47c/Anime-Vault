@@ -1,6 +1,6 @@
 """Decorative surfaces shared by the final UI layouts."""
 from PyQt5.QtCore import Qt, QRectF, QEvent
-from PyQt5.QtGui import QColor, QFont, QPainter
+from PyQt5.QtGui import QColor, QFont, QPainter, QTextLayout, QTextOption
 from PyQt5.QtWidgets import QWidget, QLabel, QSizePolicy, QApplication
 
 
@@ -65,3 +65,33 @@ class ElidedLabel(QLabel):
         super().changeEvent(event)
         if event.type() == QEvent.FontChange and hasattr(self, "full_text"):
             self._elide()
+
+
+class TwoLineElidedLabel(ElidedLabel):
+    """Reserve space for two full lines and ellipsize the remaining text."""
+
+    def __init__(self, text):
+        super().__init__(text)
+        self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self.setAccessibleName(text)
+        self._elide()
+
+    def _elide(self):
+        metrics = self.fontMetrics()
+        self.setFixedHeight(2 * metrics.lineSpacing() + 2)
+        width = max(1, self.contentsRect().width())
+        title = ' '.join(self.full_text.split())
+        if metrics.horizontalAdvance(title) <= width:
+            self.setText(title)
+            return
+        layout = QTextLayout(title, self.font())
+        options = QTextOption()
+        options.setWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+        layout.setTextOption(options)
+        layout.beginLayout()
+        line = layout.createLine()
+        line.setLineWidth(width)
+        first_line = title.encode('utf-16-le')[:2 * line.textLength()].decode('utf-16-le')
+        layout.endLayout()
+        remainder = title[len(first_line):].lstrip()
+        self.setText(first_line.rstrip() + '\n' + metrics.elidedText(remainder, Qt.ElideRight, width))

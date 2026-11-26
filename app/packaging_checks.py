@@ -37,7 +37,7 @@ def run(arguments):
             conn = db.get_connection()
             assert conn.execute("SELECT name FROM sqlite_master WHERE name='physical_files'").fetchone()
             conn.close()
-            required = ('assets/fonts/PlusJakartaSans.ttf', 'assets/fonts/JetBrainsMono.ttf',
+            required = ('assets/app.ico', 'assets/fonts/PlusJakartaSans.ttf', 'assets/fonts/JetBrainsMono.ttf',
                         'app/ui/assets/chevron-dark.svg', 'app/ui/assets/chevron-light.svg',
                         'browser-extension/manifest.json', 'third_party/libtorrent-LICENSE.txt',
                         'scripts/cache_player_icon.ps1')
@@ -81,6 +81,14 @@ def run(arguments):
             db.set_state('metadata_auto', '0')
             apply_theme(app, 'dark')
             window = MainWindow()
+            from app.ui.icons import app_icon
+            brand = app_icon()
+            assert not brand.pixmap(16, 16).isNull()
+            assert window.windowIcon().cacheKey() == brand.cacheKey()
+            assert window.tray_icon.icon().cacheKey() == brand.cacheKey()
+            for mark in (window.home_header.mark, window.manga_header.mark):
+                assert not mark.pixmap().isNull()
+            report['checks'].append('Bundled brand icon loads for the window, tray and both theme headers')
             window.show()
             for index in (0, 2, 5, 1, 3, 4, 0):
                 window._on_nav_clicked(index)

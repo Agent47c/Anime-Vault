@@ -12,6 +12,7 @@ from app.core.anilist_client import resolve_display_title
 from app.ui.io_task import IOTask,track
 from app.ui.navigation import navigate
 from app.ui.components.flow_layout import FlowLayout
+from app.ui.components.design import TwoLineElidedLabel
 from app.ui.transfer_style import qss
 from app.ui.components.tag_picker import TagPicker
 
@@ -97,7 +98,16 @@ class ReleaseNewsPage(QDialog):
         if getattr(self,'_artwork',None):self._artwork.requestInterruption()
 
     def reset(self,*_):self.page=1;self._fetch_missing=True;self.load()
-    def change_page(self,delta):self.page=max(1,self.page+delta);self._fetch_missing=True;self.load()
+    def change_page(self, delta):
+        page = max(1, self.page + delta)
+        if page == self.page:
+            return
+        self.page = page
+        self._fetch_missing = True
+        scroll_position = None
+        if not self.media_id:
+            scroll_position = 0 if delta > 0 else self.scroll.verticalScrollBar().value()
+        self.load(scroll_position=scroll_position)
 
     def apply_preferences(self,reload=True):
         from app.preferences import enabled
@@ -139,7 +149,7 @@ class ReleaseNewsPage(QDialog):
             worker.deleteLater()
         worker.succeeded.connect(loaded);worker.failed.connect(failed);worker.finished.connect(finished);worker.start()
 
-    def load(self,force=False):
+    def load(self,force=False,*,scroll_position=None):
         if getattr(self,'_constructing',False):
             self._initial_load_pending=True;return
         self._initial_load_pending=False
@@ -173,6 +183,15 @@ class ReleaseNewsPage(QDialog):
             result,info=value
             self._allow_artwork_network=info.get('source')=='network'
             self._cache_info=info;self.render(result)
+            if scroll_position is not None:
+                from PyQt5 import sip
+                generation = self.generation
+
+                def restore_scroll():
+                    if not sip.isdeleted(self) and generation == self.generation:
+                        self.scroll.verticalScrollBar().setValue(scroll_position)
+
+                QTimer.singleShot(0, restore_scroll)
             if force and info.get('source')!='empty':
                 from app.ui.search_navigation import focus_results
                 focus_results(self,self.scroll.widget())
@@ -281,9 +300,10 @@ class ReleaseNewsPage(QDialog):
                 from app.ui.components.workflow import thumbnail
                 poster=thumbnail(resolve_display_title(media),None,180 if manga else 220,120 if manga else 180);box.addWidget(poster,0,Qt.AlignCenter)
                 posters[media['id']]=poster
-                title=QLabel(resolve_display_title(media));title.setWordWrap(True);title.setTextFormat(Qt.PlainText);title.setObjectName('update_title');title.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred);title.setMinimumWidth(0);box.addWidget(title)
+                title=TwoLineElidedLabel(resolve_display_title(media))
+                title.setObjectName('update_title')
+                box.addWidget(title)
                 if manga:
-                    title.setToolTip(resolve_display_title(media));title.setMinimumHeight(42);title.setMaximumHeight(62)
                     from app.ui.pages.detail_modal import format_synopsis
                     description=QLabel(format_synopsis(__import__('html').unescape(__import__('re').sub(r'<[^>]+>','',media.get('description') or '')))[:170]);description.setTextFormat(Qt.PlainText);description.setWordWrap(True);description.setObjectName('subheading');description.setMaximumHeight(54);box.addWidget(description)
                 detail=QLabel(f"Premiere: {news.date_label(media.get('startDate'))}\n{media.get('format','Unknown')} · {media.get('status','Unknown')}");detail.setWordWrap(True);box.addWidget(detail)
@@ -383,7 +403,7 @@ class ReleaseNewsPage(QDialog):
 
     def import_button(self,media,compact=False):
         exists=media.get('id') in getattr(self,'_library_owners',{})
-        button=QPushButton('Already in library' if exists else '+ Add' if compact else 'Import as Watching')
+        button=QPushButton('Added' if exists else '+ Add' if compact else 'Import as Watching')
         if compact:button.setStyleSheet('font-size:12px;padding:0 10px;min-height:40px;')
         button.setEnabled(not exists);button.setToolTip('This release is already tracked in your library.' if exists else 'Add this release to Watching')
         button.clicked.connect(lambda checked=False:self.import_media(media,button))
@@ -392,7 +412,8 @@ class ReleaseNewsPage(QDialog):
     def import_media(self,media,button):
         button.setEnabled(False)
         def done(result):
-            fid,added=result;button.setText('Added to Watching' if added else 'Already in library')
+            fid,added=result;button.setText('Added')
+            button.setToolTip('This release is already tracked in your library.')
             if hasattr(button,'_discovery_peer'):self.equal_discovery_actions(button._discovery_peer,button)
             if not hasattr(self,'_library_owners'):self._library_owners={}
             self._library_owners[media['id']]=fid

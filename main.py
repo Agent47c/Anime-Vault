@@ -86,10 +86,8 @@ def main():
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AnimeVault.Desktop.MediaManager')
         except Exception:
             pass
-    icon_path = BASE_DIR / 'assets' / 'app.ico'
-    if icon_path.is_file():
-        from PyQt5.QtGui import QIcon
-        app.setWindowIcon(QIcon(str(icon_path)))
+    from app.ui.icons import app_icon
+    app.setWindowIcon(app_icon())
 
     db.DATA_DIR.mkdir(parents=True, exist_ok=True)
     instance_lock = profile_instance_lock(db.DATA_DIR)

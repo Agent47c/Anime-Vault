@@ -46,9 +46,8 @@ class AdultPasswordDialog(QDialog):
         self.access_header=QWidget();self.access_header.setObjectName('adult_header');header=QHBoxLayout(self.access_header);header.setContentsMargins(0,0,0,0)
         from app.ui.manga_pages import active
         if active():
-            from PyQt5.QtGui import QIcon
-            from pathlib import Path
-            mark=QLabel();mark.setPixmap(QIcon(str(Path(__file__).resolve().parents[3]/'assets'/'app.ico')).pixmap(18,18));header.addWidget(mark)
+            from app.ui.icons import app_icon
+            mark=QLabel();mark.setPixmap(app_icon().pixmap(18,18));header.addWidget(mark)
         kicker=QLabel('Adult Content Access');kicker.setObjectName('adult_kicker');header.addWidget(kicker,1)
         from app.ui.components.close_button import CloseButton
         close=CloseButton();close.clicked.connect(self.reject);header.addWidget(close);root.addWidget(self.access_header)

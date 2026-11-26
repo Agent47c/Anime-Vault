@@ -1,6 +1,6 @@
 ; Build using Inno Setup 7 (6.4+ is also supported).
 #ifndef AppVersion
-  #define AppVersion "1.2.1"
+  #define AppVersion "1.2.2"
 #endif
 #define ProjectRoot SourcePath + ".."
 
@@ -24,11 +24,13 @@ MinVersion=10.0.17763
 OutputDir={#ProjectRoot}\dist\installer
 OutputBaseFilename=AnimeVault-Setup-{#AppVersion}-windows-x64
 SetupIconFile={#ProjectRoot}\assets\app.ico
-UninstallDisplayIcon={app}\AnimeVault.exe
+UninstallDisplayIcon={app}\_internal\assets\app.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 WizardSizePercent=110
+WizardSmallImageFile=artwork\wizard-icon.png
+WizardImageFile=artwork\wizard-panel.png
 AppMutex=Global\AnimeVault.Installed.Desktop,AnimeVault.Installed.Desktop
 CloseApplications=yes
 CloseApplicationsFilter=*.exe,*.dll
@@ -47,8 +49,8 @@ Source: "{#ProjectRoot}\dist\AnimeVault\*"; DestDir: "{app}"; Flags: ignoreversi
 Source: "{#ProjectRoot}\docs\INSTALLER_GUIDE.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Anime Vault"; Filename: "{app}\AnimeVault.exe"; WorkingDir: "{app}"
-Name: "{autodesktop}\Anime Vault"; Filename: "{app}\AnimeVault.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\Anime Vault"; Filename: "{app}\AnimeVault.exe"; WorkingDir: "{app}"; IconFilename: "{app}\_internal\assets\app.ico"; AppUserModelID: "AnimeVault.Desktop.MediaManager"
+Name: "{autodesktop}\Anime Vault"; Filename: "{app}\AnimeVault.exe"; WorkingDir: "{app}"; IconFilename: "{app}\_internal\assets\app.ico"; AppUserModelID: "AnimeVault.Desktop.MediaManager"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\AnimeVault.exe"; Description: "Launch Anime Vault"; Flags: nowait postinstall skipifsilent unchecked runasoriginaluser

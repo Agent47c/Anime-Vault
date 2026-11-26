@@ -2,7 +2,7 @@
 from PyQt5.QtCore import Qt,QSize
 from PyQt5.QtGui import QFont,QPalette,QColor
 from PyQt5.QtWidgets import QFrame,QWidget,QHBoxLayout,QVBoxLayout,QLabel,QPushButton,QLineEdit,QMenu
-from app.ui.icons import icon
+from app.ui.icons import app_icon, icon
 from app.ui.home_style import colors,load_fonts,px
 from app.ui.components.navigation_button import NavigationButton
 from app.ui.components.dropdowns import ContainedMenu
@@ -72,7 +72,7 @@ class HomeHeader(QFrame):
             self.arrange();return
         self._style_signature=signature
         self.setFont(QFont('Plus Jakarta Sans',12))
-        c=colors();self.mark.setPixmap(icon('flower',c['coral']).pixmap(28,28));self.options.setIcon(icon('list',c['muted']));self.options.setIconSize(QSize(22,22));self.drive.setIcon(icon('storage',c['amber']))
+        c=colors();self.mark.setPixmap(app_icon().pixmap(36,36));self.options.setIcon(icon('list',c['muted']));self.options.setIconSize(QSize(22,22));self.drive.setIcon(icon('storage',c['amber']))
         self.select_action.setIcon(icon('select-multiple',c['coral']))
         palette=self.search.palette();palette.setColor(QPalette.Text,QColor(c['text']));palette.setColor(QPalette.PlaceholderText,QColor(c['muted']));self.search.setPalette(palette)
         self.setStyleSheet(f'''
@@ -81,7 +81,7 @@ class HomeHeader(QFrame):
         QFrame#home_capsule {{background:{c['panel']};border:none;border-radius:26px;}}
         QLabel#home_brand {{color:{c['text']};font-size:{px(17)}px;font-weight:700;}}
         QLabel#home_tagline {{color:{c['muted']};font-family:'JetBrains Mono';font-size:{px(10)}px;}}
-        QLabel#home_mark {{background:{c['panel']};border-radius:12px;}}
+        QLabel#home_mark {{background:transparent;}}
         QLineEdit#home_quick_find, QLineEdit#home_quick_find:focus {{background:{c['panel']};color:{c['text']};selection-background-color:{c['coral']};selection-color:{c['on_coral']};border:1px solid {c['line']};border-radius:20px;padding:0 12px;font-size:{px(12)}px;}}
         QPushButton#home_drive, QPushButton#home_options {{background:{c['panel']};border:1px solid {c['line']};border-radius:20px;color:{c['amber']};padding:0 10px;font-family:'JetBrains Mono';font-size:{px(11)}px;}}
         QPushButton#home_options {{padding:0;}}

@@ -106,8 +106,8 @@ QFrame#shell_nav:hover, QFrame#shell_nav[active="true"], QFrame#collection_row:h
 QFrame#shell_nav:focus, QFrame#collection_row:focus { border: 2px solid $border_focus; }
 QLabel#nav_text { color: $text_secondary; font-size: 16px; }
 QFrame#shell_nav[active="true"] QLabel#nav_text { color: $text_primary; font-weight: 600; }
-QLabel#brand_mark, QLabel#nav_badge_2 { background: $accent; color: $on_red; font-weight: 700; }
-QLabel#brand_mark { border-radius: 10px; font-size: 18px; }
+QLabel#nav_badge_2 { background: $accent; color: $on_red; font-weight: 700; }
+QLabel#brand_mark { background: transparent; }
 QLabel#nav_badge_2 { border-radius: 12px; padding: 0 7px; font-size: 12px; }
 QLabel#brand_title { font-size: 17px; font-weight: 700; }
 QLabel#shell_caption { color: $text_muted; font-size: 12px; font-weight: 600; }

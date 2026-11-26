@@ -109,13 +109,49 @@ class CompactReferenceTests(unittest.TestCase):
         with patch.object(ReleaseNewsPage,'load'),patch('app.ui.pages.release_news_page.NewsArtwork.start'):
             page=ReleaseNewsPage();self.addCleanup(page.deleteLater)
             page._cache_info={'library_owners':{21:1}}
-            page.render(([dict(id=i,title={'english':'Example'}) for i in (21,22)],False))
+            long_title='Love Live! Nijigasaki Gakuen School Idol Doukoukai: Kanketsu-hen'
+            page.render(([dict(id=i,title={'english':long_title}) for i in (21,22)],False))
+            from app.ui.components.design import TwoLineElidedLabel
+            title=page._discovery_cards[0].findChild(TwoLineElidedLabel)
+            title.ensurePolished()
+            title.resize(155,title.height())
+            title._elide()
+            self.assertEqual(len(title.text().splitlines()),2)
+            self.assertTrue(title.text().endswith('…'))
+            self.assertEqual(title.toolTip(),long_title)
+            owned=next(button for button in page._discovery_cards[0].findChildren(QPushButton) if button.text()=='Added')
+            self.assertFalse(owned.isEnabled())
             for card in page._discovery_cards:
                 buttons=card.findChildren(QPushButton)
                 self.assertEqual(len(buttons),2)
                 self.assertEqual(buttons[0].size(),buttons[1].size())
                 buttons[1].setText('Added to Watching');page.equal_discovery_actions(*buttons)
                 self.assertEqual(buttons[0].size(),buttons[1].size())
+
+    def test_discovery_next_scrolls_to_top_and_previous_keeps_position(self):
+        from app.ui.pages.release_news_page import ReleaseNewsPage
+        apply_theme(self.app,'manga_light')
+        items=[dict(id=i,title={'english':f'Release {i}'}) for i in range(18)]
+        with patch('app.ui.pages.release_news_page.NewsArtwork.start'):
+            page=ReleaseNewsPage()
+            self.addCleanup(page.deleteLater)
+            with patch.object(page,'run',side_effect=lambda operation,ready: ready(((items,True),{}))):
+                page.resize(850,640)
+                page.show()
+                self.app.processEvents()
+                bar=page.scroll.verticalScrollBar()
+                self.assertGreater(bar.maximum(),100)
+                bar.setValue(bar.maximum())
+                page.next.click()
+                self.app.processEvents()
+                self.assertEqual(page.page,2)
+                self.assertEqual(bar.value(),0)
+                bar.setValue(100)
+                page.previous.click()
+                self.app.processEvents()
+                self.assertEqual(page.page,1)
+                self.assertEqual(bar.value(),100)
+                page.close()
 
     def mouse_click(self,page,control,point=None):
         # Deliver through QWindow/Qt's child hit testing, never button.click().

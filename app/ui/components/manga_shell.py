@@ -3,7 +3,7 @@ from app.ui.manga_style import set_material
 from PyQt5.QtCore import Qt,QSize,pyqtSignal
 from PyQt5.QtGui import QPainter,QColor
 from PyQt5.QtWidgets import QFrame,QHBoxLayout,QVBoxLayout,QLabel,QPushButton,QLineEdit,QSizePolicy
-from app.ui.icons import icon
+from app.ui.icons import app_icon, icon
 from app.ui.manga_style import controls_qss,shadow,COLORS
 
 
@@ -36,7 +36,9 @@ class MangaHeader(QFrame):
     def __init__(self,host):
         super().__init__();self.host=host;self.setObjectName('manga_header');self.setFixedHeight(70)
         row=QHBoxLayout(self);row.setContentsMargins(20,10,24,10);row.setSpacing(14)
-        self.mark=QLabel('ア');self.mark.setFixedSize(52,50);self.mark.setAlignment(Qt.AlignCenter);set_material(self.mark,'background:#ff2e93;color:black;border-radius:12px;font:700 26px "Yu Gothic";');row.addWidget(self.mark);shadow(self.mark)
+        self.mark=QLabel();self.mark.setFixedSize(52,50);self.mark.setAlignment(Qt.AlignCenter)
+        self.mark.setPixmap(app_icon().pixmap(50,50))
+        set_material(self.mark,'background:transparent;');row.addWidget(self.mark);shadow(self.mark)
         self.search=QLineEdit();self.search.setAccessibleName('Search library');self.search.setPlaceholderText('Search by English title');self.search.setClearButtonEnabled(True);self.search.setMaximumWidth(720);self.search.setMinimumWidth(260)
         self.search.setProperty('mangaOwnPlaceholder',True)
         self.search.addAction(icon('search',COLORS['muted']),QLineEdit.LeadingPosition);self.search.textChanged.connect(host.top_search_input.setText);self.search.returnPressed.connect(host.library_page.focus_search_results)

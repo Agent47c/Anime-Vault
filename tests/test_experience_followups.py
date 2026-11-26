@@ -38,6 +38,36 @@ class ExperienceFollowupTests(unittest.TestCase):
         self.assertEqual(db.get_state('window_maximized'),'1');self.assertTrue(second.isMaximized())
         first.hide();second.hide()
 
+    def test_tray_reopens_at_saved_position_and_preserves_maximized_state(self):
+        from PyQt5.QtWidgets import QSystemTrayIcon
+        from app.ui.main_window import MainWindow
+
+        class TrayWindow(QMainWindow):
+            _on_tray_activated = MainWindow._on_tray_activated
+            _hide_to_tray = MainWindow._hide_to_tray
+            _restore_from_tray = MainWindow._restore_from_tray
+
+        window = TrayWindow()
+        self.addCleanup(window.deleteLater)
+        window.setGeometry(90, 110, 510, 420)
+        window.show()
+        self.app.processEvents()
+        original = window.geometry()
+        window._hide_to_tray()
+        window.move(0, 0)
+        window._on_tray_activated(QSystemTrayIcon.Trigger)
+        self.assertEqual(window.geometry(), original)
+        window.showMaximized()
+        self.app.processEvents()
+        window._hide_to_tray()
+        window._on_tray_activated(QSystemTrayIcon.Trigger)
+        self.assertTrue(window.isMaximized())
+        window.showMinimized()
+        window._on_tray_activated(QSystemTrayIcon.Trigger)
+        self.assertTrue(window.isVisible())
+        self.assertFalse(window.isMinimized())
+        window.hide()
+
     def test_shared_header_menu_anchors_to_visible_button(self):
         from PyQt5.QtWidgets import QWidget,QPushButton
         from PyQt5.QtCore import QPoint
