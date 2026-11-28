@@ -44,8 +44,8 @@ def run(arguments):
             for relative in required:
                 assert (RESOURCE_DIR / relative).is_file(), relative
             report['checks'].append('Fonts, SVG controls, extension and bundled notices')
-            from app.core.builtin_torrents import EngineClient
-            client = EngineClient({'enabled': False}, network=False)
+            from app.core import builtin_torrents
+            client = builtin_torrents.EngineClient({'enabled': False}, network=False)
             try:
                 client.save()
             finally:
@@ -96,18 +96,21 @@ def run(arguments):
             details = DetailModal(fid, window)
             assert details.franchise['display_title'] == 'Installer check'
             details.deleteLater()
+            client = builtin_torrents.EngineClient({'enabled': False}, network=False)
+            builtin_torrents._engine = client
             end = time.monotonic() + 15
             while not window._cleanup_and_exit() and time.monotonic() < end:
                 # The harness waits here and writes the report itself.
                 window._shutdown_timer.stop()
                 QTest.qWait(100)
-            if running():
+            if running() or client.process.poll() is None or builtin_torrents.active():
                 raise RuntimeError('Package fixture workers did not stop')
             window.hide()
             window.deleteLater()
             QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
             app.processEvents()
             report['checks'].append('All six navigation tabs, Details and orderly shutdown')
+            report['checks'].append('Exit waits for the native downloader process to stop')
         report['ok'] = True
     except Exception:
         report['error'] = traceback.format_exc()

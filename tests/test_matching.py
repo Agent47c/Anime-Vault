@@ -87,10 +87,10 @@ class MatchingTests(unittest.TestCase):
             "source": str(original / "old.mkv"), "target": str(target),
             "series": "Series", "release": "Season 01",
         }], destination)
-        self.assertEqual(db.get_franchise(self.fid)["root_folder_path"], str(destination / "Series"))
+        self.assertEqual(Path(db.get_franchise(self.fid)["root_folder_path"]), destination / "Series")
         season = db.get_season(sid)
         self.assertEqual(season["anilist_id"], 200)
-        self.assertEqual(season["season_folder_path"], str(target.parent))
+        self.assertEqual(Path(season["season_folder_path"]), target.parent)
         self.assertEqual(season["title_display"], "Matched release")
 
     def test_find_missing_files_searches_all_roots_but_names_alone_require_review(self):

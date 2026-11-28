@@ -1320,16 +1320,16 @@ class MainWindow(QMainWindow):
     def _finish_pending_exit(self):
         from app.ui.artwork import artwork_loader
         self._shutdown_ticks = getattr(self, '_shutdown_ticks', 0) + 1
-        if (self._running_threads() or artwork_loader().pool.activeThreadCount()) and self._shutdown_ticks < 20:
+        threads = self._running_threads()
+        # Native shutdown can spend several seconds saving resume data. Never
+        # wait for its lock on the GUI thread or exit before the helper stops.
+        if getattr(self, '_torrent_shutdown_worker', None) in threads:
+            return
+        if (threads or artwork_loader().pool.activeThreadCount()) and self._shutdown_ticks < 20:
             return
         if hasattr(self, '_shutdown_timer'):
             self._shutdown_timer.stop()
         self._exit_ready = True
-        try:
-            from app.core.downloads import shutdown_builtin
-            shutdown_builtin()
-        except Exception:
-            pass
         try:
             server.stop_server()
         except Exception:
@@ -1400,7 +1400,6 @@ class MainWindow(QMainWindow):
                 self.tray_icon.hide()
             self.hide()
             import os
-            QTimer.singleShot(2500, lambda: os._exit(0))
             if self._cleanup_and_exit():
                 event.accept()
                 QApplication.closeAllWindows()
@@ -1422,7 +1421,6 @@ class MainWindow(QMainWindow):
                     self.tray_icon.hide()
                 self.hide()
                 import os
-                QTimer.singleShot(2500, lambda: os._exit(0))
                 if self._cleanup_and_exit():
                     event.accept()
                     QApplication.closeAllWindows()
@@ -1446,18 +1444,14 @@ class MainWindow(QMainWindow):
         return True
 
     def _force_exit(self):
+        if getattr(self, "_shutdown_pending", False):
+            return
         self._force_exiting = True
         if not getattr(self,'_restore_restart_required',False):self._save_geometry()
         if hasattr(self, "tray_icon") and self.tray_icon:
             self.tray_icon.hide()
         self.hide()
         import os
-        QTimer.singleShot(2500, lambda: os._exit(0))
-        if getattr(self, "_shutdown_pending", False):
-            QApplication.closeAllWindows()
-            QApplication.quit()
-            os._exit(0)
-            return
         if self._cleanup_and_exit():
             QApplication.closeAllWindows()
             QApplication.quit()
@@ -1483,6 +1477,7 @@ class MainWindow(QMainWindow):
             from app.ui.io_task import IOTask,track
             from app.core.downloads import shutdown_builtin
             worker=IOTask(shutdown_builtin)
+            self._torrent_shutdown_worker=worker
             track(worker)
             worker.failed.connect(lambda message:self.statusBar().showMessage('Download shutdown: '+message,10000))
             worker.finished.connect(worker.deleteLater)
@@ -1501,10 +1496,11 @@ class MainWindow(QMainWindow):
                 self.show()
                 self.task_status_button.show()
                 self.task_status_button.setText("Closing — stopping background tasks safely. Waiting for active requests to finish…")
-            self._shutdown_timer = QTimer(self)
-            self._shutdown_timer.setInterval(100)
-            self._shutdown_timer.timeout.connect(self._finish_pending_exit)
-            self._shutdown_timer.start()
+            if not hasattr(self, '_shutdown_timer'):
+                self._shutdown_timer = QTimer(self)
+                self._shutdown_timer.setInterval(100)
+                self._shutdown_timer.timeout.connect(self._finish_pending_exit)
+                self._shutdown_timer.start()
             return False
         if hasattr(self, "tray_icon") and self.tray_icon:
             self.tray_icon.hide()
