@@ -1,6 +1,6 @@
 ; Build using Inno Setup 7 (6.4+ is also supported).
 #ifndef AppVersion
-  #define AppVersion "1.2.2"
+  #define AppVersion "1.2.3"
 #endif
 #define ProjectRoot SourcePath + ".."
 

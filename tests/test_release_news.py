@@ -28,6 +28,69 @@ class ReleaseNewsTests(unittest.TestCase):
         query,variables=seen[0]
         self.assertIn('$from:FuzzyDateInt',query);self.assertIn('$to:FuzzyDateInt',query)
         self.assertEqual(variables['from'],20261031);self.assertEqual(variables['to'],20270130)
+
+    def test_custom_premiere_dates_include_both_endpoints_and_use_separate_caches(self):
+        dates=(date(2026,12,1),date(2027,1,31))
+        data={'Page':{'media':[{'id':7}],'pageInfo':{'hasNextPage':False}}}
+        with patch.object(news.api,'_graphql_request',return_value=data) as request:
+            self.assertEqual(news.discover(force=True,date_range=dates),([{'id':7}],False))
+            query,variables=request.call_args.args
+            self.assertIn('startDate_greater:$from,startDate_lesser:$to',query)
+            self.assertEqual((variables['from'],variables['to']),(20261130,20270201))
+            self.assertEqual(news.discover(date_range=dates),([{'id':7}],False))
+            with self.assertRaises(news.CacheMiss):news.discover()
+            with self.assertRaises(news.CacheMiss):news.discover(date_range=(dates[0],dates[0]))
+            with self.assertRaises(ValueError):news.discover(date_range=dates[::-1])
+            request.assert_called_once()
+
+    def test_custom_premiere_controls_fit_all_themes_and_only_apply_to_discovery(self):
+        from PyQt5.QtCore import QDate, QPoint, Qt
+        from PyQt5.QtTest import QTest
+        from PyQt5.QtWidgets import QApplication
+        from app.ui.pages.release_news_page import ReleaseNewsPage
+        from app.ui.theme import apply_theme
+        app=QApplication.instance()
+        old_theme=app.property('animevaultRequestedTheme') or 'dark'
+        today=QDate.currentDate()
+        try:
+            with patch.object(ReleaseNewsPage,'load'):
+                page=ReleaseNewsPage();timeline=ReleaseNewsPage(media_id=7)
+            page.resize(760,720);page.show()
+            self.assertEqual(timeline.period.findData('custom'),-1)
+            self.assertTrue(page.date_controls.isHidden())
+            with patch.object(page,'run',side_effect=lambda operation,ready:ready(operation())),patch.object(news,'discover_grid',return_value=([],False)) as discover:
+                page.period.setCurrentIndex(page.period.findData('custom'))
+                start=page.premiere_from;end=page.premiere_to
+                self.assertEqual(start.minimumDate(),QDate(today.year()-2,1,1))
+                self.assertEqual(end.maximumDate(),QDate(today.year()+2,12,31))
+                start.setDate(today.addDays(-90));page.refresh_button.click()
+                self.assertTrue(discover.call_args.args[2])
+                self.assertEqual(discover.call_args.kwargs['date_range'],(today.addDays(-90).toPyDate(),today.toPyDate()))
+                start.setDate(today.addDays(1))
+                self.assertFalse(page.refresh_button.isEnabled())
+                self.assertIn('start date',page.status.text())
+                end.setDate(start.date())
+                self.assertTrue(page.refresh_button.isEnabled())
+                for theme in ('dark','light','manga_dark','manga_light'):
+                    with self.subTest(theme=theme):
+                        apply_theme(app,theme);page.refresh_home_style();app.processEvents()
+                        start_rect=start.rect().translated(start.mapTo(page.date_controls,QPoint()))
+                        end_rect=end.rect().translated(end.mapTo(page.date_controls,QPoint()))
+                        self.assertFalse(start_rect.intersects(end_rect))
+                        self.assertTrue(page.date_controls.rect().contains(start_rect))
+                        self.assertTrue(page.date_controls.rect().contains(end_rect))
+                        for picker in (start,end):
+                            calendar=picker.calendarWidget()
+                            QTest.mouseClick(picker,Qt.LeftButton,pos=QPoint(picker.width()-12,picker.height()//2))
+                            self.assertTrue(calendar.isVisible())
+                            QTest.keyClick(calendar,Qt.Key_Escape)
+                            self.assertFalse(calendar.isVisible())
+                page.period.setCurrentIndex(0)
+                self.assertTrue(page.date_controls.isHidden())
+                self.assertNotIn('date_range',discover.call_args.kwargs)
+        finally:
+            page.reject();page.deleteLater();timeline.deleteLater()
+            apply_theme(app,old_theme)
     def test_graphql_errors_preserve_none_return_and_surface_reason(self):
         import requests
         bad=Mock(status_code=400);bad.json.return_value={'data':None,'errors':[{'message':'Variable "$from" of type "Int" used in position expecting type "FuzzyDateInt".'}]}

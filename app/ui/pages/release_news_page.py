@@ -1,10 +1,11 @@
 """Release discovery and per-anime timeline, using existing navigation and IO."""
 from datetime import datetime
 from contextlib import closing
-from PyQt5.QtCore import Qt,QThread,pyqtSignal,QEvent,QTimer
-from PyQt5.QtGui import QPixmap
+from pathlib import Path
+from PyQt5.QtCore import QDate,Qt,QThread,pyqtSignal,QEvent,QTimer
+from PyQt5.QtGui import QColor,QPalette,QPixmap
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QComboBox,QGridLayout,QTableWidget,QTableWidgetItem,QHeaderView,QCheckBox,QSizePolicy
+from PyQt5.QtWidgets import QDateEdit,QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QComboBox,QGridLayout,QTableWidget,QTableWidgetItem,QHeaderView,QCheckBox,QSizePolicy
 from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core import release_news as news
@@ -48,6 +49,7 @@ class ReleaseNewsPage(QDialog):
         self.setStyleSheet(qss('release_news'))
         from app.ui.manga_workflows import finish
         finish(self)
+        if not self.media_id:self._style_premiere_dates()
         from app.ui.manga_pages import active
         family=active();previous=getattr(self,'_card_material_family',None);self._card_material_family=family
         if previous is not None and previous!=family and hasattr(self,'_last_result'):self.render(self._last_result)
@@ -66,6 +68,15 @@ class ReleaseNewsPage(QDialog):
         self.sort=TagPicker('Sort releases',multiple=False);self.sort.addItems(['Premiere: newest first','Premiere: earliest first','English title A–Z','Most popular']);self.sort.setAccessibleName('Sort releases');self.sort.setVisible(not media_id);self.sort.currentIndexChanged.connect(self.reset);controls.addWidget(self.sort)
         self.broadcast_filter=QComboBox();self.broadcast_filter.addItems(['All broadcasts','Aired episodes','Scheduled episodes','Airing today','In my library','Missing locally']);self.broadcast_filter.setVisible(bool(media_id));self.broadcast_filter.currentIndexChanged.connect(self.refilter);controls.addWidget(self.broadcast_filter)
         controls.addStretch();layout.addLayout(controls)
+        if not media_id:
+            self.period.addItem('Custom premiere dates…','custom')
+            self.date_controls=QWidget()
+            dates=FlowLayout(self.date_controls)
+            self.premiere_from=self._add_premiere_date(dates,'From',QDate.currentDate().addDays(-30))
+            self.premiere_to=self._add_premiere_date(dates,'To',QDate.currentDate())
+            layout.addWidget(self.date_controls)
+            self.date_controls.hide()
+            self._style_premiere_dates()
         self.discovery_filters=QWidget();self.discovery_filters.setObjectName('transfer_clear');filters=FlowLayout(self.discovery_filters)
         from app.ui.components.taxonomy_panel import TaxonomyPicker
         self.genre_filter=TaxonomyPicker('Genres',self);self.genre_filter.addItem('All genres',None)
@@ -88,16 +99,74 @@ class ReleaseNewsPage(QDialog):
         content=QWidget();content.setObjectName('transfer_clear');self.rows=QVBoxLayout(content);self.rows.setAlignment(Qt.AlignTop);scroll.setWidget(content);layout.addWidget(scroll,1)
         footer=QHBoxLayout();self.previous=QPushButton('Previous');self.previous.clicked.connect(lambda:self.change_page(-1));footer.addWidget(self.previous)
         self.next=QPushButton('Next');self.next.clicked.connect(lambda:self.change_page(1));footer.addWidget(self.next);footer.addStretch();close=QPushButton('Back');close.clicked.connect(self.reject);footer.addWidget(close);layout.addLayout(footer)
-        self.period.currentIndexChanged.connect(self.reset);self.finished.connect(self.stop)
+        self.period.currentIndexChanged.connect(self._period_changed);self.finished.connect(self.stop)
         self._initial_load_pending=False;self._constructing=True
         self.load();self._constructing=False
+
+    def _add_premiere_date(self,layout,label_text,initial_date):
+        group=QWidget();row=QHBoxLayout(group);row.setContentsMargins(0,0,0,0)
+        label=QLabel(label_text);picker=QDateEdit(initial_date)
+        year=QDate.currentDate().year()
+        picker.setDateRange(QDate(year-2,1,1),QDate(year+2,12,31))
+        picker.setDisplayFormat('dd MMM yyyy')
+        picker.setKeyboardTracking(False)
+        picker.setCalendarPopup(True)
+        picker.setAccessibleName('Premiere start date' if label_text=='From' else 'Premiere end date')
+        label.setBuddy(picker);row.addWidget(label);row.addWidget(picker)
+        layout.addWidget(group)
+        picker.dateChanged.connect(self.reset)
+        return picker
+
+    def _style_premiere_dates(self):
+        from app.ui.home_style import colors,px
+        c=colors()
+        variant='light' if QColor(c['panel']).lightness()>127 else 'dark'
+        arrow=(Path(__file__).resolve().parents[1]/'assets'/f'chevron-{variant}.svg').as_posix()
+        for picker in (self.premiere_from,self.premiere_to):
+            picker.setMinimumWidth(px(152))
+            picker.setStyleSheet(f'''
+                QDateEdit {{ color: {c['text']}; background: {c['panel']};
+                    border: 1px solid {c['line']}; border-radius: {px(8)}px;
+                    min-height: {px(38)}px; padding-left: {px(10)}px; }}
+                QDateEdit:hover, QDateEdit:focus {{ border-color: {c['coral']}; }}
+                QDateEdit::drop-down {{ subcontrol-origin: padding;
+                    subcontrol-position: top right; width: {px(30)}px; border: 0; }}
+                QDateEdit::down-arrow {{ image: url("{arrow}"); width: {px(16)}px; height: {px(16)}px; }}
+            ''')
+            calendar=picker.calendarWidget()
+            palette=QPalette(calendar.palette())
+            for role,token in ((QPalette.Window,'panel'),(QPalette.Base,'panel'),
+                               (QPalette.AlternateBase,'raised'),(QPalette.Button,'raised'),
+                               (QPalette.Text,'text'),(QPalette.WindowText,'text'),
+                               (QPalette.ButtonText,'text'),(QPalette.Highlight,'coral'),
+                               (QPalette.HighlightedText,'on_coral')):
+                palette.setColor(role,QColor(c[token]))
+            calendar.setPalette(palette)
+            calendar.setStyleSheet(f'''
+                QCalendarWidget QWidget#qt_calendar_navigationbar {{ background: {c['raised']}; }}
+                QCalendarWidget QToolButton {{ color: {c['text']}; background: {c['raised']}; }}
+                QCalendarWidget QToolButton:hover {{ background: {c['panel']}; }}
+                QCalendarWidget QAbstractItemView {{ color: {c['text']}; background: {c['panel']};
+                    selection-background-color: {c['coral']}; selection-color: {c['on_coral']}; }}
+            ''')
+
+    def _uses_custom_range(self):
+        return self.period.currentData()=='custom'
+
+    def _period_changed(self):
+        if not self.media_id:self.date_controls.setVisible(self._uses_custom_range())
+        self.reset()
 
     def stop(self,*_):
         self.generation+=1
         if self.worker:self.worker.requestInterruption()
         if getattr(self,'_artwork',None):self._artwork.requestInterruption()
 
-    def reset(self,*_):self.page=1;self._fetch_missing=True;self.load()
+    def reset(self,*_):
+        self.page=1
+        custom=self._uses_custom_range()
+        self._fetch_missing=not custom
+        self.load(scroll_position=0 if custom else None)
     def change_page(self, delta):
         page = max(1, self.page + delta)
         if page == self.page:
@@ -153,6 +222,20 @@ class ReleaseNewsPage(QDialog):
         if getattr(self,'_constructing',False):
             self._initial_load_pending=True;return
         self._initial_load_pending=False
+        date_filters={}
+        if self._uses_custom_range():
+            first=self.premiere_from.date().toPyDate()
+            last=self.premiere_to.date().toPyDate()
+            if first>last:
+                self.stop()
+                self.refresh_button.setEnabled(False)
+                warning='The start date must be on or before the end date.'
+                self._cache_info=dict(source='empty',warning=warning,library_owners={})
+                self.render(([],False))
+                self.status.setText(warning)
+                return
+            date_filters['date_range']=(first,last)
+        self.refresh_button.setEnabled(True)
         self.status.setText('Checking AniList…' if force else 'Loading release details…' if self.media_id else 'Loading saved results…');page=self.page;upcoming=self.period.currentIndex()==1;mid=self.media_id;announced=self.period.currentIndex()==2;sort=('START_DATE_DESC','START_DATE','TITLE_ENGLISH','POPULARITY_DESC')[self.sort.currentIndex()]
         genre=self.genre_filter.currentData();theme=self.theme_filter.currentData();media_format=self.format_filter.currentData();include_adult=self.adult_filter.isChecked()
         fetch_missing=getattr(self,'_fetch_missing',False);self._fetch_missing=False;adult_only=self.adult_only.isChecked()
@@ -165,7 +248,7 @@ class ReleaseNewsPage(QDialog):
                 info={}
                 try:
                     if not mid:
-                        result=news.discover_grid(upcoming,page,force,announced,sort,capacity=capacity,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info,fetch_missing=fetch_missing,adult_only=adult_only)
+                        result=news.discover_grid(upcoming,page,force,announced,sort,capacity=capacity,genre=genre,theme=theme,media_format=media_format,include_adult=include_adult,cache_info=info,fetch_missing=fetch_missing,adult_only=adult_only,**date_filters)
                         info['library_owners']=news.library_owners()
                         return result,info
                     result=news.timeline(mid,page,force,cache_info=info)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.3 — 28 November 2026
+
+- Browse past and upcoming premieres using inclusive custom date ranges in New Anime Releases. Both calendar pickers work in all four themes.
+- Keep the Updates removal dialog's actions readable and clickable, with separate choices for keeping local files or reviewing them for the Recycle Bin.
+- Build the Windows app and installer in GitHub Actions after the regression checks pass, and smoke-test the packaged app before uploading the installer and checksum to the workflow run.
+
 ## 1.2.2 — 26 November 2026
 
 - Restore the window to its previous position, size, and maximized state when opening Anime Vault from the system tray.

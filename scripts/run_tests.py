@@ -16,13 +16,14 @@ os.environ["OFFLINE_MODE"] = "true"
 
 
 def main():
-    from app import db, config
-
     # Theme initialization reads saved preferences before per-test fixtures run.
     # Give it an initialized baseline without accessing the user's real database.
     with tempfile.TemporaryDirectory(prefix="animevault-tests-") as temporary:
         root = Path(temporary)
         with ExitStack() as stack:
+            stack.enter_context(patch.dict(os.environ, {'ANIMEVAULT_DATA_DIR': str(root)}))
+            from app import db, config
+
             for module in (db, config):
                 for key, value in {
                     "DATA_DIR": root,
@@ -32,7 +33,14 @@ def main():
                     stack.enter_context(patch.object(module, key, value))
             stack.enter_context(patch.object(db, "DB_PATH", root / "library.db"))
             db.init_db()
-            suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"))
+            loader = unittest.TestLoader()
+            tests_dir = str(ROOT / 'tests')
+            if sys.argv[1:]:
+                sys.path.insert(0, tests_dir)
+                stack.callback(sys.path.remove, tests_dir)
+                suite = loader.loadTestsFromNames(sys.argv[1:])
+            else:
+                suite = loader.discover(tests_dir)
             expected = suite.countTestCases()
             result = unittest.TextTestRunner(verbosity=2).run(suite)
             from PyQt5.QtWidgets import QApplication

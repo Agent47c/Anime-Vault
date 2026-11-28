@@ -4,6 +4,7 @@ Keep Qt's button identities, roles, return values and keyboard behaviour.
 Native message-box buttons deliberately avoid graphics-effect source capture.
 """
 from PyQt5.QtCore import QObject,QEvent,Qt
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QMessageBox,QPushButton,QDialog,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QDialogButtonBox,QApplication,QPlainTextEdit
 from app.ui.home_style import colors,px
 
@@ -17,6 +18,9 @@ class MessageBoxes(QObject):
         self.busy=True
         try:
             c=colors();box.setProperty('animevaultOwnScaledStyle',True)
+            danger_color = '#ff746d' if QColor(c['panel']).lightness() < 128 else '#b3261e'
+            if QApplication.instance().property('animevaultHighContrast'):
+                danger_color = c['text']
             selector='QWidget#app_message_box' if box.property('stableAlert') else 'QMessageBox'
             box.setStyleSheet(f'''
                 {selector} {{background:{c['bg']};color:{c['text']};}}
@@ -31,11 +35,10 @@ class MessageBoxes(QObject):
                 primary=role in (QMessageBox.AcceptRole,QMessageBox.YesRole)
                 danger=role==QMessageBox.DestructiveRole
                 face=c['coral'] if primary else c['panel']
-                ink=c['on_coral'] if primary else '#b3261e' if danger else c['text']
-                border='#b3261e' if danger else c['coral'] if primary else c['line']
+                ink=c['on_coral'] if primary else danger_color if danger else c['text']
+                border=danger_color if danger else c['coral'] if primary else c['line']
                 button.setGraphicsEffect(None)
                 button.setCursor(Qt.PointingHandCursor)
-                button.setMinimumSize(px(96),px(42))
                 button.setStyleSheet(f'''
                     QPushButton {{background:{face};color:{ink};border:1px solid {border};border-radius:8px;padding:0 {px(18)}px;font-size:{px(13)}px;font-weight:600;}}
                     QPushButton:hover {{background:{face if primary else c['raised']};color:{ink};border-color:{border};}}
@@ -43,6 +46,9 @@ class MessageBoxes(QObject):
                     QPushButton:focus {{border:2px solid {border};outline:none;}}
                     QPushButton:disabled {{color:{c['muted']};background:{c['raised']};}}
                 ''')
+                button.ensurePolished()
+                caption_width = button.fontMetrics().horizontalAdvance(button.text())
+                button.setMinimumSize(max(px(96), caption_width + 2 * px(18) + 4), px(42))
         finally:self.busy=False
 
     def eventFilter(self,obj,event):

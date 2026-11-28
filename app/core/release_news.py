@@ -77,7 +77,8 @@ def _migrate_discovery_cache(key,upcoming,page,announced,sort,filters):
     if matches:db.set_state('release_news:'+key,json.dumps(max(matches,key=lambda value:value['time'])))
 
 def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE',
-             genre=None,theme=None,media_format=None,include_adult=None,cache_info=None,fetch_missing=False,adult_only=False):
+             genre=None,theme=None,media_format=None,include_adult=None,cache_info=None,fetch_missing=False,adult_only=False,
+             date_range=None):
     from app.preferences import enabled
     from app.core.adult_content import is_adult_unlocked
     allow_adult = is_adult_unlocked() and enabled('allow_mature') and include_adult is not False
@@ -92,6 +93,11 @@ def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE'
     today=datetime.now().date()
     lower=today if upcoming else today-timedelta(days=30)
     upper=today+timedelta(days=90) if upcoming else today+timedelta(days=1)
+    if date_range is not None:
+        lower, last_day = date_range
+        if lower > last_day:
+            raise ValueError('The start date must be on or before the end date.')
+        upper = last_day + timedelta(days=1)
     # Issue: AniList Page.media startDate_greater / startDate_lesser require the
     # FuzzyDateInt scalar, not Int, causing HTTP 400 Bad Request on every live
     # check; additionally int(strftime('%Y%m%d')) - 1 produced invalid day 00 on
@@ -103,7 +109,7 @@ def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE'
     sort=sort if sort in ('START_DATE','START_DATE_DESC','TITLE_ENGLISH','POPULARITY_DESC') else 'START_DATE'
     query=query.replace('sort:START_DATE','sort:'+sort)
     variables={'from':int(previous_day.strftime('%Y%m%d')),'to':int(upper.strftime('%Y%m%d')),'page':page}
-    if announced:
+    if announced and date_range is None:
         query='''query($page:Int){Page(page:$page,perPage:20){pageInfo{hasNextPage} media(type:ANIME,status:NOT_YET_RELEASED,sort:'''+sort+'''){'''+FIELDS+'''}}}'''
         variables={'page':page}
     # Filter at AniList, before pagination, rather than hiding most of a page.
@@ -126,8 +132,11 @@ def discover(upcoming=False,page=1,force=False,announced=False,sort='START_DATE'
     elif allow_adult:
         query=query.replace('$adult:Boolean,','').replace('isAdult:$adult,','');variables.pop('adult',None)
     filters=json.dumps([genre,theme,media_format,allow_adult],separators=(',',':'))+(':adult-only' if adult_only else '')
-    key=f'discover:v2:{upcoming}:{page}:{announced}:{sort}:{filters}'
-    _migrate_discovery_cache(key,upcoming,page,announced,sort,filters)
+    if date_range is None:
+        key=f'discover:v2:{upcoming}:{page}:{announced}:{sort}:{filters}'
+        _migrate_discovery_cache(key,upcoming,page,announced,sort,filters)
+    else:
+        key=f'discover-range:v1:{lower}:{last_day}:{page}:{sort}:{filters}'
     data=cached(key,query,variables,force,cache_only=not (force or fetch_missing),info=cache_info,fallback=True)
     result=(data.get('Page') or {}) if isinstance(data,dict) else {}
     media=result.get('media') or []

@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock, patch
 from PyQt5.QtCore import Qt,QTimer,QPoint,QPointF
 from PyQt5.QtGui import QWheelEvent
 from PyQt5.QtWidgets import QPushButton,QWidget
@@ -47,6 +48,49 @@ class MessageBoxTests(unittest.TestCase):
         box.show();QTest.qWait(10);QTest.mouseClick(box.details_button,Qt.LeftButton)
         self.assertTrue(box.details.isVisible());self.assertIn('Verified path',box.detailedText());self.assertIsNone(box.clickedButton())
         QTest.mouseClick(box.button(QMessageBox.No),Qt.LeftButton);self.assertEqual(box.result(),QMessageBox.No)
+
+    def test_remove_anime_choices_fit_and_keep_file_review_separate(self):
+        from app.ui import remove_anime
+        from app.ui.home_style import px
+
+        parent = QWidget()
+        self.addCleanup(parent.deleteLater)
+        member = {'franchise_id': self.fid, 'storage_state': 'ON_DISK'}
+        removed = Mock()
+        for theme, caption in (('manga_dark', 'Cancel'), ('manga_dark', 'Review file removal'),
+                               ('manga_light', 'Remove entry only')):
+            with self.subTest(theme=theme, caption=caption):
+                apply_theme(self.app, theme)
+                observed = []
+
+                def select():
+                    box = self.app.activeModalWidget()
+                    observed.append((box.actions.orientation(), box.defaultButton().text(), [
+                        button.width() >= button.fontMetrics().horizontalAdvance(button.text()) + 2 * px(18)
+                        for button in box.buttons()
+                    ]))
+                    button = next((b for b in box.buttons() if b.text() == caption), None)
+                    if button is None:
+                        box.reject()
+                    else:
+                        QTest.mouseClick(button, Qt.LeftButton)
+
+                with (
+                    patch.object(remove_anime, 'removal_context', return_value=(
+                        {'display_title': 'Anime with a long title'}, [self.fid], [member]
+                    )),
+                    patch.object(remove_anime, 'start') as start,
+                    patch.object(remove_anime, 'navigate') as navigate,
+                    patch('app.ui.dialogs.delete_confirm.DeleteConfirmDialog') as review,
+                ):
+                    QTimer.singleShot(10, select)
+                    remove_anime.open_remove_anime(parent, self.fid, removed)
+
+                self.assertEqual(observed, [(Qt.Vertical, 'Cancel', [True, True, True])])
+                self.assertEqual(start.call_count, int(caption == 'Remove entry only'))
+                self.assertEqual(navigate.call_count, int(caption == 'Review file removal'))
+                self.assertEqual(review.call_count, int(caption == 'Review file removal'))
+                removed.assert_not_called()
 
     def test_home_strip_wheel_moves_horizontally_without_vertical_scroll(self):
         from app.ui.components.smooth_scroll import HorizontalStrip

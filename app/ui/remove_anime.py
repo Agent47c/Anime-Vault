@@ -1,4 +1,5 @@
 """Explicit library removal with optional existing Recycle Bin review."""
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
 from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
@@ -9,9 +10,18 @@ from app.ui.navigation import navigate
 def open_remove_anime(parent,fid,removed=None):
     try:series,members,seasons=removal_context(fid)
     except ValueError as error:QMessageBox.information(parent,'Remove anime',str(error));return
-    prompt=QMessageBox(parent);prompt.setWindowTitle('Remove anime?');prompt.setText('Remove '+series['display_title']+' from your library?');prompt.setInformativeText('Choose whether to keep your local files or review moving indexed videos to the Recycle Bin. This includes the seasons grouped under this anime.')
-    keep=prompt.addButton('Remove entry — keep files',QMessageBox.AcceptRole);delete=prompt.addButton('Delete files and remove entry',QMessageBox.DestructiveRole);cancel=prompt.addButton(QMessageBox.Cancel);prompt.setDefaultButton(cancel);prompt.exec_()
+    prompt=QMessageBox(QMessageBox.Question, 'Remove anime?',
+                       'Remove '+series['display_title']+' from your library?', parent=parent)
+    prompt.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+    prompt.setInformativeText('Remove the entry and keep your local files, or review which indexed videos would go to the Recycle Bin. Both options include seasons grouped under this anime.')
+    prompt.actions.setOrientation(Qt.Vertical)
+    keep=prompt.addButton('Remove entry only',QMessageBox.AcceptRole)
+    delete=prompt.addButton('Review file removal',QMessageBox.DestructiveRole)
+    cancel=prompt.addButton(QMessageBox.Cancel)
+    prompt.setDefaultButton(cancel)
+    prompt.exec_()
     choice=prompt.clickedButton()
+    prompt.deleteLater()
     def done(message):
         if removed:removed()
         from app.ui.downloads import monitor

@@ -21,9 +21,13 @@ PRIVATE_SUFFIXES={'.db','.sqlite','.sqlite3','.pem','.key','.fastresume','.torre
 
 def main():
     root=ROOT.resolve()
-    parser=argparse.ArgumentParser();parser.add_argument('--staged',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser()
+    selection=parser.add_mutually_exclusive_group()
+    selection.add_argument('--staged',action='store_true')
+    selection.add_argument('--tracked-only',action='store_true')
+    args=parser.parse_args()
     command=['git','ls-files','--cached','-z']
-    if not args.staged:command.extend(['--others','--exclude-standard'])
+    if not (args.staged or args.tracked_only):command.extend(['--others','--exclude-standard'])
     names=set(subprocess.check_output(command,cwd=ROOT).decode('utf-8').split('\0'))-{''}
     errors=[];total=0;text_count=0
     for name in sorted(names):

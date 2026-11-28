@@ -138,20 +138,23 @@ class MangaLightTests(unittest.TestCase):
         from app.ui.components.manga_shell import MangaRail
         from PyQt5.QtCore import QEvent
         host=Mock();apply_theme(self.app,'manga_light');self.app.setProperty('animevaultReducedMotion',False)
-        rail=MangaRail(host);self.addCleanup(rail.deleteLater);rail.show();self.app.processEvents();rail.hide();self.app.processEvents()
-        group=rail.motion_groups[0];rail._hovered=None;rail._blur_group(group,1);QTest.qWait(220)
+        rail=MangaRail(host);self.addCleanup(rail.deleteLater)
+        def finish_blur():
+            for animation in rail._motions:
+                animation.setCurrentTime(animation.duration())
+        group=rail.motion_groups[0];rail._hovered=None;rail._blur_group(group,1);finish_blur()
         radii=[rail._blur_effects[b].blurRadius() for b in group]
         from app.ui.components.manga_navigation import opacity_for_blur
         self.assertEqual(radii[1],0);self.assertAlmostEqual(radii[0],radii[2])
         self.assertTrue(all(.3<=opacity_for_blur(radius)<=1 for radius in radii))
         self.assertLess(opacity_for_blur(radii[3]),opacity_for_blur(radii[2]))
-        rail._expanded=True;rail.activate(2);QTest.qWait(220)
+        rail._expanded=True;rail.activate(2);finish_blur()
         self.assertEqual(rail._blur_effects[rail.buttons[2]].blurRadius(),0)
         self.assertAlmostEqual(opacity_for_blur(rail._blur_effects[rail.buttons[0]].blurRadius()),.5)
         self.assertAlmostEqual(opacity_for_blur(rail._blur_effects[rail.buttons[5]].blurRadius()),.5)
-        target=rail.buttons[4];rail.eventFilter(target,QEvent(QEvent.Enter));QTest.qWait(220)
+        target=rail.buttons[4];rail.eventFilter(target,QEvent(QEvent.Enter));finish_blur()
         self.assertEqual(rail._blur_effects[target].blurRadius(),0)
-        rail.eventFilter(target,QEvent(QEvent.Leave));QTest.qWait(220)
+        rail.eventFilter(target,QEvent(QEvent.Leave));finish_blur()
         self.assertGreater(rail._blur_effects[target].blurRadius(),0)
         self.app.setProperty('animevaultReducedMotion',True);rail._blur_group(group,1)
         self.assertTrue(all(e.blurRadius()==0 for e in rail._blur_effects.values()))

@@ -8,7 +8,7 @@ Browse your library, track episode releases, and review exactly where your files
 
 [![Checks](https://github.com/Agent47c/Anime-Vault/actions/workflows/checks.yml/badge.svg)](https://github.com/Agent47c/Anime-Vault/actions/workflows/checks.yml)
 ![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)
-![Source version 1.2.2](https://img.shields.io/badge/source_version-1.2.2-ff2e93)
+![Source version 1.2.3](https://img.shields.io/badge/source_version-1.2.3-ff2e93)
 ![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB)
 
 [Get started](#get-started) · [Feature walkthrough](#feature-walkthrough) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Report a bug](https://github.com/Agent47c/Anime-Vault/issues/new?template=bug_report.md)
@@ -17,7 +17,7 @@ Browse your library, track episode releases, and review exactly where your files
 
 ![Anime Vault in Manga Brutalism Dark, with the Continue Watching banner, navigation, and weekly broadcast schedule](docs/screenshots/library-manga-dark.png)
 
-**Version 1.2.2** in the source includes tray restore, corrected season counts, release discovery layout and scrolling fixes, and consistent Windows and installer branding. [View the changelog](CHANGELOG.md)
+**Version 1.2.3** adds custom premiere dates in New Anime Releases and fixes clipped removal-dialog buttons on the Updates screen. [View the changelog](CHANGELOG.md)
 
 ## Get started
 

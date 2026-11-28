@@ -15,8 +15,8 @@ concurrency:
 jobs:
   windows-tests:
     name: Windows / Python 3.13
-    runs-on: windows-latest
-    timeout-minutes: 15
+    runs-on: windows-2025
+    timeout-minutes: 25
     env:
       QT_QPA_PLATFORM: offscreen
       OFFLINE_MODE: "true"
@@ -27,14 +27,51 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt
       - name: Validate source and run regression tests
         run: python scripts/check.py
       - name: Check public snapshot and documentation links
-        run: python scripts/check_publication.py
+        run: python scripts/check_publication.py --tracked-only
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Validate Chrome extension
         run: node --test browser-extension/tests/capture.test.js browser-extension/tests/search.test.js
+
+  windows-package:
+    name: Windows / Package and smoke test
+    needs: windows-tests
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+            requirements-build.txt
+      - name: Install build dependencies
+        run: python -m pip install -r requirements-build.txt
+      - name: Build application and installer
+        shell: pwsh
+        run: |
+          $compiler = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          $iscc = if ($compiler) { $compiler.Source } else { Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe' }
+          python build_exe.py --installer --iscc "$iscc"
+      - name: Smoke-test packaged executable
+        run: python scripts/verify_windows_build.py --report dist/frozen-package-check.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AnimeVault-windows-x64
+          if-no-files-found: error
+          path: |
+            dist/installer/*.exe
+            dist/installer/*.exe.sha256
+            dist/frozen-package-check.json
