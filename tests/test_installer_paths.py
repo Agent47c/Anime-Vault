@@ -85,3 +85,12 @@ class InstallerPathTests(unittest.TestCase):
         self.assertIn('AlwaysRestart=no', setup)
         self.assertNotIn('restartreplace', setup.lower())
         self.assertNotIn('taskkill', setup.lower())
+
+    def test_setup_recognizes_registered_and_existing_installations(self):
+        setup = (Path(__file__).resolve().parents[1] / 'installer' / 'AnimeVault.iss').read_text(encoding='utf-8')
+        self.assertIn("RegQueryStringValue(RootKey, UninstallKey, 'Inno Setup: App Path'", setup)
+        self.assertIn('ContainsAnimeVault(WizardDirValue)', setup)
+        self.assertIn("FileExists(AddBackslash(Directory) + 'AnimeVault.exe')", setup)
+        self.assertIn("InstallMode.Add('Update the existing installation')", setup)
+        self.assertIn("InstallMode.Add('Choose an installation folder')", setup)
+        self.assertIn('WizardForm.DirEdit.Text := ExistingDirectory', setup)

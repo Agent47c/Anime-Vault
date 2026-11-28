@@ -46,7 +46,7 @@ class ReleaseNewsTests(unittest.TestCase):
     def test_custom_premiere_controls_fit_all_themes_and_only_apply_to_discovery(self):
         from PyQt5.QtCore import QDate, QPoint, Qt
         from PyQt5.QtTest import QTest
-        from PyQt5.QtWidgets import QApplication
+        from PyQt5.QtWidgets import QApplication, QTableView
         from app.ui.pages.release_news_page import ReleaseNewsPage
         from app.ui.theme import apply_theme
         app=QApplication.instance()
@@ -83,8 +83,34 @@ class ReleaseNewsTests(unittest.TestCase):
                             calendar=picker.calendarWidget()
                             QTest.mouseClick(picker,Qt.LeftButton,pos=QPoint(picker.width()-12,picker.height()//2))
                             self.assertTrue(calendar.isVisible())
-                            QTest.keyClick(calendar,Qt.Key_Escape)
+                            self.assertTrue(calendar.navigation.isVisible())
+                            grid=calendar.findChild(QTableView,'qt_calendar_calendarview')
+                            self.assertEqual(grid.rowAt(0),0)
+                            self.assertEqual(grid.verticalScrollBar().maximum(),0)
+                            for control in (calendar.previous_month,calendar.month,calendar.year,calendar.next_month):
+                                self.assertGreater(control.width(),0)
+                                self.assertTrue(calendar.navigation.rect().contains(control.geometry()))
+                            calendar.year.setCurrentIndex(calendar.year.findData(today.year()+2))
+                            calendar.month.setCurrentIndex(calendar.month.findData(12))
+                            self.assertEqual((calendar.yearShown(),calendar.monthShown()),(today.year()+2,12))
+                            self.assertFalse(calendar.next_month.isEnabled())
+                            QTest.mouseClick(calendar.previous_month,Qt.LeftButton)
+                            self.assertEqual(calendar.monthShown(),11)
+                            QTest.mouseClick(calendar.next_month,Qt.LeftButton)
+                            self.assertEqual(calendar.monthShown(),12)
+                            QTest.mouseClick(calendar.year,Qt.LeftButton)
+                            self.assertTrue(calendar.year.view().isVisible())
+                            QTest.keyClick(calendar.year.view(),Qt.Key_Escape)
+                            self.assertTrue(calendar.isVisible())
+                            original=picker.date()
+                            model=grid.model()
+                            day=next(model.index(row,column)
+                                     for row in range(1,model.rowCount()) for column in range(model.columnCount())
+                                     if str(model.index(row,column).data())=='15')
+                            QTest.mouseClick(grid.viewport(),Qt.LeftButton,pos=grid.visualRect(day).center())
+                            self.assertEqual(picker.date(),QDate(today.year()+2,12,15))
                             self.assertFalse(calendar.isVisible())
+                            picker.setDate(original)
                 page.period.setCurrentIndex(0)
                 self.assertTrue(page.date_controls.isHidden())
                 self.assertNotIn('date_range',discover.call_args.kwargs)

@@ -2,10 +2,10 @@
 from datetime import datetime
 from contextlib import closing
 from pathlib import Path
-from PyQt5.QtCore import QDate,Qt,QThread,pyqtSignal,QEvent,QTimer
-from PyQt5.QtGui import QColor,QPalette,QPixmap
+from PyQt5.QtCore import QDate,QLocale,QSignalBlocker,Qt,QThread,pyqtSignal,QEvent,QTimer
+from PyQt5.QtGui import QColor,QPalette,QPixmap,QTextCharFormat
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QDateEdit,QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QComboBox,QGridLayout,QTableWidget,QTableWidgetItem,QHeaderView,QCheckBox,QSizePolicy
+from PyQt5.QtWidgets import QCalendarWidget,QDateEdit,QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QScrollArea,QWidget,QFrame,QComboBox,QGridLayout,QTableWidget,QTableWidgetItem,QHeaderView,QCheckBox,QSizePolicy
 from app.ui.components.message_boxes import AppMessageBox as QMessageBox
 from app import db
 from app.core import release_news as news
@@ -39,6 +39,56 @@ class NewsArtwork(QThread):
                         if name:self.banner_ready.emit(media['id'],load_cached_image(COVERS_DIR/name))
         except (InterruptedError,ValueError,OSError):pass
         except Exception as error:self.failed.emit(str(error))
+
+class PremiereCalendar(QCalendarWidget):
+    """Date grid with explicit month and year selectors for release discovery."""
+    def __init__(self, minimum, maximum):
+        super().__init__()
+        self.setDateRange(minimum, maximum)
+        self.setNavigationBarVisible(False)
+        self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
+        self.navigation = QWidget()
+        self.navigation.setObjectName('premiere_calendar_navigation')
+        controls = QHBoxLayout(self.navigation)
+        controls.setContentsMargins(8, 8, 8, 8)
+        self.previous_month = QPushButton('‹')
+        self.next_month = QPushButton('›')
+        self.month = QComboBox()
+        self.year = QComboBox()
+        for button, name, action in ((self.previous_month, 'Previous month', self.showPreviousMonth),
+                                     (self.next_month, 'Next month', self.showNextMonth)):
+            button.setAccessibleName(name)
+            button.setToolTip(name)
+            button.setAutoDefault(False)
+            button.clicked.connect(action)
+        self.month.setAccessibleName('Premiere month')
+        self.year.setAccessibleName('Premiere year')
+        for month in range(1, 13):
+            self.month.addItem(self.locale().standaloneMonthName(month, QLocale.LongFormat), month)
+        for year in range(minimum.year(), maximum.year() + 1):
+            self.year.addItem(str(year), year)
+        controls.addWidget(self.previous_month)
+        controls.addWidget(self.month, 1)
+        controls.addWidget(self.year)
+        controls.addWidget(self.next_month)
+        self.layout().insertWidget(0, self.navigation)
+        self.currentPageChanged.connect(self._sync_controls)
+        self.month.currentIndexChanged.connect(self._select_month)
+        self.year.currentIndexChanged.connect(self._select_month)
+        self._sync_controls(self.yearShown(), self.monthShown())
+
+    def _sync_controls(self, year, month):
+        year_blocker = QSignalBlocker(self.year)
+        month_blocker = QSignalBlocker(self.month)
+        self.year.setCurrentIndex(self.year.findData(year))
+        self.month.setCurrentIndex(month - 1)
+        first = QDate(year, month, 1)
+        self.previous_month.setEnabled(first > self.minimumDate())
+        self.next_month.setEnabled(first.addMonths(1) <= self.maximumDate())
+
+    def _select_month(self):
+        self.setCurrentPage(self.year.currentData(), self.month.currentData())
+
 
 class ReleaseNewsPage(QDialog):
     full_page=True
@@ -107,10 +157,12 @@ class ReleaseNewsPage(QDialog):
         group=QWidget();row=QHBoxLayout(group);row.setContentsMargins(0,0,0,0)
         label=QLabel(label_text);picker=QDateEdit(initial_date)
         year=QDate.currentDate().year()
-        picker.setDateRange(QDate(year-2,1,1),QDate(year+2,12,31))
+        minimum,maximum=QDate(year-2,1,1),QDate(year+2,12,31)
+        picker.setDateRange(minimum,maximum)
         picker.setDisplayFormat('dd MMM yyyy')
         picker.setKeyboardTracking(False)
         picker.setCalendarPopup(True)
+        picker.setCalendarWidget(PremiereCalendar(minimum,maximum))
         picker.setAccessibleName('Premiere start date' if label_text=='From' else 'Premiere end date')
         label.setBuddy(picker);row.addWidget(label);row.addWidget(picker)
         layout.addWidget(group)
@@ -134,6 +186,8 @@ class ReleaseNewsPage(QDialog):
                 QDateEdit::down-arrow {{ image: url("{arrow}"); width: {px(16)}px; height: {px(16)}px; }}
             ''')
             calendar=picker.calendarWidget()
+            calendar.setMinimumSize(px(370),px(260))
+            calendar.month.setMinimumWidth(px(136))
             palette=QPalette(calendar.palette())
             for role,token in ((QPalette.Window,'panel'),(QPalette.Base,'panel'),
                                (QPalette.AlternateBase,'raised'),(QPalette.Button,'raised'),
@@ -142,12 +196,21 @@ class ReleaseNewsPage(QDialog):
                                (QPalette.HighlightedText,'on_coral')):
                 palette.setColor(role,QColor(c[token]))
             calendar.setPalette(palette)
+            header=QTextCharFormat();header.setForeground(QColor(c['text']));header.setBackground(QColor(c['raised']))
+            calendar.setHeaderTextFormat(header)
+            weekday=QTextCharFormat();weekday.setForeground(QColor(c['text']))
+            calendar.setWeekdayTextFormat(Qt.Saturday,weekday)
+            calendar.setWeekdayTextFormat(Qt.Sunday,weekday)
             calendar.setStyleSheet(f'''
-                QCalendarWidget QWidget#qt_calendar_navigationbar {{ background: {c['raised']}; }}
-                QCalendarWidget QToolButton {{ color: {c['text']}; background: {c['raised']}; }}
-                QCalendarWidget QToolButton:hover {{ background: {c['panel']}; }}
-                QCalendarWidget QAbstractItemView {{ color: {c['text']}; background: {c['panel']};
+                QWidget#premiere_calendar_navigation {{ background: {c['raised']}; }}
+                QWidget#premiere_calendar_navigation QPushButton {{ color: {c['text']}; background: {c['panel']};
+                    border: 1px solid {c['line']}; border-radius: {px(7)}px; font-size: {px(22)}px;
+                    min-width: {px(34)}px; min-height: {px(34)}px; padding: 0; }}
+                QWidget#premiere_calendar_navigation QPushButton:hover {{ border-color: {c['coral']}; }}
+                QWidget#premiere_calendar_navigation QPushButton:disabled {{ color: {c['muted']}; background: {c['raised']}; }}
+                QTableView#qt_calendar_calendarview {{ color: {c['text']}; background: {c['panel']}; border: 0; border-radius: 0;
                     selection-background-color: {c['coral']}; selection-color: {c['on_coral']}; }}
+                QTableView#qt_calendar_calendarview::item {{ padding: 0; border: 0; }}
             ''')
 
     def _uses_custom_range(self):

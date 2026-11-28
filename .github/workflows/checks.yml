@@ -65,8 +65,26 @@ jobs:
           $compiler = Get-Command ISCC.exe -ErrorAction SilentlyContinue
           $iscc = if ($compiler) { $compiler.Source } else { Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe' }
           python build_exe.py --installer --iscc "$iscc"
-      - name: Smoke-test packaged executable
-        run: python scripts/verify_windows_build.py --report dist/frozen-package-check.json
+      - name: Test a clean installation and in-place upgrade
+        shell: pwsh
+        run: |
+          $setups = @(Get-ChildItem 'dist/installer/*.exe')
+          if ($setups.Count -ne 1) { throw 'Expected exactly one installer' }
+          $setup = $setups[0]
+          $destination = Join-Path $env:RUNNER_TEMP 'Anime Vault install check'
+          $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOICONS', ('/DIR="{0}"' -f $destination)) -join ' '
+          $first = Start-Process -FilePath $setup.FullName -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+          if ($first.ExitCode -ne 0) { throw "Clean install failed with code $($first.ExitCode)" }
+          $exe = Join-Path $destination 'AnimeVault.exe'
+          $sentinel = [datetime]::new(2000, 1, 1, 0, 0, 0, [DateTimeKind]::Utc)
+          [IO.File]::SetLastWriteTimeUtc($exe, $sentinel)
+          $upgrade = Start-Process -FilePath $setup.FullName -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS' -WindowStyle Hidden -Wait -PassThru
+          if ($upgrade.ExitCode -ne 0) { throw "In-place update failed with code $($upgrade.ExitCode)" }
+          if ([IO.File]::GetLastWriteTimeUtc($exe) -eq $sentinel) { throw 'Setup did not update the original installation folder' }
+          $appVersion = (Get-Item $exe).VersionInfo.ProductVersion
+          $setupVersion = $setup.VersionInfo.ProductVersion.Trim()
+          if ($appVersion -ne $setupVersion) { throw "Installed version $appVersion differs from installer version $setupVersion" }
+          python scripts/verify_windows_build.py --payload "$destination" --report dist/frozen-package-check.json
       - uses: actions/upload-artifact@v4
         with:
           name: AnimeVault-windows-x64
