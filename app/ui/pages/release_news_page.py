@@ -114,20 +114,20 @@ class ReleaseNewsPage(QDialog):
         self.presets_button.clicked.connect(lambda:preset_menu(self));heading.addWidget(self.presets_button)
         refresh=QPushButton('Refresh release details' if media_id else 'Check new animes');self.refresh_button=refresh;refresh.setProperty('accent',True);refresh.clicked.connect(lambda:self.load(True));heading.addWidget(refresh);layout.addLayout(heading)
         controls=QHBoxLayout()
-        self.period=QComboBox();self.period.addItems(['Released in the last 30 days','Upcoming in the next 90 days','Announced · date may be unknown']);self.period.setAccessibleName('Release period');self.period.setVisible(not media_id);controls.addWidget(self.period)
-        self.sort=TagPicker('Sort releases',multiple=False);self.sort.addItems(['Premiere: newest first','Premiere: earliest first','English title A–Z','Most popular']);self.sort.setAccessibleName('Sort releases');self.sort.setVisible(not media_id);self.sort.currentIndexChanged.connect(self.reset);controls.addWidget(self.sort)
-        self.broadcast_filter=QComboBox();self.broadcast_filter.addItems(['All broadcasts','Aired episodes','Scheduled episodes','Airing today','In my library','Missing locally']);self.broadcast_filter.setVisible(bool(media_id));self.broadcast_filter.currentIndexChanged.connect(self.refilter);controls.addWidget(self.broadcast_filter)
+        self.period=QComboBox(self);self.period.addItems(['Released in the last 30 days','Upcoming in the next 90 days','Announced · date may be unknown']);self.period.setAccessibleName('Release period');self.period.setVisible(not media_id);controls.addWidget(self.period)
+        self.sort=TagPicker('Sort releases',multiple=False,parent=self);self.sort.addItems(['Premiere: newest first','Premiere: earliest first','English title A–Z','Most popular']);self.sort.setAccessibleName('Sort releases');self.sort.setVisible(not media_id);self.sort.currentIndexChanged.connect(self.reset);controls.addWidget(self.sort)
+        self.broadcast_filter=QComboBox(self);self.broadcast_filter.addItems(['All broadcasts','Aired episodes','Scheduled episodes','Airing today','In my library','Missing locally']);self.broadcast_filter.setVisible(bool(media_id));self.broadcast_filter.currentIndexChanged.connect(self.refilter);controls.addWidget(self.broadcast_filter)
         controls.addStretch();layout.addLayout(controls)
         if not media_id:
             self.period.addItem('Custom premiere dates…','custom')
-            self.date_controls=QWidget()
+            self.date_controls=QWidget(self)
             dates=FlowLayout(self.date_controls)
             self.premiere_from=self._add_premiere_date(dates,'From',QDate.currentDate().addDays(-30))
             self.premiere_to=self._add_premiere_date(dates,'To',QDate.currentDate())
             layout.addWidget(self.date_controls)
             self.date_controls.hide()
             self._style_premiere_dates()
-        self.discovery_filters=QWidget();self.discovery_filters.setObjectName('transfer_clear');filters=FlowLayout(self.discovery_filters)
+        self.discovery_filters=QWidget(self);self.discovery_filters.setObjectName('transfer_clear');filters=FlowLayout(self.discovery_filters)
         from app.ui.components.taxonomy_panel import TaxonomyPicker
         self.genre_filter=TaxonomyPicker('Genres',self);self.genre_filter.addItem('All genres',None)
         for value in news.GENRES:self.genre_filter.addItem(value,value)
@@ -163,6 +163,10 @@ class ReleaseNewsPage(QDialog):
         picker.setKeyboardTracking(False)
         picker.setCalendarPopup(True)
         picker.setCalendarWidget(PremiereCalendar(minimum,maximum))
+        # The outer date editor owns the border and padding. Its visible text
+        # field must stay clear of the theme's standalone search-input styling.
+        picker.lineEdit().setObjectName('premiere_date_text')
+        picker.lineEdit().setProperty('quietAction',True)
         picker.setAccessibleName('Premiere start date' if label_text=='From' else 'Premiere end date')
         label.setBuddy(picker);row.addWidget(label);row.addWidget(picker)
         layout.addWidget(group)
@@ -184,6 +188,9 @@ class ReleaseNewsPage(QDialog):
                 QDateEdit::drop-down {{ subcontrol-origin: padding;
                     subcontrol-position: top right; width: {px(30)}px; border: 0; }}
                 QDateEdit::down-arrow {{ image: url("{arrow}"); width: {px(16)}px; height: {px(16)}px; }}
+                QLineEdit#premiere_date_text {{ color: {c['text']}; background: transparent;
+                    border: 0; margin: 0; padding: 0; min-width: 0; min-height: 0;
+                    selection-background-color: {c['coral']}; selection-color: {c['on_coral']}; }}
             ''')
             calendar=picker.calendarWidget()
             calendar.setMinimumSize(px(370),px(260))

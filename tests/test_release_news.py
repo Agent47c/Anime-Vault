@@ -43,6 +43,28 @@ class ReleaseNewsTests(unittest.TestCase):
             with self.assertRaises(ValueError):news.discover(date_range=dates[::-1])
             request.assert_called_once()
 
+    def test_release_controls_never_show_as_separate_windows_during_construction(self):
+        from PyQt5.QtCore import QObject, QEvent
+        from PyQt5.QtWidgets import QApplication, QWidget
+        from app.ui.pages.release_news_page import ReleaseNewsPage
+        appeared=[]
+        class WindowTrace(QObject):
+            def eventFilter(self,widget,event):
+                if event.type()==QEvent.Show and isinstance(widget,QWidget) and widget.isWindow():
+                    appeared.append(widget.metaObject().className())
+                return False
+        app=QApplication.instance()
+        trace=WindowTrace()
+        app.installEventFilter(trace)
+        try:
+            with patch.object(ReleaseNewsPage,'load'):
+                for media_id in (None,7):
+                    page=ReleaseNewsPage(media_id=media_id)
+                    page.deleteLater()
+            self.assertEqual(appeared,[])
+        finally:
+            app.removeEventFilter(trace)
+
     def test_custom_premiere_controls_fit_all_themes_and_only_apply_to_discovery(self):
         from PyQt5.QtCore import QDate, QPoint, Qt
         from PyQt5.QtTest import QTest
@@ -80,6 +102,10 @@ class ReleaseNewsTests(unittest.TestCase):
                         self.assertTrue(page.date_controls.rect().contains(start_rect))
                         self.assertTrue(page.date_controls.rect().contains(end_rect))
                         for picker in (start,end):
+                            editor=picker.lineEdit()
+                            self.assertEqual(editor.text(),picker.date().toString(picker.displayFormat()))
+                            self.assertIsNone(editor.graphicsEffect())
+                            self.assertGreaterEqual(editor.width(),editor.fontMetrics().horizontalAdvance(editor.text()))
                             calendar=picker.calendarWidget()
                             QTest.mouseClick(picker,Qt.LeftButton,pos=QPoint(picker.width()-12,picker.height()//2))
                             self.assertTrue(calendar.isVisible())
@@ -109,6 +135,7 @@ class ReleaseNewsTests(unittest.TestCase):
                                      if str(model.index(row,column).data())=='15')
                             QTest.mouseClick(grid.viewport(),Qt.LeftButton,pos=grid.visualRect(day).center())
                             self.assertEqual(picker.date(),QDate(today.year()+2,12,15))
+                            self.assertEqual(editor.text(),picker.date().toString(picker.displayFormat()))
                             self.assertFalse(calendar.isVisible())
                             picker.setDate(original)
                 page.period.setCurrentIndex(0)

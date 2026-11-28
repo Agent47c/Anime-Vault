@@ -3,6 +3,7 @@
 ## 1.2.3 — 28 November 2026
 
 - Browse past and upcoming premieres using inclusive custom date ranges in New Anime Releases. The calendar pickers show separate month and year selectors, previous and next arrows, and a full day grid in all four themes.
+- Keep release filters inside the New Anime Releases page as it opens, and show the selected dates in both range fields.
 - Keep the Updates removal dialog's actions readable and clickable, with separate choices for keeping local files or reviewing them for the Recycle Bin.
 - Wait for the built-in downloader to save progress and exit when closing from the window or tray, so its running process does not block a Windows upgrade.
 - Detect existing Windows installations and offer an in-place update or a choice of installation folder.
